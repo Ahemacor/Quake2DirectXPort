@@ -1,0 +1,8 @@
+*.ncb
+*.suo
+*.user
+*Debug
+*Release
+*.vs
+*.obj
+*.pdb
