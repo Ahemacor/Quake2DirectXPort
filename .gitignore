@@ -3,7 +3,9 @@
 *.user
 *Debug
 *Release
+*save
 *.vs
 *.obj
 *.pdb
 *.exe
+*.cfg
