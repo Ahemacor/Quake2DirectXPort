@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // draw.c
 
 #include "r_local.h"
-
+#include "CppWrapper.h"
 
 typedef struct drawpolyvert_s {
 	float position[2];
@@ -109,10 +109,12 @@ void Draw_CreateBuffers (void)
 		ndx[5] = i + 3;
 	}
 
-	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, NULL, &d3d_DrawVertexes);
+	//d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, NULL, &d3d_DrawVertexes);
+    GetDevice()->lpVtbl->CreateBuffer(GetDevice(), &vbDesc, NULL, &d3d_DrawVertexes);
 	D_CacheObject ((ID3D11DeviceChild *) d3d_DrawIndexes, "d3d_DrawIndexes");
 
-	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &ibDesc, &srd, &d3d_DrawIndexes);
+	//d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &ibDesc, &srd, &d3d_DrawIndexes);
+    GetDevice()->lpVtbl->CreateBuffer(GetDevice(), &ibDesc, &srd, &d3d_DrawIndexes);
 	D_CacheObject ((ID3D11DeviceChild *) d3d_DrawVertexes, "d3d_DrawVertexes");
 
 	ri.Load_FreeMemory ();
@@ -156,7 +158,8 @@ void Draw_InitLocal (void)
 	};
 
 	// cbuffers
-	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbDrawDesc, NULL, &d3d_DrawConstants);
+	//d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbDrawDesc, NULL, &d3d_DrawConstants);
+    GetDevice()->lpVtbl->CreateBuffer(GetDevice(), &cbDrawDesc, NULL, &d3d_DrawConstants);
 	D_RegisterConstantBuffer (d3d_DrawConstants, 0);
 
 	// shaders
@@ -196,7 +199,8 @@ void Draw_UpdateConstants (int scrflags)
 	consts.ConScale[0] = (float) vid.conwidth / (float) vid.width;
 	consts.ConScale[1] = (float) vid.conheight / (float) vid.height;
 
-	d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_DrawConstants, 0, NULL, &consts, 0, 0);
+	//d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_DrawConstants, 0, NULL, &consts, 0, 0);
+    GetDeviceContext()->lpVtbl->UpdateSubresource(GetDeviceContext(), (ID3D11Resource*)d3d_DrawConstants, 0, NULL, &consts, 0, 0);
 }
 
 
@@ -204,7 +208,8 @@ void Draw_Flush (void)
 {
 	if (d_drawverts)
 	{
-		d3d_Context->lpVtbl->Unmap (d3d_Context, (ID3D11Resource *) d3d_DrawVertexes, 0);
+		//d3d_Context->lpVtbl->Unmap (d3d_Context, (ID3D11Resource *) d3d_DrawVertexes, 0);
+        GetDeviceContext()->lpVtbl->Unmap(GetDeviceContext(), (ID3D11Resource*)d3d_DrawVertexes, 0);
 		d_drawverts = NULL;
 	}
 
@@ -212,12 +217,14 @@ void Draw_Flush (void)
 
 	if (d_numdrawverts == 3)
 	{
-		d3d_Context->lpVtbl->Draw (d3d_Context, d_numdrawverts, d_firstdrawvert);
+		//d3d_Context->lpVtbl->Draw (d3d_Context, d_numdrawverts, d_firstdrawvert);
+        GetDeviceContext()->lpVtbl->Draw(GetDeviceContext(), d_numdrawverts, d_firstdrawvert);
 	}
 	else if (d_numdrawverts > 3)
 	{
 		D_BindIndexBuffer (d3d_DrawIndexes, DXGI_FORMAT_R16_UINT);
-		d3d_Context->lpVtbl->DrawIndexed (d3d_Context, (d_numdrawverts >> 2) * 6, 0, d_firstdrawvert);
+		//d3d_Context->lpVtbl->DrawIndexed (d3d_Context, (d_numdrawverts >> 2) * 6, 0, d_firstdrawvert);
+        GetDeviceContext()->lpVtbl->DrawIndexed(GetDeviceContext(), (d_numdrawverts >> 2) * 6, 0, d_firstdrawvert);
 	}
 
 	d_firstdrawvert += d_numdrawverts;
@@ -240,7 +247,8 @@ qboolean Draw_EnsureBufferSpace (void)
 		D3D11_MAP mode = (d_firstdrawvert > 0) ? D3D11_MAP_WRITE_NO_OVERWRITE : D3D11_MAP_WRITE_DISCARD;
 		D3D11_MAPPED_SUBRESOURCE msr;
 
-		if (FAILED (d3d_Context->lpVtbl->Map (d3d_Context, (ID3D11Resource *) d3d_DrawVertexes, 0, mode, 0, &msr)))
+		//if (FAILED (d3d_Context->lpVtbl->Map (d3d_Context, (ID3D11Resource *) d3d_DrawVertexes, 0, mode, 0, &msr)))
+        if (FAILED(GetDeviceContext()->lpVtbl->Map(GetDeviceContext(), (ID3D11Resource*)d3d_DrawVertexes, 0, mode, 0, &msr)))
 			return false;
 		else d_drawverts = (drawpolyvert_t *) msr.pData + d_firstdrawvert;
 	}
@@ -505,7 +513,8 @@ void Draw_FadeScreen (void)
 	D_BindShaderBundle (d3d_DrawFadescreenShader);
 
 	// full-screen triangle
-	d3d_Context->lpVtbl->Draw (d3d_Context, 3, 0);
+	//d3d_Context->lpVtbl->Draw (d3d_Context, 3, 0);
+    GetDeviceContext()->lpVtbl->Draw(GetDeviceContext(), 3, 0);
 }
 
 
@@ -600,7 +609,8 @@ void R_Set2D (void)
 {
 	// switch to our 2d viewport
 	D3D11_VIEWPORT vp = {0, 0, vid.width, vid.height, 0, 0};
-	d3d_Context->lpVtbl->RSSetViewports (d3d_Context, 1, &vp);
+	//d3d_Context->lpVtbl->RSSetViewports (d3d_Context, 1, &vp);
+    GetDeviceContext()->lpVtbl->RSSetViewports(GetDeviceContext(), 1, &vp);
 }
 
 

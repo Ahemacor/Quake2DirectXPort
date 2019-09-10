@@ -18,6 +18,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
+#ifndef R_MODEL_H
+#define R_MODEL_H
+
 /*
 
 d*_t structures are on-disk representations
@@ -253,3 +256,4 @@ void Mod_AddLeafsToPVS (model_t *mod, byte *vis);
 
 extern	mleaf_t	*r_viewleaf, *r_oldviewleaf;
 
+#endif // R_MODEL_H

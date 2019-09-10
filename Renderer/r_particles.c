@@ -19,6 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include "r_local.h"
+#include "CppWrapper.h"
 
 static int d3d_ParticleCircleShader;
 static int d3d_ParticleSquareShader;
@@ -49,7 +50,8 @@ void R_InitParticles (void)
 		0
 	};
 
-	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, NULL, &d3d_ParticleVertexes);
+	//d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, NULL, &d3d_ParticleVertexes);
+    GetDevice()->lpVtbl->CreateBuffer(GetDevice(), &vbDesc, NULL, &d3d_ParticleVertexes);
 	D_CacheObject ((ID3D11DeviceChild *) d3d_ParticleVertexes, "d3d_ParticleVertexes");
 
 	// creating a square shader even though we don't currently use it
@@ -73,15 +75,18 @@ void R_DrawParticles (void)
 		mode = D3D11_MAP_WRITE_DISCARD;
 	}
 
-	if (SUCCEEDED (d3d_Context->lpVtbl->Map (d3d_Context, (ID3D11Resource *) d3d_ParticleVertexes, 0, mode, 0, &msr)))
+	//if (SUCCEEDED (d3d_Context->lpVtbl->Map (d3d_Context, (ID3D11Resource *) d3d_ParticleVertexes, 0, mode, 0, &msr)))
+    if (SUCCEEDED(GetDeviceContext()->lpVtbl->Map(GetDeviceContext(), (ID3D11Resource*)d3d_ParticleVertexes, 0, mode, 0, &msr)))
 	{
 		// copy over the particles and unmap the buffer
 		memcpy ((particle_t *) msr.pData + r_FirstParticle, r_newrefdef.particles, r_newrefdef.num_particles * sizeof (particle_t));
-		d3d_Context->lpVtbl->Unmap (d3d_Context, (ID3D11Resource *) d3d_ParticleVertexes, 0);
+		//d3d_Context->lpVtbl->Unmap (d3d_Context, (ID3D11Resource *) d3d_ParticleVertexes, 0);
+        GetDeviceContext()->lpVtbl->Unmap(GetDeviceContext(), (ID3D11Resource*)d3d_ParticleVertexes, 0);
 
 		// go to points for the geometry shader
 		// (we could alternatively attach an index buffer with indices 0|0|0|1|1|1|2|2|2 etc, and do triangle-to-quad expansion, which would be hellishly cute)
-		d3d_Context->lpVtbl->IASetPrimitiveTopology (d3d_Context, D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+		//d3d_Context->lpVtbl->IASetPrimitiveTopology (d3d_Context, D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+        GetDeviceContext()->lpVtbl->IASetPrimitiveTopology(GetDeviceContext(), D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 
 		// square particles can potentially expose a faster path by not using alpha blending
 		// but we might wish to add particle fade at some time so we can't do it (note: all particles in Q2 have fade)
@@ -90,10 +95,12 @@ void R_DrawParticles (void)
 		D_BindVertexBuffer (6, d3d_ParticleVertexes, sizeof (particle_t), 0);
 
 		// and draw it
-		d3d_Context->lpVtbl->Draw (d3d_Context, r_newrefdef.num_particles, r_FirstParticle);
+		//d3d_Context->lpVtbl->Draw (d3d_Context, r_newrefdef.num_particles, r_FirstParticle);
+        GetDeviceContext()->lpVtbl->Draw(GetDeviceContext(), r_newrefdef.num_particles, r_FirstParticle);
 
 		// back to triangles
-		d3d_Context->lpVtbl->IASetPrimitiveTopology (d3d_Context, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		//d3d_Context->lpVtbl->IASetPrimitiveTopology (d3d_Context, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        GetDeviceContext()->lpVtbl->IASetPrimitiveTopology(GetDeviceContext(), D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		// and go to the next particle batch
 		r_FirstParticle += r_newrefdef.num_particles;

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include "r_local.h"
-
+#include "CppWrapper.h"
 
 typedef struct spritepolyvert_s {
 	float XYOffset[2];
@@ -88,7 +88,8 @@ static void D_CreateSpriteBufferSet (model_t *mod, dsprite_t *psprite)
 	}
 
 	// create the new vertex buffer
-	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, &srd, &set->PolyVerts);
+	//d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, &srd, &set->PolyVerts);
+    GetDevice()->lpVtbl->CreateBuffer(GetDevice(), &vbDesc, &srd, &set->PolyVerts);
 	ri.Load_FreeMemory ();
 }
 
@@ -171,7 +172,8 @@ void R_InitSprites (void)
 
 	d3d_SpriteShader = D_CreateShaderBundle (IDR_SPRITESHADER, "SpriteVS", NULL, "SpritePS", DEFINE_LAYOUT (layout));
 
-	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &ibDesc, &srd, &d3d_SpriteIndexes);
+	//d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &ibDesc, &srd, &d3d_SpriteIndexes);
+    GetDevice()->lpVtbl->CreateBuffer(GetDevice(), &ibDesc, &srd, &d3d_SpriteIndexes);
 	D_CacheObject ((ID3D11DeviceChild *) d3d_SpriteIndexes, "d3d_SpriteIndexes");
 }
 
@@ -222,7 +224,8 @@ void R_DrawSpriteModel (entity_t *e, QMATRIX *localmatrix)
 	D_BindVertexBuffer (5, d3d_SpriteBuffers[mod->bufferset].PolyVerts, sizeof (spritepolyvert_t), 0);
 	D_BindIndexBuffer (d3d_SpriteIndexes, DXGI_FORMAT_R16_UINT);
 
-	d3d_Context->lpVtbl->DrawIndexed (d3d_Context, 6, 0, framenum * 4);
+	//d3d_Context->lpVtbl->DrawIndexed (d3d_Context, 6, 0, framenum * 4);
+    GetDeviceContext()->lpVtbl->DrawIndexed(GetDeviceContext(), 6, 0, framenum * 4);
 }
 
 

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include "r_local.h"
-
+#include "CppWrapper.h"
 
 
 char	skyname[MAX_QPATH];
@@ -61,7 +61,8 @@ void R_SetupSky (QMATRIX *SkyMatrix)
 		R_MatrixTranslate (SkyMatrix, -r_newrefdef.vieworg[0], -r_newrefdef.vieworg[1], -r_newrefdef.vieworg[2]);
 
 		// sky goes to slot 4
-		d3d_Context->lpVtbl->PSSetShaderResources (d3d_Context, 4, 1, &r_SkyCubemap.SRV);
+		//d3d_Context->lpVtbl->PSSetShaderResources (d3d_Context, 4, 1, &r_SkyCubemap.SRV);
+        GetDeviceContext()->lpVtbl->PSSetShaderResources(GetDeviceContext(), 4, 1, &r_SkyCubemap.SRV);
 	}
 	else R_MatrixIdentity (SkyMatrix);
 }

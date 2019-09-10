@@ -20,6 +20,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // q_shared.h -- included first by ALL program modules
 
+#ifndef Q_SHARED_H
+#define Q_SHARED_H
+
 #pragma warning(disable : 4244)     // MIPS
 #pragma warning(disable : 4136)     // X86
 #pragma warning(disable : 4051)     // ALPHA
@@ -1145,3 +1148,4 @@ typedef struct player_state_s
 	short		stats[MAX_STATS];		// fast status bar updates
 } player_state_t;
 
+#endif // Q_SHARED_H

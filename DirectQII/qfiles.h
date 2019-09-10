@@ -23,6 +23,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // This file must be identical in the quake and utils directories
 //
 
+#ifndef QFILES_H
+#define QFILES_H
+
 /*
 ========================================================================
 
@@ -438,3 +441,4 @@ typedef struct darea_s {
 	int		firstareaportal;
 } darea_t;
 
+#endif // QFILES_H

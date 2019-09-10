@@ -89,6 +89,12 @@
     <ClCompile Include="r_warp.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CppWrapper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\DirectQII\anorms.h">
@@ -113,6 +119,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\DirectQII\resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CppWrapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -15,6 +15,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "r_local.h"
 #include <D3Dcompiler.h>
+#include "CppWrapper.h"
 
 // needed for the shader compiler
 // pD3DCompile is defined in D3Dcompiler.h so we don't need to typedef it ourselves
@@ -207,15 +208,14 @@ int D_CreateShaderBundle (int resourceID, const char *vsentry, const char *gsent
 		{
 			if (vsBlob)
 			{
-				d3d_Device->lpVtbl->CreateVertexShader (
-					d3d_Device, (DWORD *) vsBlob->lpVtbl->GetBufferPointer (vsBlob), vsBlob->lpVtbl->GetBufferSize (vsBlob), NULL, &sb->VertexShader
-				);
+				//d3d_Device->lpVtbl->CreateVertexShader (d3d_Device, (DWORD *) vsBlob->lpVtbl->GetBufferPointer (vsBlob), vsBlob->lpVtbl->GetBufferSize (vsBlob), NULL, &sb->VertexShader);
+                GetDevice()->lpVtbl->CreateVertexShader(GetDevice(), (DWORD*)vsBlob->lpVtbl->GetBufferPointer(vsBlob), vsBlob->lpVtbl->GetBufferSize(vsBlob), NULL, &sb->VertexShader);
 
 				// allowed to be NULL for drawing without buffers
 				if (layout && numlayout)
 				{
-					d3d_Device->lpVtbl->CreateInputLayout (
-						d3d_Device, layout, numlayout, vsBlob->lpVtbl->GetBufferPointer (vsBlob), vsBlob->lpVtbl->GetBufferSize (vsBlob), &sb->InputLayout);
+					//d3d_Device->lpVtbl->CreateInputLayout(d3d_Device, layout, numlayout, vsBlob->lpVtbl->GetBufferPointer (vsBlob), vsBlob->lpVtbl->GetBufferSize (vsBlob), &sb->InputLayout);
+                    GetDevice()->lpVtbl->CreateInputLayout(GetDevice(), layout, numlayout, vsBlob->lpVtbl->GetBufferPointer(vsBlob), vsBlob->lpVtbl->GetBufferSize(vsBlob), &sb->InputLayout);
 				}
 
 				vsBlob->lpVtbl->Release (vsBlob);
@@ -237,9 +237,8 @@ int D_CreateShaderBundle (int resourceID, const char *vsentry, const char *gsent
 		{
 			if (gsBlob)
 			{
-				d3d_Device->lpVtbl->CreateGeometryShader (
-					d3d_Device, (DWORD *) gsBlob->lpVtbl->GetBufferPointer (gsBlob), gsBlob->lpVtbl->GetBufferSize (gsBlob), NULL, &sb->GeometryShader
-				);
+				//d3d_Device->lpVtbl->CreateGeometryShader (d3d_Device, (DWORD *) gsBlob->lpVtbl->GetBufferPointer (gsBlob), gsBlob->lpVtbl->GetBufferSize (gsBlob), NULL, &sb->GeometryShader);
+                GetDevice()->lpVtbl->CreateGeometryShader(GetDevice(), (DWORD*)gsBlob->lpVtbl->GetBufferPointer(gsBlob), gsBlob->lpVtbl->GetBufferSize(gsBlob), NULL, &sb->GeometryShader);
 
 				gsBlob->lpVtbl->Release (gsBlob);
 			}
@@ -260,9 +259,8 @@ int D_CreateShaderBundle (int resourceID, const char *vsentry, const char *gsent
 		{
 			if (psBlob)
 			{
-				d3d_Device->lpVtbl->CreatePixelShader (
-					d3d_Device, (DWORD *) psBlob->lpVtbl->GetBufferPointer (psBlob), psBlob->lpVtbl->GetBufferSize (psBlob), NULL, &sb->PixelShader
-				);
+				//d3d_Device->lpVtbl->CreatePixelShader(d3d_Device, (DWORD *) psBlob->lpVtbl->GetBufferPointer (psBlob), psBlob->lpVtbl->GetBufferSize (psBlob), NULL, &sb->PixelShader);
+                GetDevice()->lpVtbl->CreatePixelShader(GetDevice(), (DWORD*)psBlob->lpVtbl->GetBufferPointer(psBlob), psBlob->lpVtbl->GetBufferSize(psBlob), NULL, &sb->PixelShader);
 
 				psBlob->lpVtbl->Release (psBlob);
 			}
@@ -295,25 +293,29 @@ void D_BindShaderBundle (int sb)
 
 	if (oldil != d3d_Shaders[sb].InputLayout)
 	{
-		d3d_Context->lpVtbl->IASetInputLayout (d3d_Context, d3d_Shaders[sb].InputLayout);
+		//d3d_Context->lpVtbl->IASetInputLayout (d3d_Context, d3d_Shaders[sb].InputLayout);
+        GetDeviceContext()->lpVtbl->IASetInputLayout(GetDeviceContext(), d3d_Shaders[sb].InputLayout);
 		oldil = d3d_Shaders[sb].InputLayout;
 	}
 
 	if (oldvs != d3d_Shaders[sb].VertexShader)
 	{
-		d3d_Context->lpVtbl->VSSetShader (d3d_Context, d3d_Shaders[sb].VertexShader, NULL, 0);
+		//d3d_Context->lpVtbl->VSSetShader (d3d_Context, d3d_Shaders[sb].VertexShader, NULL, 0);
+        GetDeviceContext()->lpVtbl->VSSetShader(GetDeviceContext(), d3d_Shaders[sb].VertexShader, NULL, 0);
 		oldvs = d3d_Shaders[sb].VertexShader;
 	}
 
 	if (oldgs != d3d_Shaders[sb].GeometryShader)
 	{
-		d3d_Context->lpVtbl->GSSetShader (d3d_Context, d3d_Shaders[sb].GeometryShader, NULL, 0);
+		//d3d_Context->lpVtbl->GSSetShader (d3d_Context, d3d_Shaders[sb].GeometryShader, NULL, 0);
+        GetDeviceContext()->lpVtbl->GSSetShader(GetDeviceContext(), d3d_Shaders[sb].GeometryShader, NULL, 0);
 		oldgs = d3d_Shaders[sb].GeometryShader;
 	}
 
 	if (oldps != d3d_Shaders[sb].PixelShader)
 	{
-		d3d_Context->lpVtbl->PSSetShader (d3d_Context, d3d_Shaders[sb].PixelShader, NULL, 0);
+		//d3d_Context->lpVtbl->PSSetShader (d3d_Context, d3d_Shaders[sb].PixelShader, NULL, 0);
+        GetDeviceContext()->lpVtbl->PSSetShader(GetDeviceContext(), d3d_Shaders[sb].PixelShader, NULL, 0);
 		oldps = d3d_Shaders[sb].PixelShader;
 	}
 }
@@ -341,8 +343,11 @@ void D_RegisterConstantBuffer (ID3D11Buffer *cBuffer, int slot)
 void D_BindConstantBuffers (void)
 {
 	// d3d_MaxCBufferSlot is 0-based so add 1 for the actual number
-	d3d_Context->lpVtbl->VSSetConstantBuffers (d3d_Context, 0, d3d_MaxCBufferSlot + 1, d3d_ConstantBuffers);
-	d3d_Context->lpVtbl->GSSetConstantBuffers (d3d_Context, 0, d3d_MaxCBufferSlot + 1, d3d_ConstantBuffers);
-	d3d_Context->lpVtbl->PSSetConstantBuffers (d3d_Context, 0, d3d_MaxCBufferSlot + 1, d3d_ConstantBuffers);
+	//d3d_Context->lpVtbl->VSSetConstantBuffers (d3d_Context, 0, d3d_MaxCBufferSlot + 1, d3d_ConstantBuffers);
+    GetDeviceContext()->lpVtbl->VSSetConstantBuffers(GetDeviceContext(), 0, d3d_MaxCBufferSlot + 1, d3d_ConstantBuffers);
+	//d3d_Context->lpVtbl->GSSetConstantBuffers (d3d_Context, 0, d3d_MaxCBufferSlot + 1, d3d_ConstantBuffers);
+    GetDeviceContext()->lpVtbl->GSSetConstantBuffers(GetDeviceContext(), 0, d3d_MaxCBufferSlot + 1, d3d_ConstantBuffers);
+	//d3d_Context->lpVtbl->PSSetConstantBuffers (d3d_Context, 0, d3d_MaxCBufferSlot + 1, d3d_ConstantBuffers);
+    GetDeviceContext()->lpVtbl->PSSetConstantBuffers(GetDeviceContext(), 0, d3d_MaxCBufferSlot + 1, d3d_ConstantBuffers);
 }
 

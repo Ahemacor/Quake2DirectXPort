@@ -35,6 +35,7 @@ GLimp_Shutdown
 #include <assert.h>
 #include <windows.h>
 #include "r_local.h"
+#include "CppWrapper.h"
 
 #pragma comment (lib, "d3d11.lib")
 #pragma comment (lib, "dxgi.lib")
@@ -53,12 +54,12 @@ MAIN OBJECTS
 */
 
 // main d3d objects
-ID3D11Device *d3d_Device = NULL;
-ID3D11DeviceContext *d3d_Context = NULL;
-IDXGISwapChain *d3d_SwapChain = NULL;
+//ID3D11Device *d3d_Device = NULL;
+//ID3D11DeviceContext *d3d_Context = NULL;
+//IDXGISwapChain *d3d_SwapChain = NULL;
 
-ID3D11RenderTargetView *d3d_RenderTarget = NULL;
-ID3D11DepthStencilView *d3d_DepthBuffer = NULL;
+//ID3D11RenderTargetView *d3d_RenderTarget = NULL;
+//ID3D11DepthStencilView *d3d_DepthBuffer = NULL;
 
 
 /*
@@ -580,17 +581,19 @@ rserr_t GLimp_SetMode (int *pwidth, int *pheight, int mode, qboolean fullscreen)
 	return rserr_ok;
 }
 
-
 void GLimp_ClearToBlack (void)
 {
 	float clearColor[] = {0, 0, 0, 0};
 
 	// clear to black
-	d3d_Context->lpVtbl->ClearRenderTargetView (d3d_Context, d3d_RenderTarget, clearColor);
+	//d3d_Context->lpVtbl->ClearRenderTargetView (d3d_Context, d3d_RenderTarget, clearColor);
+    GetDeviceContext()->lpVtbl->ClearRenderTargetView(GetDeviceContext(), GetRTV(), clearColor);
 
 	// and run a present to make them show
-	d3d_Context->lpVtbl->OMSetRenderTargets (d3d_Context, 1, &d3d_RenderTarget, d3d_DepthBuffer);
-	d3d_SwapChain->lpVtbl->Present (d3d_SwapChain, 0, 0);
+	//d3d_Context->lpVtbl->OMSetRenderTargets (d3d_Context, 1, &d3d_RenderTarget, d3d_DepthBuffer);
+    GetDeviceContext()->lpVtbl->OMSetRenderTargets(GetDeviceContext(), 1, GetRTVAddr(), GetDSV());
+	//d3d_SwapChain->lpVtbl->Present (d3d_SwapChain, 0, 0);
+    GetSwapchain()->lpVtbl->Present(GetSwapchain(), 0, 0);
 
 	// ensure that the window paints
 	ri.SendKeyEvents ();
@@ -610,21 +613,26 @@ for the window.  The state structure is also nulled out.
 */
 void GLimp_Shutdown (void)
 {
-	if (d3d_Device && d3d_SwapChain && d3d_Context)
+	//if (d3d_Device && d3d_SwapChain && d3d_Context)
+    if (GetDevice() && GetSwapchain() && GetDeviceContext())
 	{
 		if (glw_state.fullscreen)
 		{
 			// DXGI prohibits destruction of a swapchain when in a fullscreen mode so go back to windowed first
-			d3d_SwapChain->lpVtbl->SetFullscreenState (d3d_SwapChain, FALSE, NULL);
+			//d3d_SwapChain->lpVtbl->SetFullscreenState (d3d_SwapChain, FALSE, NULL);
+            GetSwapchain()->lpVtbl->SetFullscreenState(GetSwapchain(), FALSE, NULL);
 			glw_state.fullscreen = false;
 		}
 
 		GLimp_ClearToBlack ();
 
 		// finally chuck out all cached state in the context
-		d3d_Context->lpVtbl->OMSetRenderTargets (d3d_Context, 0, NULL, NULL);
-		d3d_Context->lpVtbl->ClearState (d3d_Context);
-		d3d_Context->lpVtbl->Flush (d3d_Context);
+		//d3d_Context->lpVtbl->OMSetRenderTargets (d3d_Context, 0, NULL, NULL);
+        GetDeviceContext()->lpVtbl->OMSetRenderTargets(GetDeviceContext(), 0, NULL, NULL);
+		//d3d_Context->lpVtbl->ClearState (d3d_Context);
+        GetDeviceContext()->lpVtbl->ClearState(GetDeviceContext());
+		//d3d_Context->lpVtbl->Flush (d3d_Context);
+        GetDeviceContext()->lpVtbl->Flush(GetDeviceContext());
 	}
 
 	// handle special objects
@@ -641,12 +649,13 @@ void GLimp_Shutdown (void)
 	D_ReleaseObjectCache ();
 
 	// destroy main objects
-	SAFE_RELEASE (d3d_DepthBuffer);
+	/*SAFE_RELEASE (d3d_DepthBuffer);
 	SAFE_RELEASE (d3d_RenderTarget);
 
 	SAFE_RELEASE (d3d_SwapChain);
 	SAFE_RELEASE (d3d_Context);
-	SAFE_RELEASE (d3d_Device);
+	SAFE_RELEASE (d3d_Device);*/
+    Release();
 
 	if (glw_state.hWnd)
 	{
@@ -686,7 +695,8 @@ void GLimp_CreateFrameBuffer (void)
 	D3D11_TEXTURE2D_DESC descDepth;
 
 	// Get a pointer to the back buffer
-	if (FAILED (d3d_SwapChain->lpVtbl->GetBuffer (d3d_SwapChain, 0, &IID_ID3D11Texture2D, (LPVOID *) &pBackBuffer)))
+	//if (FAILED (d3d_SwapChain->lpVtbl->GetBuffer (d3d_SwapChain, 0, &IID_ID3D11Texture2D, (LPVOID *) &pBackBuffer)))
+    if (FAILED(GetSwapchain()->lpVtbl->GetBuffer(GetSwapchain(), 0, &IID_ID3D11Texture2D, (LPVOID*)& pBackBuffer)))
 	{
 		ri.Sys_Error (ERR_FATAL, "d3d_SwapChain->GetBuffer failed");
 		return;
@@ -696,7 +706,8 @@ void GLimp_CreateFrameBuffer (void)
 	pBackBuffer->lpVtbl->GetDesc (pBackBuffer, &descRT);
 
 	// Create a render-target view
-	d3d_Device->lpVtbl->CreateRenderTargetView (d3d_Device, (ID3D11Resource *) pBackBuffer, NULL, &d3d_RenderTarget);
+	//d3d_Device->lpVtbl->CreateRenderTargetView (d3d_Device, (ID3D11Resource *) pBackBuffer, NULL, &d3d_RenderTarget);
+    GetDevice()->lpVtbl->CreateRenderTargetView(GetDevice(), (ID3D11Resource*)pBackBuffer, NULL, GetRTVAddr());
 	pBackBuffer->lpVtbl->Release (pBackBuffer);
 
 	// create the depth buffer with the same dimensions and multisample levels as the backbuffer
@@ -715,10 +726,14 @@ void GLimp_CreateFrameBuffer (void)
 	descDepth.MiscFlags = 0;
 
 	// and create it
-	if (SUCCEEDED (d3d_Device->lpVtbl->CreateTexture2D (d3d_Device, &descDepth, NULL, &pDepthStencil)))
+	//if (SUCCEEDED (d3d_Device->lpVtbl->CreateTexture2D (d3d_Device, &descDepth, NULL, &pDepthStencil)))
+    if (SUCCEEDED(GetDevice()->lpVtbl->CreateTexture2D(GetDevice(), &descDepth, NULL, &pDepthStencil)))
 	{
 		// Create the depth stencil view
-		d3d_Device->lpVtbl->CreateDepthStencilView (d3d_Device, (ID3D11Resource *) pDepthStencil, NULL, &d3d_DepthBuffer);
+		//d3d_Device->lpVtbl->CreateDepthStencilView (d3d_Device, (ID3D11Resource *) pDepthStencil, NULL, &d3d_DepthBuffer);
+        ID3D11DepthStencilView* pDSV = NULL;
+        GetDevice()->lpVtbl->CreateDepthStencilView(GetDevice(), (ID3D11Resource*)pDepthStencil, NULL, &pDSV);
+        SetDSV(pDSV);
 		pDepthStencil->lpVtbl->Release (pDepthStencil);
 	}
 
@@ -763,6 +778,9 @@ qboolean GLimp_InitGL (int modenum)
 	sd.Windowed = TRUE;
 
 	// now we try to create it
+    ID3D11Device* pDevice = NULL;
+    ID3D11DeviceContext* pDeviceContext = NULL;
+    IDXGISwapChain* pSwapchain = NULL;
 	if (FAILED (D3D11CreateDeviceAndSwapChain (
 		NULL,
 		D3D_DRIVER_TYPE_HARDWARE,
@@ -772,17 +790,21 @@ qboolean GLimp_InitGL (int modenum)
 		sizeof (FeatureLevels) / sizeof (FeatureLevels[0]),
 		D3D11_SDK_VERSION,
 		&sd,
-		&d3d_SwapChain,
-		&d3d_Device,
+		&pSwapchain,
+		&pDevice,
 		NULL,
-		&d3d_Context)))
+		&pDeviceContext)))
 	{
 		ri.Sys_Error (ERR_FATAL, "D3D11CreateDeviceAndSwapChain failed");
 		return false;
 	}
+    SetDevice(pDevice);
+    SetDeviceContext(pDeviceContext);
+    SetSwapchain(pSwapchain);
 
 	// now we disable stuff that we want to handle ourselves
-	if (SUCCEEDED (d3d_SwapChain->lpVtbl->GetParent (d3d_SwapChain, &IID_IDXGIFactory, (void **) &pFactory)))
+	//if (SUCCEEDED (d3d_SwapChain->lpVtbl->GetParent (d3d_SwapChain, &IID_IDXGIFactory, (void **) &pFactory)))
+    if (SUCCEEDED(GetSwapchain()->lpVtbl->GetParent(GetSwapchain(), &IID_IDXGIFactory, (void**)& pFactory)))
 	{
 		pFactory->lpVtbl->MakeWindowAssociation (pFactory, glw_state.hWnd, DXGI_MWA_NO_WINDOW_CHANGES | DXGI_MWA_NO_ALT_ENTER);
 		pFactory->lpVtbl->Release (pFactory);
@@ -790,7 +812,8 @@ qboolean GLimp_InitGL (int modenum)
 
 	// now we switch to fullscreen after the device, context and swapchain are created, but before we create the rendertargets, so that we don't need to respond to WM_SIZE
 	if (glw_state.fullscreen)
-		d3d_SwapChain->lpVtbl->SetFullscreenState (d3d_SwapChain, TRUE, NULL);
+        GetSwapchain()->lpVtbl->SetFullscreenState(GetSwapchain(), TRUE, NULL);
+		//d3d_SwapChain->lpVtbl->SetFullscreenState (d3d_SwapChain, TRUE, NULL);
 
 	// create the initial frame buffer that we're going to use for all of our rendering
 	GLimp_CreateFrameBuffer ();
@@ -882,7 +905,8 @@ void GLimp_BeginFrame (viddef_t *vd, int scrflags)
 	Draw_UpdateConstants (scrflags);
 
 	// everything in all draws is drawn as an indexed triangle list, even if it's ultimately a strip or a single tri, so this can be set-and-forget once per frame
-	d3d_Context->lpVtbl->IASetPrimitiveTopology (d3d_Context, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	//d3d_Context->lpVtbl->IASetPrimitiveTopology (d3d_Context, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    GetDeviceContext()->lpVtbl->IASetPrimitiveTopology(GetDeviceContext(), D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// bind buffers and samplers that will remain bound for the duration of the frame
 	D_BindSamplers ();
@@ -911,10 +935,13 @@ void GLimp_EndFrame (int scrflags)
 	if (scrflags & SCR_NO_PRESENT)
 		return;
 	else if (scrflags & SCR_NO_VSYNC)
-		d3d_SwapChain->lpVtbl->Present (d3d_SwapChain, 0, 0);
+		//d3d_SwapChain->lpVtbl->Present (d3d_SwapChain, 0, 0);
+        GetSwapchain()->lpVtbl->Present(GetSwapchain(), 0, 0);
 	else if (vid_vsync->value)
-		d3d_SwapChain->lpVtbl->Present (d3d_SwapChain, 1, 0);
-	else d3d_SwapChain->lpVtbl->Present (d3d_SwapChain, 0, 0);
+		//d3d_SwapChain->lpVtbl->Present (d3d_SwapChain, 1, 0);
+        GetSwapchain()->lpVtbl->Present(GetSwapchain(), 1, 0);
+	else //d3d_SwapChain->lpVtbl->Present (d3d_SwapChain, 0, 0);
+        GetSwapchain()->lpVtbl->Present(GetSwapchain(), 0, 0);
 }
 
 

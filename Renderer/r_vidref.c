@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include "r_local.h"
-
+#include "CppWrapper.h"
 
 extern vidmenu_t vid_modedata;
 
@@ -249,6 +249,8 @@ refexport_t GetRefAPI (refimport_t rimp)
 	re.CaptureScreenshot = D_CaptureScreenshot;
 
 	Swap_Init ();
+
+    Init();
 
 	// set up the refresh heap for allocations that live as long as the refresh;
 	// first of all, if one existed from a previous refresh, destroy it

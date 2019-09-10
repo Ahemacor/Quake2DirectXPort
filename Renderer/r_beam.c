@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include "r_local.h"
-
+#include "CppWrapper.h"
 
 typedef struct beampolyvert_s {
 	// this exists so that i don't get confused over what the actual count of verts is
@@ -44,7 +44,8 @@ void R_CreateBeamVertexBuffer (D3D11_SUBRESOURCE_DATA *vbSrd)
 		0
 	};
 
-	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, vbSrd, &d3d_BeamVertexes);
+	//d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, vbSrd, &d3d_BeamVertexes);
+    GetDevice()->lpVtbl->CreateBuffer(GetDevice(), &vbDesc, vbSrd, &d3d_BeamVertexes);
 }
 
 
@@ -73,7 +74,8 @@ void R_CreateBeamIndexBuffer (void)
 		ndx[2] = (i & 1) ? (i - 1) : i;
 	}
 
-	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &ibDesc, &srd, &d3d_BeamIndexes);
+	//d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &ibDesc, &srd, &d3d_BeamIndexes);
+    GetDevice()->lpVtbl->CreateBuffer(GetDevice(), &ibDesc, &srd, &d3d_BeamIndexes);
 }
 
 
@@ -169,7 +171,8 @@ void R_DrawBeam (entity_t *e, QMATRIX *localmatrix)
 		D_BindVertexBuffer (7, d3d_BeamVertexes, sizeof (beampolyvert_t), 0);
 		D_BindIndexBuffer (d3d_BeamIndexes, DXGI_FORMAT_R16_UINT);
 
-		d3d_Context->lpVtbl->DrawIndexed (d3d_Context, r_numbeamindexes, 0, 0);
+		//d3d_Context->lpVtbl->DrawIndexed (d3d_Context, r_numbeamindexes, 0, 0);
+        GetDeviceContext()->lpVtbl->DrawIndexed(GetDeviceContext(), r_numbeamindexes, 0, 0);
 	}
 }
 

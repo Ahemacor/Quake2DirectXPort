@@ -18,6 +18,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
+#ifndef R_LOCAL_H
+#define R_LOCAL_H
+
 #include <windows.h>
 #include <stdio.h>
 #include <math.h>
@@ -35,12 +38,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // main objects
-extern ID3D11Device *d3d_Device;
-extern ID3D11DeviceContext *d3d_Context;
-extern IDXGISwapChain *d3d_SwapChain;
+//extern ID3D11Device *d3d_Device;
+//extern ID3D11DeviceContext *d3d_Context;
+//extern IDXGISwapChain *d3d_SwapChain;
 
-extern ID3D11RenderTargetView *d3d_RenderTarget;
-extern ID3D11DepthStencilView *d3d_DepthBuffer;
+//extern ID3D11RenderTargetView *d3d_RenderTarget;
+//extern ID3D11DepthStencilView *d3d_DepthBuffer;
 
 // cacheable objects are persistent for the run of the app and may be stored here for disposal on shutdown
 void D_CacheObject (ID3D11DeviceChild *Object, const char *name);
@@ -548,3 +551,4 @@ void R_ReleaseTBuffer (tbuffer_t *t);
 
 void R_CopyScreen (rendertarget_t *dst);
 
+#endif // R_LOCAL_H

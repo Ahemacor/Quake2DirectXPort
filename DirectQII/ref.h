@@ -18,6 +18,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
+#ifndef REF_H
+#define REF_H
+
 #ifdef RENDERER
 #include "q_shared.h"
 #include "qfiles.h"
@@ -267,3 +270,4 @@ typedef struct refimport_s
 // this is the only function actually exported at the linker level
 refexport_t GetRefAPI (refimport_t rimp);
 
+#endif // REF_H

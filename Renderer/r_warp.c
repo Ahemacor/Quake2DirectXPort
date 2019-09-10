@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include "r_local.h"
-
+#include "CppWrapper.h"
 
 static int d3d_WaterWarpShader;
 texture_t r_WarpNoise;
@@ -66,26 +66,28 @@ qboolean D_BeginWaterWarp (void)
 	if (r_newrefdef.rdflags & RDF_UNDERWATER)
 	{
 		// underwater warped
-		d3d_Context->lpVtbl->OMSetRenderTargets (d3d_Context, 1, &r_WaterWarpRT.RTV, d3d_DepthBuffer);
-		R_Clear (r_WaterWarpRT.RTV, d3d_DepthBuffer);
+		//d3d_Context->lpVtbl->OMSetRenderTargets (d3d_Context, 1, &r_WaterWarpRT.RTV, d3d_DepthBuffer);
+        GetDeviceContext()->lpVtbl->OMSetRenderTargets(GetDeviceContext(), 1, &r_WaterWarpRT.RTV, GetDSV());
+		R_Clear (r_WaterWarpRT.RTV, GetDSV());
 		return true;
 	}
 	else
 	{
 		// normal, unwarped scene
-		R_Clear (d3d_RenderTarget, d3d_DepthBuffer);
+		R_Clear (GetRTV(), GetDSV());
 		return false;
 	}
 }
 
-
 void D_DoWaterWarp (void)
 {
 	// revert the original RTs
-	d3d_Context->lpVtbl->OMSetRenderTargets (d3d_Context, 1, &d3d_RenderTarget, d3d_DepthBuffer);
+	//d3d_Context->lpVtbl->OMSetRenderTargets (d3d_Context, 1, &d3d_RenderTarget, d3d_DepthBuffer);
+    GetDeviceContext()->lpVtbl->OMSetRenderTargets(GetDeviceContext(), 1, GetRTVAddr(), GetDSV());
 
 	// noise goes to slot 5
-	d3d_Context->lpVtbl->PSSetShaderResources (d3d_Context, 5, 1, &r_WarpNoise.SRV);
+	//d3d_Context->lpVtbl->PSSetShaderResources (d3d_Context, 5, 1, &r_WarpNoise.SRV);
+    GetDeviceContext()->lpVtbl->PSSetShaderResources(GetDeviceContext(), 5, 1, &r_WarpNoise.SRV);
 
 	// and draw it
 	D_BindShaderBundle (d3d_WaterWarpShader);
@@ -95,7 +97,8 @@ void D_DoWaterWarp (void)
 	R_BindTexture (r_WaterWarpRT.SRV);
 
 	// full-screen triangle
-	d3d_Context->lpVtbl->Draw (d3d_Context, 3, 0);
+	//d3d_Context->lpVtbl->Draw (d3d_Context, 3, 0);
+    GetDeviceContext()->lpVtbl->Draw(GetDeviceContext(), 3, 0);
 }
 
 

@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // r_light.c
 
 #include "r_local.h"
+#include "CppWrapper.h"
 
 // starting the count at 1 so that a memset-0 doesn't mark surfaces
 int	r_dlightframecount = 1;
@@ -291,7 +292,8 @@ void R_InitLight (void)
 		0
 	};
 
-	d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbDLightDesc, NULL, &d3d_DLightConstants);
+	//d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbDLightDesc, NULL, &d3d_DLightConstants);
+    GetDevice()->lpVtbl->CreateBuffer(GetDevice(), &cbDLightDesc, NULL, &d3d_DLightConstants);
 	D_RegisterConstantBuffer (d3d_DLightConstants, 4);
 
 	R_CreateTBuffer (&d3d_LightStyles, NULL, MAX_LIGHTSTYLES, sizeof (float), DXGI_FORMAT_R32_FLOAT, D3D11_USAGE_DEFAULT);
@@ -512,11 +514,14 @@ void R_BindLightmaps (void)
 
 	// optionally update lightstyles (this can be NULL)
 	if (r_newrefdef.lightstyles)
-		d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_LightStyles.Buffer, 0, NULL, r_newrefdef.lightstyles, 0, 0);
+        GetDeviceContext()->lpVtbl->UpdateSubresource(GetDeviceContext(), (ID3D11Resource*)d3d_LightStyles.Buffer, 0, NULL, r_newrefdef.lightstyles, 0, 0);
+		//d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_LightStyles.Buffer, 0, NULL, r_newrefdef.lightstyles, 0, 0);
 
 	// and set them all
-	d3d_Context->lpVtbl->VSSetShaderResources (d3d_Context, 0, 3, VertexSRVs);
-	d3d_Context->lpVtbl->PSSetShaderResources (d3d_Context, 1, 3, LightmapSRVs);
+	//d3d_Context->lpVtbl->VSSetShaderResources (d3d_Context, 0, 3, VertexSRVs);
+    GetDeviceContext()->lpVtbl->VSSetShaderResources(GetDeviceContext(), 0, 3, VertexSRVs);
+	//d3d_Context->lpVtbl->PSSetShaderResources (d3d_Context, 1, 3, LightmapSRVs);
+    GetDeviceContext()->lpVtbl->PSSetShaderResources(GetDeviceContext(), 1, 3, LightmapSRVs);
 }
 
 
@@ -554,7 +559,8 @@ void D_SetupDynamicLight (dlight_t *dl, float *transformedorigin, int rflags)
 	}
 
 	// and update it
-	d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_DLightConstants, 0, NULL, &consts, 0, 0);
+	//d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_DLightConstants, 0, NULL, &consts, 0, 0);
+    GetDeviceContext()->lpVtbl->UpdateSubresource(GetDeviceContext(), (ID3D11Resource*)d3d_DLightConstants, 0, NULL, &consts, 0, 0);
 }
 
 

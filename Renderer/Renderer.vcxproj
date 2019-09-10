@@ -75,11 +75,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\DirectQII\q_shared.c" />
+    <ClCompile Include="CppWrapper.cpp" />
     <ClCompile Include="glw_imp.c" />
     <ClCompile Include="matrix.c" />
     <ClCompile Include="mod_alias.c" />
     <ClCompile Include="mod_brush.c" />
     <ClCompile Include="mod_sprite.c" />
+    <ClCompile Include="RenderWindow.cpp" />
     <ClCompile Include="r_beam.c" />
     <ClCompile Include="r_draw.c" />
     <ClCompile Include="r_image.c" />
@@ -106,7 +108,9 @@
     <ClInclude Include="..\DirectQII\q_shared.h" />
     <ClInclude Include="..\DirectQII\ref.h" />
     <ClInclude Include="..\DirectQII\resource.h" />
+    <ClInclude Include="CppWrapper.h" />
     <ClInclude Include="matrix.h" />
+    <ClInclude Include="RenderWindow.h" />
     <ClInclude Include="r_local.h" />
     <ClInclude Include="r_model.h" />
   </ItemGroup>
