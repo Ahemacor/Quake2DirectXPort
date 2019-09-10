@@ -74,14 +74,14 @@ Video modes are NOT exposed outside of the renderer; if information about a mode
 */
 
 
-DXGI_MODE_DESC *d3d_VideoModes;
-int d3d_NumVideoModes = 0;
+//DXGI_MODE_DESC *d3d_VideoModes;
+//int d3d_NumVideoModes = 0;
 
 // version for the menus
 vidmenu_t vid_modedata;
 
 
-int D_TryEnumerateModes (IDXGIOutput *output, DXGI_MODE_DESC **ModeList, DXGI_FORMAT fmt)
+/*int D_TryEnumerateModes (IDXGIOutput *output, DXGI_MODE_DESC **ModeList, DXGI_FORMAT fmt)
 {
 	UINT NumModes = 0;
 	const UINT EnumFlags = (DXGI_ENUM_MODES_SCALING | DXGI_ENUM_MODES_INTERLACED);
@@ -96,10 +96,10 @@ int D_TryEnumerateModes (IDXGIOutput *output, DXGI_MODE_DESC **ModeList, DXGI_FO
 		else return 0;
 	}
 	else return 0;
-}
+}*/
 
 
-IDXGIOutput *D_GetOutput (IDXGIAdapter *d3d_Adapter)
+/*IDXGIOutput *D_GetOutput (IDXGIAdapter *d3d_Adapter)
 {
 	int i;
 
@@ -134,7 +134,7 @@ IDXGIOutput *D_GetOutput (IDXGIAdapter *d3d_Adapter)
 
 	// not found
 	return NULL;
-}
+}*/
 
 
 float M_VideoGetRefreshRate (DXGI_MODE_DESC *mode)
@@ -172,7 +172,7 @@ char *M_VideoGetScaling (DXGI_MODE_DESC *mode)
 
 void D_EnumerateVideoModes (void)
 {
-	int i, j, biggest;
+	/*int i, j, biggest;
 	IDXGIFactory *pFactory = NULL;
 	IDXGIOutput *d3d_Output = NULL;
 	IDXGIAdapter *d3d_Adapter = NULL;
@@ -261,60 +261,62 @@ void D_EnumerateVideoModes (void)
 		d3d_NumVideoModes++;
 	}
 
-	if (d3d_NumVideoModes < 1)
+	if (d3d_NumVideoModes < 1)*/
+    if (GetModesNumber() == 0)
 		ri.Sys_Error (ERR_FATAL, "Failed to enumerate any usable video modes!");
 
 	// init the video mode data - add 1 to windowed modes for the current values of vid_width and vid_height if required (they may not be)
-	vid_modedata.widths = (int *) HeapAlloc (hRefHeap, HEAP_ZERO_MEMORY, sizeof (int) * (d3d_NumVideoModes + 1));
-	vid_modedata.heights = (int *) HeapAlloc (hRefHeap, HEAP_ZERO_MEMORY, sizeof (int) * (d3d_NumVideoModes + 1));
+	vid_modedata.widths = (int *) HeapAlloc (hRefHeap, HEAP_ZERO_MEMORY, sizeof (int) * (GetModesNumber() + 1));
+	vid_modedata.heights = (int *) HeapAlloc (hRefHeap, HEAP_ZERO_MEMORY, sizeof (int) * (GetModesNumber() + 1));
 
 	// add 1 to fullscreen modes to NULL-terminate the list
-	vid_modedata.fsmodes = (char **) HeapAlloc (hRefHeap, HEAP_ZERO_MEMORY, sizeof (char *) * (d3d_NumVideoModes + 1));
+	vid_modedata.fsmodes = (char **) HeapAlloc (hRefHeap, HEAP_ZERO_MEMORY, sizeof (char *) * (GetModesNumber() + 1));
 
 	vid_modedata.numwidths = 0;
 	vid_modedata.numheights = 0;
 	vid_modedata.numfsmodes = 0;
 
 	// set up widths
-	biggest = 0;
+	int biggest = 0;
 
-	for (i = 0; i < d3d_NumVideoModes; i++)
+	for (int i = 0; i < GetModesNumber(); i++)
 	{
-		if (d3d_VideoModes[i].Width > biggest)
+		if (GetMode(i).Width > biggest)
 		{
-			vid_modedata.widths[vid_modedata.numwidths] = d3d_VideoModes[i].Width;
+			vid_modedata.widths[vid_modedata.numwidths] = GetMode(i).Width;
 			vid_modedata.numwidths++;
-			biggest = d3d_VideoModes[i].Width;
+			biggest = GetMode(i).Width;
 		}
 	}
 
 	// set up heights
 	biggest = 0;
 
-	for (i = 0; i < d3d_NumVideoModes; i++)
+	for (int i = 0; i < GetModesNumber(); i++)
 	{
-		if (d3d_VideoModes[i].Height > biggest)
+		if (GetMode(i).Height > biggest)
 		{
-			vid_modedata.heights[vid_modedata.numheights] = d3d_VideoModes[i].Height;
+			vid_modedata.heights[vid_modedata.numheights] = GetMode(i).Height;
 			vid_modedata.numheights++;
-			biggest = d3d_VideoModes[i].Height;
+			biggest = GetMode(i).Height;
 		}
 	}
 
 	// set up fullscreen modes
-	for (i = 0; i < d3d_NumVideoModes; i++)
+	for (int i = 0; i < GetModesNumber(); i++)
 	{
+        DXGI_MODE_DESC mode = GetMode(i);
 		char *modedesc = va (
 			"[%i %i] %0.1fHz\n%s/%s",
-			d3d_VideoModes[i].Width,
-			d3d_VideoModes[i].Height,
-			M_VideoGetRefreshRate (&d3d_VideoModes[i]),
-			M_VideoGetScanlineOrdering (&d3d_VideoModes[i]),
-			M_VideoGetScaling (&d3d_VideoModes[i])
+            mode.Width,
+            mode.Height,
+			M_VideoGetRefreshRate(&mode),
+			M_VideoGetScanlineOrdering(&mode),
+			M_VideoGetScaling(&mode)
 		);
 
 		vid_modedata.fsmodes[i] = (char *) HeapAlloc (hRefHeap, HEAP_ZERO_MEMORY, strlen (modedesc) + 1);
-		strcpy (vid_modedata.fsmodes[i], modedesc);
+		strcpy(vid_modedata.fsmodes[i], modedesc);
 		vid_modedata.fsmodes[i + 1] = NULL;
 	}
 
@@ -322,21 +324,21 @@ void D_EnumerateVideoModes (void)
 }
 
 
-void D_GetModeInfo (int *width, int *height, int mode)
+/*void D_GetModeInfo (int *width, int *height, int mode)
 {
 	if (vid_fullscreen->value)
 	{
-		if (mode < 0 || mode >= d3d_NumVideoModes)
+		if (mode < 0 || mode >= GetModesNumber())
 		{
 			// select best mode available
-			*width = d3d_VideoModes[d3d_NumVideoModes - 1].Width;
-			*height = d3d_VideoModes[d3d_NumVideoModes - 1].Height;
+			*width = GetMode(GetModesNumber() - 1).Width;
+			*height = GetMode(GetModesNumber() - 1).Height;
 		}
 		else
 		{
 			// select explicit numbered mode
-			*width = d3d_VideoModes[mode].Width;
-			*height = d3d_VideoModes[mode].Height;
+			*width = GetMode(mode).Width;
+			*height = GetMode(mode).Height;
 		}
 	}
 	else
@@ -350,7 +352,7 @@ void D_GetModeInfo (int *width, int *height, int mode)
 			*height = vid_height->value;
 		else *height = 480;
 	}
-}
+}*/
 
 
 /*
@@ -380,7 +382,7 @@ void D_CacheObject (ID3D11DeviceChild *Object, const char *name)
 	{
 		ObjectCache[NumObjectCache].Object = Object;
 		ObjectCache[NumObjectCache].name = (char *) HeapAlloc (hRefHeap, HEAP_ZERO_MEMORY, strlen (name) + 1);
-		strcpy (ObjectCache[NumObjectCache].name, name);
+		strcpy(ObjectCache[NumObjectCache].name, name);
 
 		NumObjectCache++;
 	}
@@ -536,14 +538,15 @@ GLimp_SetMode
 */
 rserr_t GLimp_SetMode (int *pwidth, int *pheight, int mode, qboolean fullscreen)
 {
-	int width, height;
+	//int width, height;
 	const char *win_fs[] = {"W", "FS"};
 
 	ri.Con_Printf (PRINT_ALL, "Initializing display\n");
 	ri.Con_Printf (PRINT_ALL, "...setting mode %d:", mode);
 
-	D_GetModeInfo (&width, &height, mode);
-	ri.Con_Printf (PRINT_ALL, " %d %d %s\n", width, height, win_fs[fullscreen]);
+	//D_GetModeInfo (&width, &height, mode);
+    DXGI_MODE_DESC modeDesc = GetMode(mode);
+	ri.Con_Printf (PRINT_ALL, " %d %d %s\n", modeDesc.Width, modeDesc.Height, win_fs[fullscreen]);
 
 	// destroy the existing window
 	if (glw_state.hWnd)
@@ -557,24 +560,24 @@ rserr_t GLimp_SetMode (int *pwidth, int *pheight, int mode, qboolean fullscreen)
 	{
 		ri.Con_Printf (PRINT_ALL, "...setting fullscreen mode\n");
 
-		*pwidth = width;
-		*pheight = height;
+		*pwidth = modeDesc.Width;
+		*pheight = modeDesc.Height;
 		glw_state.fullscreen = true;
 
 		// if we fail to create a fullscreen mode call recursively to create a windowed mode
-		if (!VID_CreateWindow (width, height, true))
+		if (!VID_CreateWindow (modeDesc.Width, modeDesc.Height, true))
 			return GLimp_SetMode (pwidth, pheight, mode, false);
 	}
 	else
 	{
 		ri.Con_Printf (PRINT_ALL, "...setting windowed mode\n");
 
-		*pwidth = width;
-		*pheight = height;
+		*pwidth = modeDesc.Width;
+		*pheight = modeDesc.Height;
 		glw_state.fullscreen = false;
 
 		// if we fail to create a windowed mode it's an error
-		if (!VID_CreateWindow (width, height, false))
+		if (!VID_CreateWindow (modeDesc.Width, modeDesc.Height, false))
 			return rserr_invalid_mode;
 	}
 
@@ -752,19 +755,26 @@ qboolean GLimp_InitGL (int modenum)
 	memset (&sd, 0, sizeof (sd));
 
 	// set up the mode properly
+    DXGI_MODE_DESC desc = GetMode(GetModesNumber() - 1);
 	if (!glw_state.fullscreen)
 	{
 		RECT cr;
 
 		GetClientRect (glw_state.hWnd, &cr);
-		memcpy (&sd.BufferDesc, &d3d_VideoModes[d3d_NumVideoModes - 1], sizeof (DXGI_MODE_DESC));
+		memcpy (&sd.BufferDesc, &desc, sizeof (DXGI_MODE_DESC));
 
 		sd.BufferDesc.Width = cr.right - cr.left;
 		sd.BufferDesc.Height = cr.bottom - cr.top;
 	}
-	else if (modenum < 0)
-		memcpy (&sd.BufferDesc, &d3d_VideoModes[d3d_NumVideoModes - 1], sizeof (DXGI_MODE_DESC));
-	else memcpy (&sd.BufferDesc, &d3d_VideoModes[modenum], sizeof (DXGI_MODE_DESC));
+    else if (modenum < 0)
+    {
+        memcpy(&sd.BufferDesc, &desc, sizeof(DXGI_MODE_DESC));
+    }
+    else
+    {
+        DXGI_MODE_DESC desc = GetMode(modenum);
+        memcpy(&sd.BufferDesc, &desc, sizeof(DXGI_MODE_DESC));
+    }
 
 	sd.BufferCount = 1;
 	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;

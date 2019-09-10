@@ -91,3 +91,16 @@ ID3D11DepthStencilView* GetDSV()
     assert(g_pRenderWindow != nullptr);
     return g_pRenderWindow->GetDSV();
 }
+
+
+UINT GetModesNumber()
+{
+    assert(g_pRenderWindow != nullptr);
+    return g_pRenderWindow->GetModesNumber();
+}
+
+DXGI_MODE_DESC GetMode(UINT index)
+{
+    assert(g_pRenderWindow != nullptr);
+    return g_pRenderWindow->GetMode(index);
+}

@@ -6,6 +6,27 @@
 #pragma comment (lib, "d3d11.lib")
 #pragma comment (lib, "dxgi.lib")
 
+RenderWindow::RenderWindow()
+{
+    LoadModes();
+}
+
+RenderWindow::~RenderWindow()
+{
+
+}
+
+UINT RenderWindow::GetModesNumber()
+{
+    assert(d3d_VideoModes.size() > 0);
+    return d3d_VideoModes.size();
+}
+
+DXGI_MODE_DESC RenderWindow::GetMode(UINT index)
+{
+    assert(index >=0 && index < d3d_VideoModes.size());
+    return d3d_VideoModes[index];
+}
 
 void RenderWindow::SetDevice(ID3D11Device* pDevice)
 {
@@ -127,8 +148,10 @@ std::vector<DXGI_MODE_DESC> RenderWindow::GetOutputVideoModes(IDXGIOutput* outpu
     return videoModes;
 }
 
-void RenderWindow::GetSuitableVideoModes(const DXGI_MODE_DESC* outModes, UINT* outSize)
+void RenderWindow::LoadModes()
 {
+    d3d_VideoModes.clear();
+
     int i, j, biggest;
     IDXGIAdapter* d3d_Adapter = GetFirstAdapter();
     IDXGIOutput* d3d_Output = GetAdapterOutput(d3d_Adapter);
@@ -193,31 +216,4 @@ void RenderWindow::GetSuitableVideoModes(const DXGI_MODE_DESC* outModes, UINT* o
         // this is a real mode now - copy it out
         d3d_VideoModes.push_back(*mode);
     }
-
-    assert(d3d_VideoModes.size() > 0);
-
-    outModes = d3d_VideoModes.data();
-    *outSize = d3d_VideoModes.size();
-}
-
-int RenderWindow::GetModeWidth(int mode)
-{
-    assert(d3d_VideoModes.size() > 0);
-    if (mode < 0 || mode >= d3d_VideoModes.size())
-    {
-        mode = d3d_VideoModes.size() - 1;
-    }
-
-    return d3d_VideoModes[mode].Width;
-}
-
-int RenderWindow::GetModeHeight(int mode)
-{
-    assert(d3d_VideoModes.size() > 0);
-    if (mode < 0 || mode >= d3d_VideoModes.size())
-    {
-        mode = d3d_VideoModes.size() - 1;
-    }
-
-    return d3d_VideoModes[mode].Height;
 }

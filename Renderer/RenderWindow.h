@@ -12,12 +12,15 @@ struct vidmenu_t;
 class RenderWindow
 {
 public:
+    RenderWindow();
+    ~RenderWindow();
+
     IDXGIAdapter* GetFirstAdapter();
     IDXGIOutput* GetAdapterOutput(IDXGIAdapter* pAdapter);
     std::vector<DXGI_MODE_DESC> GetOutputVideoModes(IDXGIOutput* output, DXGI_FORMAT fmt);
-    void GetSuitableVideoModes(const DXGI_MODE_DESC* outModes, UINT* outSize);
-    int GetModeWidth(int mode);
-    int GetModeHeight(int mode);
+    void LoadModes();
+    UINT GetModesNumber();
+    DXGI_MODE_DESC GetMode(UINT index);
 
     void SetDevice(ID3D11Device* pDevice);
     ID3D11Device* GetDevice();

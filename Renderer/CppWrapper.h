@@ -27,6 +27,10 @@ ID3D11RenderTargetView** GetRTVAddr();
 void SetDSV(ID3D11DepthStencilView* pDSV);
 ID3D11DepthStencilView* GetDSV();
 
+UINT GetModesNumber();
+
+DXGI_MODE_DESC GetMode(UINT index);
+
 #ifdef __cplusplus
 }
 #endif
