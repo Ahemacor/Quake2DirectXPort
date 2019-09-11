@@ -71,6 +71,9 @@ void R_PrepareBeam (entity_t *e, QMATRIX *localmatrix);
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // module registration and object lifecycle
+#ifdef __cplusplus
+extern "C" {
+#endif
 void R_InitMain (void);
 void R_InitShaders (void);
 void R_ShutdownShaders (void);
@@ -90,7 +93,9 @@ void R_ShutdownMesh (void);
 void R_InitBeam (void);
 void R_ShutdownBeam (void);
 void R_InitNull (void);
-
+#ifdef __cplusplus
+}
+#endif
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // helper macros
 #define VDECL(name, index, fmt, slot, steprate) { \
@@ -221,8 +226,8 @@ extern	cvar_t	*r_novis;
 
 extern	cvar_t	*r_lightlevel;	// FIXME: This is a HACK to get the client's light level
 extern	cvar_t	*r_desaturatelighting;
-
 extern	cvar_t	*vid_mode;
+
 extern	cvar_t	*gl_finish;
 extern	cvar_t	*gl_clear;
 extern	cvar_t	*gl_polyblend;
@@ -351,8 +356,8 @@ IMPLEMENTATION SPECIFIC FUNCTIONS
 
 void GLimp_BeginFrame (viddef_t *vd, int scrflags);
 void GLimp_EndFrame (int scrflags);
-int GLimp_Init (void *hinstance, void *wndproc);
-void GLimp_Shutdown (void);
+//int GLimp_Init (void *hinstance, void *wndproc);
+//void GLimp_Shutdown (void);
 int GLimp_SetMode (int *pwidth, int *pheight, int mode, qboolean fullscreen);
 void GLimp_AppActivate (qboolean active);
 

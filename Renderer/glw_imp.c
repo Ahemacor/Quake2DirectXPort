@@ -409,7 +409,7 @@ STOCK CODE CONTINUES
 =========================================================================================================================================================================
 */
 
-qboolean GLimp_InitGL (int modenum);
+/*qboolean GLimp_InitGL (int modenum);
 
 typedef struct glwstate_s
 {
@@ -421,7 +421,7 @@ typedef struct glwstate_s
 } glwstate_t;
 
 glwstate_t glw_state;
-
+*/
 extern cvar_t *vid_fullscreen;
 
 static qboolean VerifyDriver (void)
@@ -435,11 +435,11 @@ static qboolean VerifyDriver (void)
 VID_CreateWindow
 ===============
 */
-#define	WINDOW_CLASS_NAME	"DirectQII"
-#define	WINDOW_STYLE	(WS_OVERLAPPED | WS_BORDER | WS_CAPTION | WS_VISIBLE)
+//#define	WINDOW_CLASS_NAME	"DirectQII"
+//#define	WINDOW_STYLE	(WS_OVERLAPPED | WS_BORDER | WS_CAPTION | WS_VISIBLE)
 
 
-qboolean VID_CreateWindow (int width, int height, qboolean fullscreen)
+/*qboolean VID_CreateWindow (int width, int height, qboolean fullscreen)
 {
 	WNDCLASS		wc;
 	RECT			r;
@@ -448,7 +448,7 @@ qboolean VID_CreateWindow (int width, int height, qboolean fullscreen)
 	int				x, y, w, h;
 	int				exstyle;
 
-	/* Register the frame class */
+	// Register the frame class
 	wc.style = 0;
 	wc.lpfnWndProc = (WNDPROC) glw_state.wndproc;
 	wc.cbClsExtra = 0;
@@ -528,7 +528,7 @@ qboolean VID_CreateWindow (int width, int height, qboolean fullscreen)
 	ri.Vid_NewWindow ();
 
 	return true;
-}
+}*/
 
 
 /*
@@ -545,14 +545,14 @@ rserr_t GLimp_SetMode (int *pwidth, int *pheight, int mode, qboolean fullscreen)
 	ri.Con_Printf (PRINT_ALL, "...setting mode %d:", mode);
 
 	//D_GetModeInfo (&width, &height, mode);
+    SetMode(mode);
     DXGI_MODE_DESC modeDesc = GetMode(mode);
 	ri.Con_Printf (PRINT_ALL, " %d %d %s\n", modeDesc.Width, modeDesc.Height, win_fs[fullscreen]);
 
 	// destroy the existing window
-	if (glw_state.hWnd)
+	if (GetWindowHandle() != NULL)
 	{
-		GLimp_Shutdown ();
-		glw_state.hWnd = NULL;
+        CloseRenderWindow();
 	}
 
 	// do a CDS if needed
@@ -560,12 +560,9 @@ rserr_t GLimp_SetMode (int *pwidth, int *pheight, int mode, qboolean fullscreen)
 	{
 		ri.Con_Printf (PRINT_ALL, "...setting fullscreen mode\n");
 
-		*pwidth = modeDesc.Width;
-		*pheight = modeDesc.Height;
-		glw_state.fullscreen = true;
-
 		// if we fail to create a fullscreen mode call recursively to create a windowed mode
-		if (!VID_CreateWindow (modeDesc.Width, modeDesc.Height, true))
+		//if (!VID_CreateWindow (modeDesc.Width, modeDesc.Height, true))
+        if (!InitWindow(modeDesc.Width, modeDesc.Height, true))
 			return GLimp_SetMode (pwidth, pheight, mode, false);
 	}
 	else
@@ -574,17 +571,18 @@ rserr_t GLimp_SetMode (int *pwidth, int *pheight, int mode, qboolean fullscreen)
 
 		*pwidth = modeDesc.Width;
 		*pheight = modeDesc.Height;
-		glw_state.fullscreen = false;
 
 		// if we fail to create a windowed mode it's an error
-		if (!VID_CreateWindow (modeDesc.Width, modeDesc.Height, false))
+		//if (!VID_CreateWindow (modeDesc.Width, modeDesc.Height, false))
+        if (!InitWindow(modeDesc.Width, modeDesc.Height, false))
 			return rserr_invalid_mode;
 	}
 
+    ri.Vid_NewWindow();
 	return rserr_ok;
 }
 
-void GLimp_ClearToBlack (void)
+/*void GLimp_ClearToBlack (void)
 {
 	float clearColor[] = {0, 0, 0, 0};
 
@@ -601,7 +599,7 @@ void GLimp_ClearToBlack (void)
 	// ensure that the window paints
 	ri.SendKeyEvents ();
 	Sleep (5);
-}
+}*/
 
 
 /*
@@ -614,7 +612,7 @@ HGLRC, deleting the rendering context, and releasing the DC acquired
 for the window.  The state structure is also nulled out.
 ===============
 */
-void GLimp_Shutdown (void)
+/*void GLimp_Shutdown (void)
 {
 	//if (d3d_Device && d3d_SwapChain && d3d_Context)
     if (GetDevice() && GetSwapchain() && GetDeviceContext())
@@ -652,12 +650,12 @@ void GLimp_Shutdown (void)
 	D_ReleaseObjectCache ();
 
 	// destroy main objects
-	/*SAFE_RELEASE (d3d_DepthBuffer);
+	SAFE_RELEASE (d3d_DepthBuffer);
 	SAFE_RELEASE (d3d_RenderTarget);
 
 	SAFE_RELEASE (d3d_SwapChain);
 	SAFE_RELEASE (d3d_Context);
-	SAFE_RELEASE (d3d_Device);*/
+	SAFE_RELEASE (d3d_Device);
     Release();
 
 	if (glw_state.hWnd)
@@ -668,7 +666,7 @@ void GLimp_Shutdown (void)
 	}
 
 	UnregisterClass (WINDOW_CLASS_NAME, glw_state.hInstance);
-}
+}*/
 
 
 /*
@@ -680,16 +678,16 @@ of OpenGL.  Under Win32 this means dealing with the pixelformats and
 doing the wgl interface stuff.
 ===============
 */
-qboolean GLimp_Init (void *hinstance, void *wndproc)
+/*qboolean GLimp_Init (void *hinstance, void *wndproc)
 {
 	glw_state.hInstance = (HINSTANCE) hinstance;
 	glw_state.wndproc = wndproc;
 
 	return true;
-}
+}*/
 
 
-void GLimp_CreateFrameBuffer (void)
+/*void GLimp_CreateFrameBuffer (void)
 {
 	ID3D11Texture2D *pBackBuffer = NULL;
 	D3D11_TEXTURE2D_DESC descRT;
@@ -741,10 +739,10 @@ void GLimp_CreateFrameBuffer (void)
 	}
 
 	GLimp_ClearToBlack ();
-}
+}*/
 
 
-qboolean GLimp_InitGL (int modenum)
+/*qboolean GLimp_InitGL (int modenum)
 {
 	DXGI_SWAP_CHAIN_DESC sd;
 	IDXGIFactory *pFactory = NULL;
@@ -844,7 +842,7 @@ qboolean GLimp_InitGL (int modenum)
 
 	// success
 	return true;
-}
+}*/
 
 static void GLimp_GetGUIScale (void)
 {
@@ -896,7 +894,7 @@ void GLimp_BeginFrame (viddef_t *vd, int scrflags)
 {
 	// get client dimensions
 	RECT cr;
-	GetClientRect (glw_state.hWnd, &cr);
+	GetClientRect (GetWindowHandle(), &cr);
 
 	// setup dimensions for the refresh
 	vid.width = cr.right - cr.left;
@@ -965,13 +963,13 @@ void GLimp_AppActivate (qboolean active)
 	// does DXGI not do this for us????
 	if (active)
 	{
-		SetForegroundWindow (glw_state.hWnd);
-		ShowWindow (glw_state.hWnd, SW_RESTORE);
+		SetForegroundWindow (GetWindowHandle());
+		ShowWindow (GetWindowHandle(), SW_RESTORE);
 	}
 	else
 	{
 		if (vid_fullscreen->value)
-			ShowWindow (glw_state.hWnd, SW_MINIMIZE);
+			ShowWindow (GetWindowHandle(), SW_MINIMIZE);
 	}
 }
 

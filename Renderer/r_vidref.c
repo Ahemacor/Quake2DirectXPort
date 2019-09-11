@@ -121,6 +121,8 @@ R_Init
 */
 int R_Init (void *hinstance, void *wndproc)
 {
+    SetAppProps(hinstance, wndproc);
+
 	ri.Con_Printf (PRINT_ALL, "ref_gl version: "REF_VERSION"\n");
 
 	Draw_GetPalette ();
@@ -130,11 +132,12 @@ int R_Init (void *hinstance, void *wndproc)
 	gl_config.allow_cds = true;
 
 	// initialize OS-specific parts of OpenGL
-	if (!GLimp_Init (hinstance, wndproc))
+	/*if (!GLimp_Init (hinstance, wndproc))
+    if (!GLimp_Init(hinstance, wndproc))
 	{
 		ri.Con_Printf (PRINT_ALL, "ref_gl::R_Init() - could not GLimp_Init()\n");
 		return -1;
-	}
+	}*/
 
 	// set our "safe" modes
 	gl_state.prev_mode = -1;
@@ -174,7 +177,8 @@ void R_Shutdown (void)
 	R_ShutdownImages ();
 
 	// shut down OS specific OpenGL stuff like contexts, etc.
-	GLimp_Shutdown ();
+	//GLimp_Shutdown ();
+    CloseRenderWindow();
 }
 
 
@@ -250,8 +254,6 @@ refexport_t GetRefAPI (refimport_t rimp)
 
 	Swap_Init ();
 
-    Init();
-
 	// set up the refresh heap for allocations that live as long as the refresh;
 	// first of all, if one existed from a previous refresh, destroy it
 	if (hRefHeap)
@@ -262,6 +264,8 @@ refexport_t GetRefAPI (refimport_t rimp)
 
 	// now create the new one we're going to use
 	hRefHeap = HeapCreate (0, 0, 0);
+
+    Init();
 
 	// and done
 	return re;

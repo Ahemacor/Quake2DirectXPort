@@ -5,9 +5,9 @@
 #include "d3dcommon.h"
 #include <d3d11.h>
 #include <wrl/client.h>
+#include <windows.h>
 #include <vector>
-
-struct vidmenu_t;
+#include <string>
 
 class RenderWindow
 {
@@ -38,15 +38,21 @@ public:
     void SetDSV(ID3D11DepthStencilView* pDSV);
     ID3D11DepthStencilView* GetDSV();
 
+    HWND GetWindowHandle();
+
+    void SetAppProps(HINSTANCE hInstance_, WNDPROC wndproc_)
+    {
+        hInstance = hInstance_;
+        wndproc = wndproc_;
+    }
+
+    bool InitDirectX();
+    bool InitWindow(int width, int height, bool fullscreen);
+    void CloseWindow();
+
+    void SetMode(int mode) { currentMode = mode; }
 
 private:
-    /*ID3D11Device* d3d_Device = NULL;
-    ID3D11DeviceContext* d3d_Context = NULL;
-    IDXGISwapChain* d3d_SwapChain = NULL;
-
-    ID3D11RenderTargetView* d3d_RenderTarget = NULL;
-    ID3D11DepthStencilView* d3d_DepthBuffer = NULL;*/
-
     Microsoft::WRL::ComPtr<ID3D11Device> device;
     Microsoft::WRL::ComPtr<ID3D11DeviceContext> deviceContext;
     Microsoft::WRL::ComPtr<IDXGISwapChain> swapchain;
@@ -54,5 +60,15 @@ private:
     Microsoft::WRL::ComPtr<ID3D11DepthStencilView> depthStencilView;
 
     std::vector<DXGI_MODE_DESC> d3d_VideoModes;
+    int currentMode = 0;
+
+    HWND handle = nullptr;
+    HINSTANCE hInstance = nullptr;
+    WNDPROC wndproc = nullptr;
+    std::string window_title = "Quake2 DirectX port";
+    std::string window_class = "Quake2DirectxWindowClass";
+    int width = 0;
+    int height = 0;
+    bool fullscreen = false;
 };
 #endif

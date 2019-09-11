@@ -26,6 +26,30 @@ void Release()
     assert(g_pRenderWindow == nullptr);
 }
 
+void SetAppProps(HINSTANCE hInstance, WNDPROC wndproc)
+{
+    assert(g_pRenderWindow != nullptr);
+    g_pRenderWindow->SetAppProps(hInstance, wndproc);
+}
+
+qboolean InitWindow(int width, int height, qboolean fullscreen)
+{
+    assert(g_pRenderWindow != nullptr);
+    return g_pRenderWindow->InitWindow(width, height, fullscreen);
+}
+
+void CloseRenderWindow()
+{
+    assert(g_pRenderWindow != nullptr);
+    g_pRenderWindow->CloseWindow();
+}
+
+void* GetWindowHandle()
+{
+    assert(g_pRenderWindow != nullptr);
+    return (void*)g_pRenderWindow->GetWindowHandle();
+}
+
 void SetDevice(ID3D11Device* pDevice)
 {
     assert(g_pRenderWindow != nullptr);
@@ -103,4 +127,10 @@ DXGI_MODE_DESC GetMode(UINT index)
 {
     assert(g_pRenderWindow != nullptr);
     return g_pRenderWindow->GetMode(index);
+}
+
+void SetMode(UINT modeIndex)
+{
+    assert(g_pRenderWindow != nullptr);
+    g_pRenderWindow->SetMode(modeIndex);
 }
