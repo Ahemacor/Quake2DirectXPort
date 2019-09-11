@@ -224,25 +224,12 @@ bool RenderWindow::InitDirectX()
     memset(&sd, 0, sizeof(sd));
 
     // set up the mode properly
-    DXGI_MODE_DESC desc = GetMode(GetModesNumber() - 1);
+    DXGI_MODE_DESC desc = GetMode(currentMode);
+    memcpy(&sd.BufferDesc, &desc, sizeof(DXGI_MODE_DESC));
     if (!fullscreen)
     {
-        RECT cr;
-
-        GetClientRect(handle, &cr);
-        memcpy(&sd.BufferDesc, &desc, sizeof(DXGI_MODE_DESC));
-
-        sd.BufferDesc.Width = cr.right - cr.left;
-        sd.BufferDesc.Height = cr.bottom - cr.top;
-    }
-    else if (currentMode < 0)
-    {
-        memcpy(&sd.BufferDesc, &desc, sizeof(DXGI_MODE_DESC));
-    }
-    else
-    {
-        DXGI_MODE_DESC desc = GetMode(currentMode);
-        memcpy(&sd.BufferDesc, &desc, sizeof(DXGI_MODE_DESC));
+        sd.BufferDesc.Width = width;
+        sd.BufferDesc.Height = height;
     }
 
     sd.BufferCount = 1;
@@ -254,12 +241,9 @@ bool RenderWindow::InitDirectX()
     sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
     // always initially create a windowed swapchain at the desired resolution, then switch to fullscreen post-creation if it was requested
-    sd.Windowed = TRUE;
+    sd.Windowed = fullscreen;
 
     // now we try to create it
-    ID3D11Device* pDevice = NULL;
-    ID3D11DeviceContext* pDeviceContext = NULL;
-    IDXGISwapChain* pSwapchain = NULL;
     if (FAILED(D3D11CreateDeviceAndSwapChain(
         NULL,
         D3D_DRIVER_TYPE_HARDWARE,
@@ -269,34 +253,29 @@ bool RenderWindow::InitDirectX()
         sizeof(FeatureLevels) / sizeof(FeatureLevels[0]),
         D3D11_SDK_VERSION,
         &sd,
-        &pSwapchain,
-        &pDevice,
+        swapchain.GetAddressOf(),
+        device.GetAddressOf(),
         NULL,
-        &pDeviceContext)))
+        deviceContext.GetAddressOf())))
     {
         //ri.Sys_Error(ERR_FATAL, "D3D11CreateDeviceAndSwapChain failed");
         return false;
     }
-    device = pDevice;
-    deviceContext = pDeviceContext;
-    swapchain = pSwapchain;
 
     // now we disable stuff that we want to handle ourselves
-    if (SUCCEEDED(swapchain->GetParent(IID_IDXGIFactory, (void**)& pFactory)))
+    /*if (SUCCEEDED(swapchain->GetParent(IID_IDXGIFactory, (void**)& pFactory)))
     {
         pFactory->MakeWindowAssociation(handle, DXGI_MWA_NO_WINDOW_CHANGES | DXGI_MWA_NO_ALT_ENTER);
         pFactory->Release();
-    }
+    }*/
 
     // now we switch to fullscreen after the device, context and swapchain are created, but before we create the rendertargets, so that we don't need to respond to WM_SIZE
-    if (fullscreen)
-        swapchain->SetFullscreenState(TRUE, NULL);
+    swapchain->SetFullscreenState(fullscreen, NULL);
     //d3d_SwapChain->lpVtbl->SetFullscreenState (d3d_SwapChain, TRUE, NULL);
 
     // create the initial frame buffer that we're going to use for all of our rendering
     ID3D11Texture2D* pBackBuffer = NULL;
     D3D11_TEXTURE2D_DESC descRT;
-
     ID3D11Texture2D* pDepthStencil = NULL;
     D3D11_TEXTURE2D_DESC descDepth;
 
@@ -363,13 +342,12 @@ bool RenderWindow::InitDirectX()
     return true;
 }
 
-bool RenderWindow::InitWindow(int width, int height, bool fullscreen)
+bool RenderWindow::InitWindow(int width_, int height_, int mode, bool fullscreen)
 {
-    RECT			rect;
-
-    int				x, y, w, h;
-    int				exstyle;
-
+    width = width_;
+    height = height_;
+    currentMode = mode;
+    
     // Register the frame class 
     WNDCLASS		wc;
     wc.style = 0;
@@ -386,6 +364,7 @@ bool RenderWindow::InitWindow(int width, int height, bool fullscreen)
     if (!RegisterClass(&wc)) exit(-1);
         //ri.Sys_Error(ERR_FATAL, "Couldn't register window class");
 
+    int exstyle = 0;
     int stylebits = 0;
     if (fullscreen)
     {
@@ -398,36 +377,29 @@ bool RenderWindow::InitWindow(int width, int height, bool fullscreen)
         stylebits = WS_OVERLAPPED | WS_BORDER | WS_CAPTION | WS_VISIBLE;
     }
 
+    RECT rect;
     rect.left = 0;
     rect.top = 0;
-    rect.right = width;
-    rect.bottom = height;
-
-    AdjustWindowRect(&rect, stylebits, FALSE);
-
-    w = rect.right - rect.left;
-    h = rect.bottom - rect.top;
-
-    //if (fullscreen)
+    if (fullscreen)
     {
-        x = 0;
-        y = 0;
+        //rect.right = GetSystemMetrics(SM_CXSCREEN);
+        //rect.bottom = GetSystemMetrics(SM_CYSCREEN);
+        rect.right = GetMode(currentMode).Width;
+        rect.bottom = GetMode(currentMode).Height;
     }
-    /*else
+    else
     {
-        cvar_t* vid_xpos, * vid_ypos;
-        vid_xpos = ri.Cvar_Get("vid_xpos", "0", 0, NULL);
-        vid_ypos = ri.Cvar_Get("vid_ypos", "0", 0, NULL);
-        x = vid_xpos->value;
-        y = vid_ypos->value;
-    }*/
+        rect.right = width;
+        rect.bottom = height;
+    }
+    AdjustWindowRect(&rect, stylebits, FALSE);
 
     handle = CreateWindowEx(
         exstyle,
         window_class.c_str(),
         window_title.c_str(),
         stylebits,
-        x, y, w, h,
+        rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top,//x, y, w, h,
         NULL,
         NULL,
         hInstance,

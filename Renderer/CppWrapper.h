@@ -13,7 +13,7 @@ void Init();
 void Release();
 
 void SetAppProps(HINSTANCE hInstance, WNDPROC wndproc);
-qboolean InitWindow(int width, int height, qboolean fullscreen);
+qboolean RWInitWindow(int width, int height, int mode, qboolean fullscreen);
 void CloseRenderWindow();
 
 void* GetWindowHandle();
@@ -33,7 +33,6 @@ ID3D11DepthStencilView* GetDSV();
 
 UINT GetModesNumber();
 DXGI_MODE_DESC GetMode(UINT index);
-void SetMode(UINT modeIndex);
 
 #ifdef __cplusplus
 }

@@ -32,10 +32,10 @@ void SetAppProps(HINSTANCE hInstance, WNDPROC wndproc)
     g_pRenderWindow->SetAppProps(hInstance, wndproc);
 }
 
-qboolean InitWindow(int width, int height, qboolean fullscreen)
+qboolean RWInitWindow(int width, int height, int mode, qboolean fullscreen)
 {
     assert(g_pRenderWindow != nullptr);
-    return g_pRenderWindow->InitWindow(width, height, fullscreen);
+    return g_pRenderWindow->InitWindow(width, height, mode, fullscreen);
 }
 
 void CloseRenderWindow()
@@ -115,10 +115,4 @@ DXGI_MODE_DESC GetMode(UINT index)
 {
     assert(g_pRenderWindow != nullptr);
     return g_pRenderWindow->GetMode(index);
-}
-
-void SetMode(UINT modeIndex)
-{
-    assert(g_pRenderWindow != nullptr);
-    g_pRenderWindow->SetMode(modeIndex);
 }

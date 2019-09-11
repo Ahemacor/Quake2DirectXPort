@@ -220,8 +220,6 @@ rserr_t GLimp_SetMode (int *pwidth, int *pheight, int mode, qboolean fullscreen)
 	ri.Con_Printf (PRINT_ALL, "Initializing display\n");
 	ri.Con_Printf (PRINT_ALL, "...setting mode %d:", mode);
 
-	//D_GetModeInfo (&width, &height, mode);
-    SetMode(mode);
     DXGI_MODE_DESC modeDesc = GetMode(mode);
 	ri.Con_Printf (PRINT_ALL, " %d %d %s\n", modeDesc.Width, modeDesc.Height, win_fs[fullscreen]);
 
@@ -238,19 +236,23 @@ rserr_t GLimp_SetMode (int *pwidth, int *pheight, int mode, qboolean fullscreen)
 
 		// if we fail to create a fullscreen mode call recursively to create a windowed mode
 		//if (!VID_CreateWindow (modeDesc.Width, modeDesc.Height, true))
-        if (!InitWindow(modeDesc.Width, modeDesc.Height, true))
+        if (!RWInitWindow(modeDesc.Width, modeDesc.Height, mode, true))
 			return GLimp_SetMode (pwidth, pheight, mode, false);
 	}
 	else
 	{
 		ri.Con_Printf (PRINT_ALL, "...setting windowed mode\n");
 
-		*pwidth = modeDesc.Width;
-		*pheight = modeDesc.Height;
+        cvar_t* vid_width = NULL;
+        cvar_t* vid_height = NULL;
+        vid_width = ri.Cvar_Get("vid_width", "640", 0, NULL);
+        vid_height = ri.Cvar_Get("vid_height", "480", 0, NULL);
+        modeDesc.Width = vid_width->value;
+        modeDesc.Height = vid_height->value;
 
 		// if we fail to create a windowed mode it's an error
 		//if (!VID_CreateWindow (modeDesc.Width, modeDesc.Height, false))
-        if (!InitWindow(modeDesc.Width, modeDesc.Height, false))
+        if (!RWInitWindow(modeDesc.Width, modeDesc.Height, mode, false))
 			return rserr_invalid_mode;
 	}
 

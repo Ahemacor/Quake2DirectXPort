@@ -45,10 +45,8 @@ public:
     }
 
     bool InitDirectX();
-    bool InitWindow(int width, int height, bool fullscreen);
+    bool InitWindow(int width, int height, int mode, bool fullscreen);
     void CloseWindow();
-
-    void SetMode(int mode) { currentMode = mode; }
 
 private:
     Microsoft::WRL::ComPtr<ID3D11Device> device;
