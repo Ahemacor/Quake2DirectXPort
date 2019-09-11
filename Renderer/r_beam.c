@@ -44,8 +44,7 @@ void R_CreateBeamVertexBuffer (D3D11_SUBRESOURCE_DATA *vbSrd)
 		0
 	};
 
-	//d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, vbSrd, &d3d_BeamVertexes);
-    GetDevice()->lpVtbl->CreateBuffer(GetDevice(), &vbDesc, vbSrd, &d3d_BeamVertexes);
+    RWCreateBuffer(&vbDesc, vbSrd->pSysMem, &d3d_BeamVertexes);
 }
 
 
@@ -74,8 +73,7 @@ void R_CreateBeamIndexBuffer (void)
 		ndx[2] = (i & 1) ? (i - 1) : i;
 	}
 
-	//d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &ibDesc, &srd, &d3d_BeamIndexes);
-    GetDevice()->lpVtbl->CreateBuffer(GetDevice(), &ibDesc, &srd, &d3d_BeamIndexes);
+    RWCreateBuffer(&ibDesc, indexes, &d3d_BeamIndexes);
 }
 
 
@@ -172,7 +170,7 @@ void R_DrawBeam (entity_t *e, QMATRIX *localmatrix)
 		D_BindIndexBuffer (d3d_BeamIndexes, DXGI_FORMAT_R16_UINT);
 
 		//d3d_Context->lpVtbl->DrawIndexed (d3d_Context, r_numbeamindexes, 0, 0);
-        GetDeviceContext()->lpVtbl->DrawIndexed(GetDeviceContext(), r_numbeamindexes, 0, 0);
+        RWGetDeviceContext()->lpVtbl->DrawIndexed(RWGetDeviceContext(), r_numbeamindexes, 0, 0);
 	}
 }
 

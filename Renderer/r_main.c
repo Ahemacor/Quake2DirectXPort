@@ -82,10 +82,8 @@ void R_InitMain (void)
 		0
 	};
 
-	//d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbMainDesc, NULL, &d3d_MainConstants);
-    GetDevice()->lpVtbl->CreateBuffer(GetDevice(), &cbMainDesc, NULL, &d3d_MainConstants);
-	//d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbEntityDesc, NULL, &d3d_EntityConstants);
-    GetDevice()->lpVtbl->CreateBuffer(GetDevice(), &cbEntityDesc, NULL, &d3d_EntityConstants);
+    RWCreateBuffer(&cbMainDesc, NULL, &d3d_MainConstants);
+    RWCreateBuffer(&cbEntityDesc, NULL, &d3d_EntityConstants);
 
 	D_RegisterConstantBuffer (d3d_MainConstants, 1);
 	D_RegisterConstantBuffer (d3d_EntityConstants, 2);
@@ -202,7 +200,7 @@ void R_PrepareEntityForRendering (QMATRIX *localMatrix, float *color, float alph
 
 	// and update to the cbuffer
 	//d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_EntityConstants, 0, NULL, &consts, 0, 0);
-    GetDeviceContext()->lpVtbl->UpdateSubresource(GetDeviceContext(), (ID3D11Resource*)d3d_EntityConstants, 0, NULL, &consts, 0, 0);
+    RWGetDeviceContext()->lpVtbl->UpdateSubresource(RWGetDeviceContext(), (ID3D11Resource*)d3d_EntityConstants, 0, NULL, &consts, 0, 0);
 
 	// and set the correct states
 	if (rflags & RF_TRANSLUCENT)
@@ -465,7 +463,7 @@ void R_SetupGL (void)
 	// set up the viewport that we'll use for the entire refresh
 	D3D11_VIEWPORT vp = {r_newrefdef.x, r_newrefdef.y, r_newrefdef.width, r_newrefdef.height, 0, 1};
 	//d3d_Context->lpVtbl->RSSetViewports (d3d_Context, 1, &vp);
-    GetDeviceContext()->lpVtbl->RSSetViewports(GetDeviceContext(), 1, &vp);
+    RWGetDeviceContext()->lpVtbl->RSSetViewports(RWGetDeviceContext(), 1, &vp);
 
 	// the projection matrix may be only updated when the refdef changes but we do it every frame so that we can do waterwarp
 	R_MatrixIdentity (&r_proj_matrix);
@@ -531,14 +529,14 @@ void R_SetupGL (void)
 
 	// and update to the cbuffer
 	//d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_MainConstants, 0, NULL, &consts, 0, 0);
-    GetDeviceContext()->lpVtbl->UpdateSubresource(GetDeviceContext(), (ID3D11Resource*)d3d_MainConstants, 0, NULL, &consts, 0, 0);
+    RWGetDeviceContext()->lpVtbl->UpdateSubresource(RWGetDeviceContext(), (ID3D11Resource*)d3d_MainConstants, 0, NULL, &consts, 0, 0);
 
 	// clear out the portion of the screen that the NOWORLDMODEL defines
 	if (r_newrefdef.rdflags & RDF_NOWORLDMODEL)
 	{
 		// we can't clear subrects in D3D11 so just clear the entire thing
 		//d3d_Context->lpVtbl->ClearDepthStencilView (d3d_Context, d3d_DepthBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 1);
-        GetDeviceContext()->lpVtbl->ClearDepthStencilView(GetDeviceContext(), GetDSV(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 1);
+        RWGetDeviceContext()->lpVtbl->ClearDepthStencilView(RWGetDeviceContext(), GetDSV(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 1);
 	}
 }
 
@@ -557,18 +555,18 @@ void R_Clear (ID3D11RenderTargetView *RTV, ID3D11DepthStencilView *DSV)
 		// if the view is inside solid it's probably because we're noclipping so we need to clear so as to not get HOM effects
 		float clear[4] = {0.1f, 0.1f, 0.1f, 0.0f};
 		//d3d_Context->lpVtbl->ClearRenderTargetView (d3d_Context, RTV, clear);
-        GetDeviceContext()->lpVtbl->ClearRenderTargetView(GetDeviceContext(), RTV, clear);
+        RWGetDeviceContext()->lpVtbl->ClearRenderTargetView(RWGetDeviceContext(), RTV, clear);
 	}
 	else if (gl_clear->value)
 	{
 		float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 		//d3d_Context->lpVtbl->ClearRenderTargetView (d3d_Context, RTV, clear);
-        GetDeviceContext()->lpVtbl->ClearRenderTargetView(GetDeviceContext(), RTV, clear);
+        RWGetDeviceContext()->lpVtbl->ClearRenderTargetView(RWGetDeviceContext(), RTV, clear);
 	}
 
 	// standard depth clear
 	//d3d_Context->lpVtbl->ClearDepthStencilView (d3d_Context, DSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 1);
-    GetDeviceContext()->lpVtbl->ClearDepthStencilView(GetDeviceContext(), DSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 1);
+    RWGetDeviceContext()->lpVtbl->ClearDepthStencilView(RWGetDeviceContext(), DSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 1);
 }
 
 
@@ -579,12 +577,12 @@ void R_SyncPipeline (void)
 	D3D11_QUERY_DESC Desc = {D3D11_QUERY_EVENT, 0};
 
 	//if (SUCCEEDED (d3d_Device->lpVtbl->CreateQuery (d3d_Device, &Desc, &FinishEvent)))
-    if (SUCCEEDED(GetDevice()->lpVtbl->CreateQuery(GetDevice(), &Desc, &FinishEvent)))
+    if (SUCCEEDED(RWGetDevice()->lpVtbl->CreateQuery(RWGetDevice(), &Desc, &FinishEvent)))
 	{
 		//d3d_Context->lpVtbl->End (d3d_Context, (ID3D11Asynchronous *) FinishEvent);
-        GetDeviceContext()->lpVtbl->End(GetDeviceContext(), (ID3D11Asynchronous*)FinishEvent);
+        RWGetDeviceContext()->lpVtbl->End(RWGetDeviceContext(), (ID3D11Asynchronous*)FinishEvent);
 		//while (d3d_Context->lpVtbl->GetData (d3d_Context, (ID3D11Asynchronous *) FinishEvent, NULL, 0, 0) == S_FALSE);
-        while (GetDeviceContext()->lpVtbl->GetData(GetDeviceContext(), (ID3D11Asynchronous*)FinishEvent, NULL, 0, 0) == S_FALSE);
+        while (RWGetDeviceContext()->lpVtbl->GetData(RWGetDeviceContext(), (ID3D11Asynchronous*)FinishEvent, NULL, 0, 0) == S_FALSE);
 		SAFE_RELEASE (FinishEvent);
 	}
 }
@@ -604,7 +602,7 @@ void R_PolyBlend (void)
 
 		// full-screen triangle
 		//d3d_Context->lpVtbl->Draw (d3d_Context, 3, 0);
-        GetDeviceContext()->lpVtbl->Draw(GetDeviceContext(), 3, 0);
+        RWGetDeviceContext()->lpVtbl->Draw(RWGetDeviceContext(), 3, 0);
 	}
 }
 

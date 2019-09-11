@@ -51,7 +51,7 @@ void R_DrawNullModel (entity_t *e, QMATRIX *localmatrix)
 	D_BindShaderBundle (d3d_NullShader);
 
 	//d3d_Context->lpVtbl->Draw (d3d_Context, 24, 0);
-    GetDeviceContext()->lpVtbl->Draw(GetDeviceContext(), 24, 0);
+    RWGetDeviceContext()->lpVtbl->Draw(RWGetDeviceContext(), 24, 0);
 }
 
 

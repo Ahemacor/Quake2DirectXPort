@@ -27,29 +27,20 @@ DXGI_MODE_DESC RenderWindow::GetMode(UINT index)
     return d3d_VideoModes[index];
 }
 
-void RenderWindow::SetDevice(ID3D11Device* pDevice)
-{
-    device = pDevice;
-}
-
 ID3D11Device* RenderWindow::GetDevice()
 {
     return device.Get();
 }
 
-void RenderWindow::SetDeviceContext(ID3D11DeviceContext* pDeviceContext)
+void RenderWindow::CreateBuffer(const D3D11_BUFFER_DESC* pDesc, const void* pSrcMem, ID3D11Buffer** outBufferAddr)
 {
-    deviceContext = pDeviceContext;
+    D3D11_SUBRESOURCE_DATA srd = { pSrcMem, 0, 0 };
+    device->CreateBuffer(pDesc, (pSrcMem == nullptr ? nullptr : &srd), outBufferAddr);
 }
 
 ID3D11DeviceContext* RenderWindow::GetDeviceContext()
 {
     return deviceContext.Get();
-}
-
-void RenderWindow::SetSwapchain(IDXGISwapChain* pSwapChain)
-{
-    swapchain = pSwapChain;
 }
 
 IDXGISwapChain* RenderWindow::GetSwapchain()
@@ -286,9 +277,9 @@ bool RenderWindow::InitDirectX()
         //ri.Sys_Error(ERR_FATAL, "D3D11CreateDeviceAndSwapChain failed");
         return false;
     }
-    SetDevice(pDevice);
-    SetDeviceContext(pDeviceContext);
-    SetSwapchain(pSwapchain);
+    device = pDevice;
+    deviceContext = pDeviceContext;
+    swapchain = pSwapchain;
 
     // now we disable stuff that we want to handle ourselves
     if (SUCCEEDED(swapchain->GetParent(IID_IDXGIFactory, (void**)& pFactory)))

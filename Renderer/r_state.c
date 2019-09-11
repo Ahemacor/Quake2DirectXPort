@@ -62,7 +62,7 @@ ID3D11SamplerState *D_CreateSamplerState (D3D11_FILTER Filter, D3D11_TEXTURE_ADD
 	desc.MipLODBias = 0;
 
 	//d3d_Device->lpVtbl->CreateSamplerState (d3d_Device, &desc, &ss);
-    GetDevice()->lpVtbl->CreateSamplerState(GetDevice(), &desc, &ss);
+    RWGetDevice()->lpVtbl->CreateSamplerState(RWGetDevice(), &desc, &ss);
 	D_CacheObject ((ID3D11DeviceChild *) ss, "ID3D11SamplerState");
 
 	return ss;
@@ -86,7 +86,7 @@ ID3D11BlendState *D_CreateBlendState (BOOL blendon, D3D11_BLEND src, D3D11_BLEND
 	desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
 	//d3d_Device->lpVtbl->CreateBlendState (d3d_Device, &desc, &bs);
-    GetDevice()->lpVtbl->CreateBlendState(GetDevice(), &desc, &bs);
+    RWGetDevice()->lpVtbl->CreateBlendState(RWGetDevice(), &desc, &bs);
 	D_CacheObject ((ID3D11DeviceChild *) bs, "ID3D11BlendState");
 
 	return bs;
@@ -124,7 +124,7 @@ ID3D11DepthStencilState *D_CreateDepthState (BOOL test, BOOL mask, D3D11_COMPARI
 	desc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
 
 	//d3d_Device->lpVtbl->CreateDepthStencilState (d3d_Device, &desc, &ds);
-    GetDevice()->lpVtbl->CreateDepthStencilState(GetDevice(), &desc, &ds);
+    RWGetDevice()->lpVtbl->CreateDepthStencilState(RWGetDevice(), &desc, &ds);
 	D_CacheObject ((ID3D11DeviceChild *) ds, "ID3D11DepthStencilState");
 
 	return ds;
@@ -148,7 +148,7 @@ ID3D11RasterizerState *D_CreateRasterizerState (D3D11_FILL_MODE fill, D3D11_CULL
 	desc.AntialiasedLineEnable = FALSE;
 
 	//d3d_Device->lpVtbl->CreateRasterizerState (d3d_Device, &desc, &rs);
-    GetDevice()->lpVtbl->CreateRasterizerState(GetDevice(), &desc, &rs);
+    RWGetDevice()->lpVtbl->CreateRasterizerState(RWGetDevice(), &desc, &rs);
 	D_CacheObject ((ID3D11DeviceChild *) rs, "ID3D11RasterizerState");
 
 	return rs;
@@ -224,7 +224,7 @@ void D_BindSamplers (void)
 	};
 
 	//d3d_Context->lpVtbl->PSSetSamplers (d3d_Context, 0, 5, Samplers);
-    GetDeviceContext()->lpVtbl->PSSetSamplers(GetDeviceContext(), 0, 5, Samplers);
+    RWGetDeviceContext()->lpVtbl->PSSetSamplers(RWGetDeviceContext(), 0, 5, Samplers);
 }
 
 
@@ -237,21 +237,21 @@ void D_SetRenderStates (ID3D11BlendState *bs, ID3D11DepthStencilState *ds, ID3D1
 	if (oldbs != bs)
 	{
 		//d3d_Context->lpVtbl->OMSetBlendState (d3d_Context, bs, NULL, 0xffffffff);
-        GetDeviceContext()->lpVtbl->OMSetBlendState(GetDeviceContext(), bs, NULL, 0xffffffff);
+        RWGetDeviceContext()->lpVtbl->OMSetBlendState(RWGetDeviceContext(), bs, NULL, 0xffffffff);
 		oldbs = bs;
 	}
 
 	if (oldds != ds)
 	{
 		//d3d_Context->lpVtbl->OMSetDepthStencilState (d3d_Context, ds, 0);
-        GetDeviceContext()->lpVtbl->OMSetDepthStencilState(GetDeviceContext(), ds, 0);
+        RWGetDeviceContext()->lpVtbl->OMSetDepthStencilState(RWGetDeviceContext(), ds, 0);
 		oldds = ds;
 	}
 
 	if (oldrs != rs)
 	{
 		//d3d_Context->lpVtbl->RSSetState (d3d_Context, rs);
-        GetDeviceContext()->lpVtbl->RSSetState(GetDeviceContext(), rs);
+        RWGetDeviceContext()->lpVtbl->RSSetState(RWGetDeviceContext(), rs);
 		oldrs = rs;
 	}
 }
@@ -269,7 +269,7 @@ void D_BindVertexBuffer (UINT Slot, ID3D11Buffer *Buffer, UINT Stride, UINT Offs
 		d3d_VertexStreams[Slot].Offset != Offset)
 	{
 		//d3d_Context->lpVtbl->IASetVertexBuffers (d3d_Context, Slot, 1, &Buffer, &Stride, &Offset);
-        GetDeviceContext()->lpVtbl->IASetVertexBuffers(GetDeviceContext(), Slot, 1, &Buffer, &Stride, &Offset);
+        RWGetDeviceContext()->lpVtbl->IASetVertexBuffers(RWGetDeviceContext(), Slot, 1, &Buffer, &Stride, &Offset);
 
 		d3d_VertexStreams[Slot].Buffer = Buffer;
 		d3d_VertexStreams[Slot].Stride = Stride;
@@ -286,7 +286,7 @@ void D_BindIndexBuffer (ID3D11Buffer *Buffer, DXGI_FORMAT Format)
 	if (OldBuffer != Buffer || OldFormat != Format)
 	{
 		//d3d_Context->lpVtbl->IASetIndexBuffer (d3d_Context, Buffer, Format, 0);
-        GetDeviceContext()->lpVtbl->IASetIndexBuffer(GetDeviceContext(), Buffer, Format, 0);
+        RWGetDeviceContext()->lpVtbl->IASetIndexBuffer(RWGetDeviceContext(), Buffer, Format, 0);
 
 		OldBuffer = Buffer;
 		OldFormat = Format;

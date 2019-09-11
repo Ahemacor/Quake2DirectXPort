@@ -84,8 +84,7 @@ void R_InitMesh (void)
 	d3d_MeshPowersuitShader = D_CreateShaderBundle (IDR_MESHSHADER, "MeshPowersuitVS", NULL, "MeshPowersuitPS", DEFINE_LAYOUT (layout));
 	d3d_MeshFullbrightShader = D_CreateShaderBundle (IDR_MESHSHADER, "MeshLightmapVS", NULL, "MeshFullbrightPS", DEFINE_LAYOUT (layout));
 
-	//d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbPerMeshDesc, NULL, &d3d_MeshConstants);
-    GetDevice()->lpVtbl->CreateBuffer(GetDevice(), &cbPerMeshDesc, NULL, &d3d_MeshConstants);
+    RWCreateBuffer(&cbPerMeshDesc, NULL, &d3d_MeshConstants);
 	D_RegisterConstantBuffer (d3d_MeshConstants, 3);
 
 	// init vertex cache optimization
@@ -145,7 +144,7 @@ void D_CreateAliasPolyVerts (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, alia
 	};
 
 	// alloc a buffer to write the verts to and create the VB from
-	D3D11_SUBRESOURCE_DATA srd = {polyverts, 0, 0};
+    void* pData = polyverts;
 
 	for (framenum = 0; framenum < hdr->num_frames; framenum++)
 	{
@@ -162,9 +161,7 @@ void D_CreateAliasPolyVerts (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, alia
 		}
 	}
 
-	// create the new vertex buffer
-	//d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, &srd, &set->PolyVerts);
-    GetDevice()->lpVtbl->CreateBuffer(GetDevice(), &vbDesc, &srd, &set->PolyVerts);
+    RWCreateBuffer(&vbDesc, pData, &set->PolyVerts);
 }
 
 
@@ -183,7 +180,7 @@ void D_CreateAliasTexCoords (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, alia
 	};
 
 	// alloc a buffer to write the verts to and create the VB from
-	D3D11_SUBRESOURCE_DATA srd = {texcoords, 0, 0};
+    void* pData = texcoords;
 
 	// access source stverts
 	dstvert_t *stverts = (dstvert_t *) ((byte *) src + src->ofs_st);
@@ -196,9 +193,7 @@ void D_CreateAliasTexCoords (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, alia
 		texcoords[1] = ((float) stvert->t + 0.5f) / hdr->skinheight;
 	}
 
-	// create the new vertex buffer
-	//d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, &srd, &set->TexCoords);
-    GetDevice()->lpVtbl->CreateBuffer(GetDevice(), &vbDesc, &srd, &set->TexCoords);
+    RWCreateBuffer(&vbDesc, pData, &set->TexCoords);
 }
 
 
@@ -214,11 +209,8 @@ void D_CreateAliasIndexes (mmdl_t *hdr, aliasbuffers_t *set, unsigned short *ind
 	};
 
 	// alloc a buffer to write the verts to and create the VB from
-	D3D11_SUBRESOURCE_DATA srd = {indexes, 0, 0};
-
 	// create the new vertex buffer
-	//d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &ibDesc, &srd, &set->Indexes);
-    GetDevice()->lpVtbl->CreateBuffer(GetDevice(), &ibDesc, &srd, &set->Indexes);
+    RWCreateBuffer(&ibDesc, indexes, &set->Indexes);
 }
 
 
@@ -445,7 +437,7 @@ void R_DrawAliasPolySet (model_t *mod)
 	mmdl_t *hdr = mod->md2header;
 
 	//d3d_Context->lpVtbl->DrawIndexed (d3d_Context, hdr->num_indexes, 0, 0);
-    GetDeviceContext()->lpVtbl->DrawIndexed(GetDeviceContext(), hdr->num_indexes, 0, 0);
+    RWGetDeviceContext()->lpVtbl->DrawIndexed(RWGetDeviceContext(), hdr->num_indexes, 0, 0);
 }
 
 
@@ -759,7 +751,7 @@ void R_DrawAliasModel (entity_t *e, QMATRIX *localmatrix)
 
 	// and update to the cbuffer
 	//d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_MeshConstants, 0, NULL, &consts, 0, 0);
-    GetDeviceContext()->lpVtbl->UpdateSubresource(GetDeviceContext(), (ID3D11Resource*)d3d_MeshConstants, 0, NULL, &consts, 0, 0);
+    RWGetDeviceContext()->lpVtbl->UpdateSubresource(RWGetDeviceContext(), (ID3D11Resource*)d3d_MeshConstants, 0, NULL, &consts, 0, 0);
 
 	// set up the frame interpolation
 	R_SetupAliasFrameLerp (e, mod, &d3d_AliasBuffers[mod->bufferset]);

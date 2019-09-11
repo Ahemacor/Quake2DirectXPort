@@ -18,14 +18,11 @@ void CloseRenderWindow();
 
 void* GetWindowHandle();
 
-void SetDevice(ID3D11Device* pDevice);
-ID3D11Device* GetDevice();
+ID3D11Device* RWGetDevice();
+ID3D11DeviceContext* RWGetDeviceContext();
+IDXGISwapChain* RWGetSwapchain();
 
-void SetDeviceContext(ID3D11DeviceContext* pDeviceContext);
-ID3D11DeviceContext* GetDeviceContext();
-
-void SetSwapchain(IDXGISwapChain* pSwapchain);
-IDXGISwapChain* GetSwapchain();
+void RWCreateBuffer(const D3D11_BUFFER_DESC* pDesc, const void* pSrcMem, ID3D11Buffer** outBufferAddr);
 
 void SetRTV(ID3D11RenderTargetView* pRTV);
 ID3D11RenderTargetView* GetRTV();

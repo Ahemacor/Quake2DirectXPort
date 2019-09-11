@@ -30,7 +30,7 @@ void D_CaptureScreenshot (char *checkname)
 
 	// Get a pointer to the back buffer
 	//if (FAILED (d3d_SwapChain->lpVtbl->GetBuffer (d3d_SwapChain, 0, &IID_ID3D11Texture2D, (LPVOID *) &pBackBuffer)))
-    if (FAILED(GetSwapchain()->lpVtbl->GetBuffer(GetSwapchain(), 0, &IID_ID3D11Texture2D, (LPVOID*)& pBackBuffer)))
+    if (FAILED(RWGetSwapchain()->lpVtbl->GetBuffer(RWGetSwapchain(), 0, &IID_ID3D11Texture2D, (LPVOID*)& pBackBuffer)))
 	{
 		ri.Con_Printf (PRINT_ALL, "d3d_SwapChain->GetBuffer failed");
 		return;
@@ -46,7 +46,7 @@ void D_CaptureScreenshot (char *checkname)
 
 	// create a copy of the back buffer
 	//if (FAILED (d3d_Device->lpVtbl->CreateTexture2D (d3d_Device, &descRT, NULL, &pScreenShot)))
-    if (FAILED(GetDevice()->lpVtbl->CreateTexture2D(GetDevice(), &descRT, NULL, &pScreenShot)))
+    if (FAILED(RWGetDevice()->lpVtbl->CreateTexture2D(RWGetDevice(), &descRT, NULL, &pScreenShot)))
 	{
 		ri.Con_Printf (PRINT_ALL, "SCR_GetScreenData : failed to create scratch texture\n");
 		goto failed;
@@ -54,11 +54,11 @@ void D_CaptureScreenshot (char *checkname)
 
 	// copy over the back buffer to the screenshot texture
 	//d3d_Context->lpVtbl->CopyResource (d3d_Context, (ID3D11Resource *) pScreenShot, (ID3D11Resource *) pBackBuffer);
-    GetDeviceContext()->lpVtbl->CopyResource(GetDeviceContext(), (ID3D11Resource*)pScreenShot, (ID3D11Resource*)pBackBuffer);
+    RWGetDeviceContext()->lpVtbl->CopyResource(RWGetDeviceContext(), (ID3D11Resource*)pScreenShot, (ID3D11Resource*)pBackBuffer);
 	R_SyncPipeline ();
 
 	//if (FAILED (d3d_Context->lpVtbl->Map (d3d_Context, (ID3D11Resource *) pScreenShot, 0, D3D11_MAP_READ_WRITE, 0, &msr)))
-    if (FAILED(GetDeviceContext()->lpVtbl->Map(GetDeviceContext(), (ID3D11Resource*)pScreenShot, 0, D3D11_MAP_READ_WRITE, 0, &msr)))
+    if (FAILED(RWGetDeviceContext()->lpVtbl->Map(RWGetDeviceContext(), (ID3D11Resource*)pScreenShot, 0, D3D11_MAP_READ_WRITE, 0, &msr)))
 	{
 		ri.Con_Printf (PRINT_ALL, "SCR_GetScreenData : failed to map scratch texture\n");
 		goto failed;
@@ -73,7 +73,7 @@ void D_CaptureScreenshot (char *checkname)
 
 	// unmap, and...
 	//d3d_Context->lpVtbl->Unmap (d3d_Context, (ID3D11Resource *) pScreenShot, 0);
-    GetDeviceContext()->lpVtbl->Unmap(GetDeviceContext(), (ID3D11Resource*)pScreenShot, 0);
+    RWGetDeviceContext()->lpVtbl->Unmap(RWGetDeviceContext(), (ID3D11Resource*)pScreenShot, 0);
 
 	// ...done
 	ri.Con_Printf (PRINT_ALL, "Wrote %s\n", checkname);
@@ -89,7 +89,7 @@ void R_ClearToBlack (void)
 {
 	float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 	//d3d_Context->lpVtbl->ClearRenderTargetView (d3d_Context, d3d_RenderTarget, clear);
-    GetDeviceContext()->lpVtbl->ClearRenderTargetView(GetDeviceContext(), GetRTV(), clear);
+    RWGetDeviceContext()->lpVtbl->ClearRenderTargetView(RWGetDeviceContext(), GetRTV(), clear);
 }
 
 

@@ -292,8 +292,7 @@ void R_InitLight (void)
 		0
 	};
 
-	//d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbDLightDesc, NULL, &d3d_DLightConstants);
-    GetDevice()->lpVtbl->CreateBuffer(GetDevice(), &cbDLightDesc, NULL, &d3d_DLightConstants);
+    RWCreateBuffer(&cbDLightDesc, NULL, &d3d_DLightConstants);
 	D_RegisterConstantBuffer (d3d_DLightConstants, 4);
 
 	R_CreateTBuffer (&d3d_LightStyles, NULL, MAX_LIGHTSTYLES, sizeof (float), DXGI_FORMAT_R32_FLOAT, D3D11_USAGE_DEFAULT);
@@ -514,14 +513,14 @@ void R_BindLightmaps (void)
 
 	// optionally update lightstyles (this can be NULL)
 	if (r_newrefdef.lightstyles)
-        GetDeviceContext()->lpVtbl->UpdateSubresource(GetDeviceContext(), (ID3D11Resource*)d3d_LightStyles.Buffer, 0, NULL, r_newrefdef.lightstyles, 0, 0);
+        RWGetDeviceContext()->lpVtbl->UpdateSubresource(RWGetDeviceContext(), (ID3D11Resource*)d3d_LightStyles.Buffer, 0, NULL, r_newrefdef.lightstyles, 0, 0);
 		//d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_LightStyles.Buffer, 0, NULL, r_newrefdef.lightstyles, 0, 0);
 
 	// and set them all
 	//d3d_Context->lpVtbl->VSSetShaderResources (d3d_Context, 0, 3, VertexSRVs);
-    GetDeviceContext()->lpVtbl->VSSetShaderResources(GetDeviceContext(), 0, 3, VertexSRVs);
+    RWGetDeviceContext()->lpVtbl->VSSetShaderResources(RWGetDeviceContext(), 0, 3, VertexSRVs);
 	//d3d_Context->lpVtbl->PSSetShaderResources (d3d_Context, 1, 3, LightmapSRVs);
-    GetDeviceContext()->lpVtbl->PSSetShaderResources(GetDeviceContext(), 1, 3, LightmapSRVs);
+    RWGetDeviceContext()->lpVtbl->PSSetShaderResources(RWGetDeviceContext(), 1, 3, LightmapSRVs);
 }
 
 
@@ -560,7 +559,7 @@ void D_SetupDynamicLight (dlight_t *dl, float *transformedorigin, int rflags)
 
 	// and update it
 	//d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_DLightConstants, 0, NULL, &consts, 0, 0);
-    GetDeviceContext()->lpVtbl->UpdateSubresource(GetDeviceContext(), (ID3D11Resource*)d3d_DLightConstants, 0, NULL, &consts, 0, 0);
+    RWGetDeviceContext()->lpVtbl->UpdateSubresource(RWGetDeviceContext(), (ID3D11Resource*)d3d_DLightConstants, 0, NULL, &consts, 0, 0);
 }
 
 

@@ -67,7 +67,7 @@ static void D_CreateSpriteBufferSet (model_t *mod, dsprite_t *psprite)
 	};
 
 	// alloc a buffer to write the verts to and create the VB from
-	D3D11_SUBRESOURCE_DATA srd = {verts, 0, 0};
+    void* pData = verts;
 
 	// fill in the verts
 	for (i = 0; i < psprite->numframes; i++, verts += 4)
@@ -88,8 +88,7 @@ static void D_CreateSpriteBufferSet (model_t *mod, dsprite_t *psprite)
 	}
 
 	// create the new vertex buffer
-	//d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, &srd, &set->PolyVerts);
-    GetDevice()->lpVtbl->CreateBuffer(GetDevice(), &vbDesc, &srd, &set->PolyVerts);
+    RWCreateBuffer(&vbDesc, pData, &set->PolyVerts);
 	ri.Load_FreeMemory ();
 }
 
@@ -167,13 +166,11 @@ void R_InitSprites (void)
 		0
 	};
 
-	D3D11_SUBRESOURCE_DATA srd = {indexes, 0, 0};
 	D3D11_INPUT_ELEMENT_DESC layout[] = {VDECL ("XYOFFSET", 0, DXGI_FORMAT_R32G32_FLOAT, 5, 0)};
 
 	d3d_SpriteShader = D_CreateShaderBundle (IDR_SPRITESHADER, "SpriteVS", NULL, "SpritePS", DEFINE_LAYOUT (layout));
 
-	//d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &ibDesc, &srd, &d3d_SpriteIndexes);
-    GetDevice()->lpVtbl->CreateBuffer(GetDevice(), &ibDesc, &srd, &d3d_SpriteIndexes);
+    RWCreateBuffer(&ibDesc, indexes, &d3d_SpriteIndexes);
 	D_CacheObject ((ID3D11DeviceChild *) d3d_SpriteIndexes, "d3d_SpriteIndexes");
 }
 
@@ -225,7 +222,7 @@ void R_DrawSpriteModel (entity_t *e, QMATRIX *localmatrix)
 	D_BindIndexBuffer (d3d_SpriteIndexes, DXGI_FORMAT_R16_UINT);
 
 	//d3d_Context->lpVtbl->DrawIndexed (d3d_Context, 6, 0, framenum * 4);
-    GetDeviceContext()->lpVtbl->DrawIndexed(GetDeviceContext(), 6, 0, framenum * 4);
+    RWGetDeviceContext()->lpVtbl->DrawIndexed(RWGetDeviceContext(), 6, 0, framenum * 4);
 }
 
 

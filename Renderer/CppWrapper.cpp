@@ -50,37 +50,25 @@ void* GetWindowHandle()
     return (void*)g_pRenderWindow->GetWindowHandle();
 }
 
-void SetDevice(ID3D11Device* pDevice)
-{
-    assert(g_pRenderWindow != nullptr);
-    g_pRenderWindow->SetDevice(pDevice);
-}
-
-ID3D11Device* GetDevice()
+ID3D11Device* RWGetDevice()
 {
     assert(g_pRenderWindow != nullptr);
     return g_pRenderWindow->GetDevice();
 }
 
-void SetDeviceContext(ID3D11DeviceContext* pDeviceContext)
+void RWCreateBuffer(const D3D11_BUFFER_DESC* pDesc, const void* pSrcMem, ID3D11Buffer** outBufferAddr)
 {
     assert(g_pRenderWindow != nullptr);
-    g_pRenderWindow->SetDeviceContext(pDeviceContext);
+    g_pRenderWindow->CreateBuffer(pDesc, pSrcMem, outBufferAddr);
 }
 
-ID3D11DeviceContext* GetDeviceContext()
+ID3D11DeviceContext* RWGetDeviceContext()
 {
     assert(g_pRenderWindow != nullptr);
     return g_pRenderWindow->GetDeviceContext();
 }
 
-void SetSwapchain(IDXGISwapChain* pSwapchain)
-{
-    assert(g_pRenderWindow != nullptr);
-    g_pRenderWindow->SetSwapchain(pSwapchain);
-}
-
-IDXGISwapChain* GetSwapchain()
+IDXGISwapChain* RWGetSwapchain()
 {
     assert(g_pRenderWindow != nullptr);
     return g_pRenderWindow->GetSwapchain();

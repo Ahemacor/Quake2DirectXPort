@@ -76,8 +76,7 @@ void R_InitSurfaces (void)
 		0
 	};
 
-	//d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &ibDesc, NULL, &d3d_SurfIndexes);
-    GetDevice()->lpVtbl->CreateBuffer(GetDevice(), &ibDesc, NULL, &d3d_SurfIndexes);
+    RWCreateBuffer(&ibDesc, NULL, &d3d_SurfIndexes);
 
 	d3d_SurfBasicShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfBasicVS", NULL, "SurfBasicPS", DEFINE_LAYOUT (layout));
 	d3d_SurfAlphaShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfAlphaVS", NULL, "SurfAlphaPS", DEFINE_LAYOUT (layout));
@@ -152,7 +151,7 @@ void R_AddSurfaceToBatch (const msurface_t *surf)
 		D3D11_MAPPED_SUBRESOURCE msr;
 
 		//if (FAILED (d3d_Context->lpVtbl->Map (d3d_Context, (ID3D11Resource *) d3d_SurfIndexes, 0, mode, 0, &msr)))
-        if (FAILED(GetDeviceContext()->lpVtbl->Map(GetDeviceContext(), (ID3D11Resource*)d3d_SurfIndexes, 0, mode, 0, &msr)))
+        if (FAILED(RWGetDeviceContext()->lpVtbl->Map(RWGetDeviceContext(), (ID3D11Resource*)d3d_SurfIndexes, 0, mode, 0, &msr)))
 			return;
 		else r_SurfIndexes = (unsigned int *) msr.pData + r_FirstSurfIndex;
 	}
@@ -183,14 +182,14 @@ void R_EndSurfaceBatch (void)
 	if (r_SurfIndexes)
 	{
 		//d3d_Context->lpVtbl->Unmap (d3d_Context, (ID3D11Resource *) d3d_SurfIndexes, 0);
-        GetDeviceContext()->lpVtbl->Unmap(GetDeviceContext(), (ID3D11Resource*)d3d_SurfIndexes, 0);
+        RWGetDeviceContext()->lpVtbl->Unmap(RWGetDeviceContext(), (ID3D11Resource*)d3d_SurfIndexes, 0);
 		r_SurfIndexes = NULL;
 	}
 
 	if (r_NumSurfIndexes)
 	{
 		//d3d_Context->lpVtbl->DrawIndexed (d3d_Context, r_NumSurfIndexes, r_FirstSurfIndex, 0);
-        GetDeviceContext()->lpVtbl->DrawIndexed(GetDeviceContext(), r_NumSurfIndexes, r_FirstSurfIndex, 0);
+        RWGetDeviceContext()->lpVtbl->DrawIndexed(RWGetDeviceContext(), r_NumSurfIndexes, r_FirstSurfIndex, 0);
 
 		r_FirstSurfIndex += r_NumSurfIndexes;
 		r_NumSurfIndexes = 0;
@@ -736,7 +735,6 @@ void R_EndBuildingSurfaces (model_t *mod, dbsp_t *bsp)
 
 	// alloc a buffer to write the verts to and create the VB from
 	brushpolyvert_t *verts = (brushpolyvert_t *) ri.Load_AllocMemory (sizeof (brushpolyvert_t) * r_NumSurfVertexes);
-	D3D11_SUBRESOURCE_DATA srd = {verts, 0, 0};
 
 	// fill in the verts
 	for (i = 0; i < mod->numsurfaces; i++)
@@ -746,8 +744,7 @@ void R_EndBuildingSurfaces (model_t *mod, dbsp_t *bsp)
 	}
 
 	// create the new vertex buffer
-	//d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, &srd, &d3d_SurfVertexes);
-    GetDevice()->lpVtbl->CreateBuffer(GetDevice(), &vbDesc, &srd, &d3d_SurfVertexes);
+    RWCreateBuffer(&vbDesc, verts, &d3d_SurfVertexes);
 
 	// for the next map
 	ri.Load_FreeMemory ();

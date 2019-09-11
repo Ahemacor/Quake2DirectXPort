@@ -67,7 +67,7 @@ qboolean D_BeginWaterWarp (void)
 	{
 		// underwater warped
 		//d3d_Context->lpVtbl->OMSetRenderTargets (d3d_Context, 1, &r_WaterWarpRT.RTV, d3d_DepthBuffer);
-        GetDeviceContext()->lpVtbl->OMSetRenderTargets(GetDeviceContext(), 1, &r_WaterWarpRT.RTV, GetDSV());
+        RWGetDeviceContext()->lpVtbl->OMSetRenderTargets(RWGetDeviceContext(), 1, &r_WaterWarpRT.RTV, GetDSV());
 		R_Clear (r_WaterWarpRT.RTV, GetDSV());
 		return true;
 	}
@@ -83,11 +83,11 @@ void D_DoWaterWarp (void)
 {
 	// revert the original RTs
 	//d3d_Context->lpVtbl->OMSetRenderTargets (d3d_Context, 1, &d3d_RenderTarget, d3d_DepthBuffer);
-    GetDeviceContext()->lpVtbl->OMSetRenderTargets(GetDeviceContext(), 1, GetRTVAddr(), GetDSV());
+    RWGetDeviceContext()->lpVtbl->OMSetRenderTargets(RWGetDeviceContext(), 1, GetRTVAddr(), GetDSV());
 
 	// noise goes to slot 5
 	//d3d_Context->lpVtbl->PSSetShaderResources (d3d_Context, 5, 1, &r_WarpNoise.SRV);
-    GetDeviceContext()->lpVtbl->PSSetShaderResources(GetDeviceContext(), 5, 1, &r_WarpNoise.SRV);
+    RWGetDeviceContext()->lpVtbl->PSSetShaderResources(RWGetDeviceContext(), 5, 1, &r_WarpNoise.SRV);
 
 	// and draw it
 	D_BindShaderBundle (d3d_WaterWarpShader);
@@ -98,7 +98,7 @@ void D_DoWaterWarp (void)
 
 	// full-screen triangle
 	//d3d_Context->lpVtbl->Draw (d3d_Context, 3, 0);
-    GetDeviceContext()->lpVtbl->Draw(GetDeviceContext(), 3, 0);
+    RWGetDeviceContext()->lpVtbl->Draw(RWGetDeviceContext(), 3, 0);
 }
 
 

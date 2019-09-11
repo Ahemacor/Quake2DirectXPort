@@ -95,26 +95,24 @@ void Draw_CreateBuffers (void)
 	};
 
 	int i;
-	unsigned short *ndx = ri.Load_AllocMemory (sizeof (unsigned short) * MAX_DRAW_INDEXES);
-	D3D11_SUBRESOURCE_DATA srd = {ndx, 0, 0};
+	unsigned short* ndx = ri.Load_AllocMemory (sizeof (unsigned short) * MAX_DRAW_INDEXES);
+    unsigned short* ndxCurrent = ndx;
 
-	for (i = 0; i < MAX_DRAW_VERTS; i += 4, ndx += 6)
+	for (i = 0; i < MAX_DRAW_VERTS; i += 4, ndxCurrent += 6)
 	{
-		ndx[0] = i + 0;
-		ndx[1] = i + 1;
-		ndx[2] = i + 2;
+        ndxCurrent[0] = i + 0;
+        ndxCurrent[1] = i + 1;
+        ndxCurrent[2] = i + 2;
 
-		ndx[3] = i + 0;
-		ndx[4] = i + 2;
-		ndx[5] = i + 3;
+        ndxCurrent[3] = i + 0;
+        ndxCurrent[4] = i + 2;
+        ndxCurrent[5] = i + 3;
 	}
 
-	//d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &vbDesc, NULL, &d3d_DrawVertexes);
-    GetDevice()->lpVtbl->CreateBuffer(GetDevice(), &vbDesc, NULL, &d3d_DrawVertexes);
+    RWCreateBuffer(&vbDesc, NULL, &d3d_DrawVertexes);
 	D_CacheObject ((ID3D11DeviceChild *) d3d_DrawIndexes, "d3d_DrawIndexes");
 
-	//d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &ibDesc, &srd, &d3d_DrawIndexes);
-    GetDevice()->lpVtbl->CreateBuffer(GetDevice(), &ibDesc, &srd, &d3d_DrawIndexes);
+    RWCreateBuffer(&ibDesc, ndx, &d3d_DrawIndexes);
 	D_CacheObject ((ID3D11DeviceChild *) d3d_DrawVertexes, "d3d_DrawVertexes");
 
 	ri.Load_FreeMemory ();
@@ -158,8 +156,7 @@ void Draw_InitLocal (void)
 	};
 
 	// cbuffers
-	//d3d_Device->lpVtbl->CreateBuffer (d3d_Device, &cbDrawDesc, NULL, &d3d_DrawConstants);
-    GetDevice()->lpVtbl->CreateBuffer(GetDevice(), &cbDrawDesc, NULL, &d3d_DrawConstants);
+    RWCreateBuffer(&cbDrawDesc, NULL, &d3d_DrawConstants);
 	D_RegisterConstantBuffer (d3d_DrawConstants, 0);
 
 	// shaders
@@ -200,7 +197,7 @@ void Draw_UpdateConstants (int scrflags)
 	consts.ConScale[1] = (float) vid.conheight / (float) vid.height;
 
 	//d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_DrawConstants, 0, NULL, &consts, 0, 0);
-    GetDeviceContext()->lpVtbl->UpdateSubresource(GetDeviceContext(), (ID3D11Resource*)d3d_DrawConstants, 0, NULL, &consts, 0, 0);
+    RWGetDeviceContext()->lpVtbl->UpdateSubresource(RWGetDeviceContext(), (ID3D11Resource*)d3d_DrawConstants, 0, NULL, &consts, 0, 0);
 }
 
 
@@ -209,7 +206,7 @@ void Draw_Flush (void)
 	if (d_drawverts)
 	{
 		//d3d_Context->lpVtbl->Unmap (d3d_Context, (ID3D11Resource *) d3d_DrawVertexes, 0);
-        GetDeviceContext()->lpVtbl->Unmap(GetDeviceContext(), (ID3D11Resource*)d3d_DrawVertexes, 0);
+        RWGetDeviceContext()->lpVtbl->Unmap(RWGetDeviceContext(), (ID3D11Resource*)d3d_DrawVertexes, 0);
 		d_drawverts = NULL;
 	}
 
@@ -218,13 +215,13 @@ void Draw_Flush (void)
 	if (d_numdrawverts == 3)
 	{
 		//d3d_Context->lpVtbl->Draw (d3d_Context, d_numdrawverts, d_firstdrawvert);
-        GetDeviceContext()->lpVtbl->Draw(GetDeviceContext(), d_numdrawverts, d_firstdrawvert);
+        RWGetDeviceContext()->lpVtbl->Draw(RWGetDeviceContext(), d_numdrawverts, d_firstdrawvert);
 	}
 	else if (d_numdrawverts > 3)
 	{
 		D_BindIndexBuffer (d3d_DrawIndexes, DXGI_FORMAT_R16_UINT);
 		//d3d_Context->lpVtbl->DrawIndexed (d3d_Context, (d_numdrawverts >> 2) * 6, 0, d_firstdrawvert);
-        GetDeviceContext()->lpVtbl->DrawIndexed(GetDeviceContext(), (d_numdrawverts >> 2) * 6, 0, d_firstdrawvert);
+        RWGetDeviceContext()->lpVtbl->DrawIndexed(RWGetDeviceContext(), (d_numdrawverts >> 2) * 6, 0, d_firstdrawvert);
 	}
 
 	d_firstdrawvert += d_numdrawverts;
@@ -248,7 +245,7 @@ qboolean Draw_EnsureBufferSpace (void)
 		D3D11_MAPPED_SUBRESOURCE msr;
 
 		//if (FAILED (d3d_Context->lpVtbl->Map (d3d_Context, (ID3D11Resource *) d3d_DrawVertexes, 0, mode, 0, &msr)))
-        if (FAILED(GetDeviceContext()->lpVtbl->Map(GetDeviceContext(), (ID3D11Resource*)d3d_DrawVertexes, 0, mode, 0, &msr)))
+        if (FAILED(RWGetDeviceContext()->lpVtbl->Map(RWGetDeviceContext(), (ID3D11Resource*)d3d_DrawVertexes, 0, mode, 0, &msr)))
 			return false;
 		else d_drawverts = (drawpolyvert_t *) msr.pData + d_firstdrawvert;
 	}
@@ -514,7 +511,7 @@ void Draw_FadeScreen (void)
 
 	// full-screen triangle
 	//d3d_Context->lpVtbl->Draw (d3d_Context, 3, 0);
-    GetDeviceContext()->lpVtbl->Draw(GetDeviceContext(), 3, 0);
+    RWGetDeviceContext()->lpVtbl->Draw(RWGetDeviceContext(), 3, 0);
 }
 
 
@@ -610,7 +607,7 @@ void R_Set2D (void)
 	// switch to our 2d viewport
 	D3D11_VIEWPORT vp = {0, 0, vid.width, vid.height, 0, 0};
 	//d3d_Context->lpVtbl->RSSetViewports (d3d_Context, 1, &vp);
-    GetDeviceContext()->lpVtbl->RSSetViewports(GetDeviceContext(), 1, &vp);
+    RWGetDeviceContext()->lpVtbl->RSSetViewports(RWGetDeviceContext(), 1, &vp);
 }
 
 

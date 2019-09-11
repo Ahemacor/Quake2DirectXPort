@@ -62,7 +62,7 @@ void R_SetupSky (QMATRIX *SkyMatrix)
 
 		// sky goes to slot 4
 		//d3d_Context->lpVtbl->PSSetShaderResources (d3d_Context, 4, 1, &r_SkyCubemap.SRV);
-        GetDeviceContext()->lpVtbl->PSSetShaderResources(GetDeviceContext(), 4, 1, &r_SkyCubemap.SRV);
+        RWGetDeviceContext()->lpVtbl->PSSetShaderResources(RWGetDeviceContext(), 4, 1, &r_SkyCubemap.SRV);
 	}
 	else R_MatrixIdentity (SkyMatrix);
 }
