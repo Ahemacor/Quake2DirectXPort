@@ -54,8 +54,8 @@ void R_InitParticles (void)
 	D_CacheObject ((ID3D11DeviceChild *) d3d_ParticleVertexes, "d3d_ParticleVertexes");
 
 	// creating a square shader even though we don't currently use it
-	d3d_ParticleCircleShader = D_CreateShaderBundle (IDR_PARTSHADER, "ParticleVS", "ParticleCircleGS", "ParticleCirclePS", DEFINE_LAYOUT (layout));
-	d3d_ParticleSquareShader = D_CreateShaderBundle (IDR_PARTSHADER, "ParticleVS", "ParticleSquareGS", "ParticleSquarePS", DEFINE_LAYOUT (layout));
+	d3d_ParticleCircleShader = SLCreateShaderBundle(IDR_PARTSHADER, "ParticleVS", "ParticleCircleGS", "ParticleCirclePS", DEFINE_LAYOUT (layout));
+	d3d_ParticleSquareShader = SLCreateShaderBundle(IDR_PARTSHADER, "ParticleVS", "ParticleSquareGS", "ParticleSquarePS", DEFINE_LAYOUT (layout));
 	d3d_ParticleShader = d3d_ParticleCircleShader;
 }
 
@@ -90,7 +90,7 @@ void R_DrawParticles (void)
 		// square particles can potentially expose a faster path by not using alpha blending
 		// but we might wish to add particle fade at some time so we can't do it (note: all particles in Q2 have fade)
 		SMSetRenderStates (BSAlphaPreMult, DSDepthNoWrite, RSFullCull);
-		D_BindShaderBundle (d3d_ParticleShader);
+        SLBindShaderBundle(d3d_ParticleShader);
 		SMBindVertexBuffer (6, d3d_ParticleVertexes, sizeof (particle_t), 0);
 
 		// and draw it

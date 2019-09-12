@@ -184,3 +184,39 @@ void SMBindSamplers()
 }
 
 // Shader Loader interface.
+
+void SLInitShaders()
+{
+    assert(g_pShaderLoader != nullptr);
+    g_pShaderLoader->InitShaders();
+}
+
+void SLShutdownShaders()
+{
+    assert(g_pShaderLoader != nullptr);
+    g_pShaderLoader->ShutdownShaders();
+}
+
+void SLRegisterConstantBuffer(ID3D11Buffer* cBuffer, int slot)
+{
+    assert(g_pShaderLoader != nullptr);
+    g_pShaderLoader->RegisterConstantBuffer(cBuffer, slot);
+}
+
+int SLCreateShaderBundle(int resourceID, const char* vsentry, const char* gsentry, const char* psentry, D3D11_INPUT_ELEMENT_DESC* layout, int numlayout)
+{
+    assert(g_pShaderLoader != nullptr);
+    return g_pShaderLoader->CreateShaderBundle(resourceID, vsentry, gsentry, psentry, layout, numlayout);
+}
+
+void SLBindShaderBundle(int sb)
+{
+    assert(g_pShaderLoader != nullptr);
+    g_pShaderLoader->BindShaderBundle(sb);
+}
+
+void SLBindConstantBuffers()
+{
+    assert(g_pShaderLoader != nullptr);
+    g_pShaderLoader->BindConstantBuffers();
+}

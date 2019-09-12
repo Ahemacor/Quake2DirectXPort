@@ -1,4 +1,5 @@
 #include "RenderWindow.h"
+#include "CppWrapper.h"
 #include "r_local.h"
 #include <cassert>
 
@@ -327,7 +328,7 @@ bool RenderWindow::InitDirectX()
 
     // load all of our initial objects
     // each subsystem creates it's objects then registers it's handlers, following which the reset handler runs to complete object creation
-    R_InitShaders(); // must be done first before any other shaders are created
+    SLInitShaders(); // must be done first before any other shaders are created
     R_InitMain();
     R_InitSurfaces();
     R_InitParticles();
@@ -449,7 +450,7 @@ void RenderWindow::CloseWindow()
     }
 
     // handle special objects
-    R_ShutdownShaders();
+    SLShutdownShaders();
     R_ShutdownSurfaces();
     R_ShutdownLight();
     R_ShutdownWarp();

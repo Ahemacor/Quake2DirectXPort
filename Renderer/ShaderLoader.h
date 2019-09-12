@@ -10,6 +10,7 @@
 #include <D3Dcompiler.h>
 #include <vector>
 #include <string>
+#include <memory>
 
 struct ShaderSet
 {
@@ -27,18 +28,21 @@ public:
     void ShutdownShaders();
     int LoadResourceData(int resourceid, void** resbuf);
     HRESULT CompileShader(LPCVOID pSrcData, SIZE_T SrcDataSize, CONST D3D_SHADER_MACRO* pDefines, LPCSTR pEntrypoint, LPCSTR pTarget, ID3DBlob** ppCode);
-    char* LoadShaderSource(int resourceID);
+    std::unique_ptr<char[]> LoadShaderSource(int resourceID);
     int CreateShaderBundle(int resourceID, const char* vsentry, const char* gsentry, const char* psentry, D3D11_INPUT_ELEMENT_DESC* layout, int numlayout);
     void BindShaderBundle(int sb);
     void RegisterConstantBuffer(ID3D11Buffer* cBuffer, int slot);
     void BindConstantBuffers();
+
+    const int NUM_OF_SLOTS = 14;
 
 private:
     HINSTANCE hInstCompiler = nullptr;
     pD3DCompile QD3DCompile = nullptr;
 
     std::vector<ShaderSet> shaders;
-    std::vector<ID3D11Buffer*> constantBuffers;
+    std::vector<ID3D11Buffer*> constantBuffers = std::vector<ID3D11Buffer*>(NUM_OF_SLOTS, nullptr);
+    int maxSlot = 0;
 };
 
 #endif

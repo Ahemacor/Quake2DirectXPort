@@ -157,16 +157,16 @@ void Draw_InitLocal (void)
 
 	// cbuffers
     RWCreateBuffer(&cbDrawDesc, NULL, &d3d_DrawConstants);
-	D_RegisterConstantBuffer (d3d_DrawConstants, 0);
+    SLRegisterConstantBuffer(d3d_DrawConstants, 0);
 
 	// shaders
-	d3d_DrawTexturedShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawTexturedVS", NULL, "DrawTexturedPS", DEFINE_LAYOUT (layout_standard));
-	d3d_DrawColouredShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawColouredVS", NULL, "DrawColouredPS", DEFINE_LAYOUT (layout_standard));
-	d3d_DrawTexArrayShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawTexArrayVS", NULL, "DrawTexArrayPS", DEFINE_LAYOUT (layout_texarray));
-	d3d_DrawCinematicShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawCinematicVS", NULL, "DrawCinematicPS", DEFINE_LAYOUT (layout_standard));
+	d3d_DrawTexturedShader = SLCreateShaderBundle(IDR_DRAWSHADER, "DrawTexturedVS", NULL, "DrawTexturedPS", DEFINE_LAYOUT (layout_standard));
+	d3d_DrawColouredShader = SLCreateShaderBundle(IDR_DRAWSHADER, "DrawColouredVS", NULL, "DrawColouredPS", DEFINE_LAYOUT (layout_standard));
+	d3d_DrawTexArrayShader = SLCreateShaderBundle(IDR_DRAWSHADER, "DrawTexArrayVS", NULL, "DrawTexArrayPS", DEFINE_LAYOUT (layout_texarray));
+	d3d_DrawCinematicShader = SLCreateShaderBundle(IDR_DRAWSHADER, "DrawCinematicVS", NULL, "DrawCinematicPS", DEFINE_LAYOUT (layout_standard));
 
 	// shaders for use without buffers
-	d3d_DrawFadescreenShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawFadescreenVS", NULL, "DrawFadescreenPS", NULL, 0);
+	d3d_DrawFadescreenShader = SLCreateShaderBundle(IDR_DRAWSHADER, "DrawFadescreenVS", NULL, "DrawFadescreenPS", NULL, 0);
 
 	// vertex and index buffers
 	Draw_CreateBuffers ();
@@ -289,7 +289,7 @@ void Draw_TexturedQuad (image_t *image, int x, int y, int w, int h, unsigned col
 {
 	R_BindTexture (image->SRV);
 
-	D_BindShaderBundle (d3d_DrawTexturedShader);
+    SLBindShaderBundle(d3d_DrawTexturedShader);
 	SMSetRenderStates(BSAlphaPreMult, DSNoDepth, RSNoCull);
 
 	if (Draw_EnsureBufferSpace ())
@@ -342,7 +342,7 @@ void Draw_Field (int x, int y, int color, int width, int value)
 
 	R_BindTexArray (sb_nums[color]->SRV);
 
-	D_BindShaderBundle (d3d_DrawTexArrayShader);
+    SLBindShaderBundle(d3d_DrawTexArrayShader);
     SMSetRenderStates(BSAlphaPreMult, DSNoDepth, RSNoCull);
 
 	while (*ptr && l)
@@ -382,7 +382,7 @@ void Draw_Char (int x, int y, int num)
 	// these are done for each char but they only trigger state changes for the first
 	R_BindTexArray (draw_chars->SRV);
 
-	D_BindShaderBundle (d3d_DrawTexArrayShader);
+    SLBindShaderBundle(d3d_DrawTexArrayShader);
     SMSetRenderStates(BSAlphaPreMult, DSNoDepth, RSNoCull);
 
 	Draw_CharacterQuad (x, y, 8, 8, num & 255);
@@ -478,7 +478,7 @@ void Draw_ConsoleBackground (int x, int y, int w, int h, char *pic, int alpha)
 void Draw_Fill (int x, int y, int w, int h, int c)
 {
 	// this is a quad filled with a single solid colour so it doesn't need to blend
-	D_BindShaderBundle (d3d_DrawColouredShader);
+    SLBindShaderBundle(d3d_DrawColouredShader);
     SMSetRenderStates(BSNone, DSNoDepth, RSNoCull);
 
 	if (Draw_EnsureBufferSpace ())
@@ -504,7 +504,7 @@ Draw_FadeScreen
 void Draw_FadeScreen (void)
 {
     SMSetRenderStates(BSAlphaPreMult, DSDepthNoWrite, RSNoCull);
-	D_BindShaderBundle (d3d_DrawFadescreenShader);
+    SLBindShaderBundle(d3d_DrawFadescreenShader);
 
 	// full-screen triangle
     RWGetDeviceContext()->lpVtbl->Draw(RWGetDeviceContext(), 3, 0);
@@ -572,7 +572,7 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame, const unsigned 
 
 	R_BindTexture (r_CinematicPic.SRV);
 
-	D_BindShaderBundle (d3d_DrawCinematicShader);
+    SLBindShaderBundle(d3d_DrawCinematicShader);
     SMSetRenderStates(BSNone, DSNoDepth, RSNoCull);
 
 	if (Draw_EnsureBufferSpace ())

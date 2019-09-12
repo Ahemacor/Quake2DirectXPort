@@ -335,7 +335,7 @@ void GLimp_BeginFrame (viddef_t *vd, int scrflags)
 	// bind buffers and samplers that will remain bound for the duration of the frame
 	//D_BindSamplers ();
     SMBindSamplers();
-	D_BindConstantBuffers ();
+    SLBindConstantBuffers();
 }
 
 

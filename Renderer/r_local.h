@@ -72,8 +72,8 @@ void R_PrepareBeam (entity_t *e, QMATRIX *localmatrix);
 extern "C" {
 #endif
 void R_InitMain (void);
-void R_InitShaders (void);
-void R_ShutdownShaders (void);
+//void R_InitShaders (void);
+//void R_ShutdownShaders (void);
 void R_InitSurfaces (void);
 void R_ShutdownSurfaces (void);
 void R_InitParticles (void);
@@ -367,11 +367,11 @@ void Draw_Flush (void);
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // shaders
-int D_CreateShaderBundle (int resourceID, const char *vsentry, const char *gsentry, const char *psentry, D3D11_INPUT_ELEMENT_DESC *layout, int numlayout);
+//int D_CreateShaderBundle (int resourceID, const char *vsentry, const char *gsentry, const char *psentry, D3D11_INPUT_ELEMENT_DESC *layout, int numlayout);
 
-void D_BindShaderBundle (int sb);
-void D_RegisterConstantBuffer (ID3D11Buffer *cBuffer, int slot);
-void D_BindConstantBuffers (void);
+//void D_BindShaderBundle (int sb);
+//void D_RegisterConstantBuffer (ID3D11Buffer *cBuffer, int slot);
+//void D_BindConstantBuffers (void);
 void R_PrepareEntityForRendering (QMATRIX *localMatrix, float *color, float alpha, int rflags);
 
 

@@ -85,10 +85,10 @@ void R_InitMain (void)
     RWCreateBuffer(&cbMainDesc, NULL, &d3d_MainConstants);
     RWCreateBuffer(&cbEntityDesc, NULL, &d3d_EntityConstants);
 
-	D_RegisterConstantBuffer (d3d_MainConstants, 1);
-	D_RegisterConstantBuffer (d3d_EntityConstants, 2);
+    SLRegisterConstantBuffer(d3d_MainConstants, 1);
+    SLRegisterConstantBuffer(d3d_EntityConstants, 2);
 
-	d3d_PolyblendShader = D_CreateShaderBundle (IDR_DRAWSHADER, "DrawPolyblendVS", NULL, "DrawPolyblendPS", NULL, 0);
+	d3d_PolyblendShader = SLCreateShaderBundle(IDR_DRAWSHADER, "DrawPolyblendVS", NULL, "DrawPolyblendPS", NULL, 0);
 }
 
 
@@ -579,7 +579,7 @@ void R_PolyBlend (void)
 	if (v_blend[3] > 0)
 	{
         SMSetRenderStates(BSAlphaBlend, DSDepthNoWrite, RSNoCull);
-		D_BindShaderBundle (d3d_PolyblendShader);
+        SLBindShaderBundle(d3d_PolyblendShader);
 
 		// full-screen triangle
 		//d3d_Context->lpVtbl->Draw (d3d_Context, 3, 0);

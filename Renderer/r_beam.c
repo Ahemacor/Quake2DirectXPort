@@ -120,7 +120,7 @@ void R_InitBeam (void)
 		VDECL ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 7, 0)
 	};
 
-	d3d_BeamShader = D_CreateShaderBundle (IDR_BEAMSHADER, "BeamVS", NULL, "BeamPS", DEFINE_LAYOUT (layout));
+	d3d_BeamShader = SLCreateShaderBundle(IDR_BEAMSHADER, "BeamVS", NULL, "BeamPS", DEFINE_LAYOUT (layout));
 
 	if (r_beamdetail)
 	{
@@ -157,7 +157,7 @@ void R_DrawBeam (entity_t *e, QMATRIX *localmatrix)
 		};
 
 		R_PrepareEntityForRendering (localmatrix, color, e->alpha, RF_TRANSLUCENT);
-		D_BindShaderBundle (d3d_BeamShader);
+        SLBindShaderBundle(d3d_BeamShader);
 
 		if (r_beamdetail->modified)
 		{

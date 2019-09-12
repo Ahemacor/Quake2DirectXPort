@@ -42,6 +42,12 @@ void SMBindIndexBuffer(ID3D11Buffer* Buffer, DXGI_FORMAT Format);
 void SMBindSamplers();
 
 // Shader Loader interface.
+void SLInitShaders();
+void SLShutdownShaders();
+void SLRegisterConstantBuffer(ID3D11Buffer* cBuffer, int slot);
+int SLCreateShaderBundle(int resourceID, const char* vsentry, const char* gsentry, const char* psentry, D3D11_INPUT_ELEMENT_DESC* layout, int numlayout);
+void SLBindShaderBundle(int sb);
+void SLBindConstantBuffers();
 
 #ifdef __cplusplus
 }

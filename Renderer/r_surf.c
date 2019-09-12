@@ -78,11 +78,11 @@ void R_InitSurfaces (void)
 
     RWCreateBuffer(&ibDesc, NULL, &d3d_SurfIndexes);
 
-	d3d_SurfBasicShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfBasicVS", NULL, "SurfBasicPS", DEFINE_LAYOUT (layout));
-	d3d_SurfAlphaShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfAlphaVS", NULL, "SurfAlphaPS", DEFINE_LAYOUT (layout));
-	d3d_SurfLightmapShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfLightmapVS", NULL, "SurfLightmapPS", DEFINE_LAYOUT (layout));
-	d3d_SurfDrawTurbShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfDrawTurbVS", NULL, "SurfDrawTurbPS", DEFINE_LAYOUT (layout));
-	d3d_SurfDynamicShader = D_CreateShaderBundle (IDR_SURFSHADER, "SurfDynamicVS", "SurfDynamicGS", "GenericDynamicPS", DEFINE_LAYOUT (layout));
+	d3d_SurfBasicShader = SLCreateShaderBundle(IDR_SURFSHADER, "SurfBasicVS", NULL, "SurfBasicPS", DEFINE_LAYOUT (layout));
+	d3d_SurfAlphaShader = SLCreateShaderBundle(IDR_SURFSHADER, "SurfAlphaVS", NULL, "SurfAlphaPS", DEFINE_LAYOUT (layout));
+	d3d_SurfLightmapShader = SLCreateShaderBundle(IDR_SURFSHADER, "SurfLightmapVS", NULL, "SurfLightmapPS", DEFINE_LAYOUT (layout));
+	d3d_SurfDrawTurbShader = SLCreateShaderBundle(IDR_SURFSHADER, "SurfDrawTurbVS", NULL, "SurfDrawTurbPS", DEFINE_LAYOUT (layout));
+	d3d_SurfDynamicShader = SLCreateShaderBundle(IDR_SURFSHADER, "SurfDynamicVS", "SurfDynamicGS", "GenericDynamicPS", DEFINE_LAYOUT (layout));
 }
 
 
@@ -219,14 +219,14 @@ image_t *R_SelectSurfaceTexture (mtexinfo_t *ti, int frame)
 void R_SelectSurfaceShader (const mtexinfo_t *ti, qboolean alpha)
 {
 	if (ti->flags & SURF_WARP)
-		D_BindShaderBundle (d3d_SurfDrawTurbShader);
+        SLBindShaderBundle(d3d_SurfDrawTurbShader);
 	else if (alpha)
-		D_BindShaderBundle (d3d_SurfAlphaShader);
+        SLBindShaderBundle(d3d_SurfAlphaShader);
 	else
 	{
 		if (!r_worldmodel->lightdata || r_fullbright->value)
-			D_BindShaderBundle (d3d_SurfBasicShader);
-		else D_BindShaderBundle (d3d_SurfLightmapShader);
+            SLBindShaderBundle(d3d_SurfBasicShader);
+		else SLBindShaderBundle(d3d_SurfLightmapShader);
 	}
 }
 
@@ -303,7 +303,7 @@ void R_DrawDlightChains (entity_t *e, model_t *mod, QMATRIX *localmatrix)
 		// no surfaces
 		if ((surf = ti->image->texturechain) == NULL) continue;
 
-		D_BindShaderBundle (d3d_SurfDynamicShader);
+        SLBindShaderBundle(d3d_SurfDynamicShader);
 
 		// select the correct texture
 		R_BindTexture (R_SelectSurfaceTexture (ti, e->currframe)->SRV);

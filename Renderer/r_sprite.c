@@ -168,7 +168,7 @@ void R_InitSprites (void)
 
 	D3D11_INPUT_ELEMENT_DESC layout[] = {VDECL ("XYOFFSET", 0, DXGI_FORMAT_R32G32_FLOAT, 5, 0)};
 
-	d3d_SpriteShader = D_CreateShaderBundle (IDR_SPRITESHADER, "SpriteVS", NULL, "SpritePS", DEFINE_LAYOUT (layout));
+	d3d_SpriteShader = SLCreateShaderBundle(IDR_SPRITESHADER, "SpriteVS", NULL, "SpritePS", DEFINE_LAYOUT (layout));
 
     RWCreateBuffer(&ibDesc, indexes, &d3d_SpriteIndexes);
 	D_CacheObject ((ID3D11DeviceChild *) d3d_SpriteIndexes, "d3d_SpriteIndexes");
@@ -215,7 +215,7 @@ void R_DrawSpriteModel (entity_t *e, QMATRIX *localmatrix)
 	if (R_CullBox (mins, maxs)) return;
 
 	R_PrepareEntityForRendering (localmatrix, NULL, e->alpha, e->flags);
-	D_BindShaderBundle (d3d_SpriteShader);
+    SLBindShaderBundle(d3d_SpriteShader);
 	R_BindTexture (mod->skins[framenum]->SRV);
 
 	SMBindVertexBuffer (5, d3d_SpriteBuffers[mod->bufferset].PolyVerts, sizeof (spritepolyvert_t), 0);

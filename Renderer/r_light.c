@@ -293,7 +293,7 @@ void R_InitLight (void)
 	};
 
     RWCreateBuffer(&cbDLightDesc, NULL, &d3d_DLightConstants);
-	D_RegisterConstantBuffer (d3d_DLightConstants, 4);
+    SLRegisterConstantBuffer(d3d_DLightConstants, 4);
 
 	R_CreateTBuffer (&d3d_LightStyles, NULL, MAX_LIGHTSTYLES, sizeof (float), DXGI_FORMAT_R32_FLOAT, D3D11_USAGE_DEFAULT);
 	R_CreateTBuffer (&d3d_LightNormals, r_avertexnormals, NUMVERTEXNORMALS, sizeof (r_avertexnormals[0]), DXGI_FORMAT_R32G32B32A32_FLOAT, D3D11_USAGE_IMMUTABLE);

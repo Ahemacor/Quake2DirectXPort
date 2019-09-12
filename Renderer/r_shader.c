@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // needed for the shader compiler
 // pD3DCompile is defined in D3Dcompiler.h so we don't need to typedef it ourselves
-static HINSTANCE hInstCompiler = NULL;
+/*static HINSTANCE hInstCompiler = NULL;
 static pD3DCompile QD3DCompile = NULL;
 
 typedef struct shaderbundle_s {
@@ -320,13 +320,13 @@ void D_BindShaderBundle (int sb)
 	}
 }
 
-
+*/
 /*
 ============================================================================================================
 CBUFFER MANAGEMENT
 ============================================================================================================
 */
-
+/*
 void D_RegisterConstantBuffer (ID3D11Buffer *cBuffer, int slot)
 {
 	if (slot >= 0 && slot < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT)
@@ -350,4 +350,4 @@ void D_BindConstantBuffers (void)
 	//d3d_Context->lpVtbl->PSSetConstantBuffers (d3d_Context, 0, d3d_MaxCBufferSlot + 1, d3d_ConstantBuffers);
     RWGetDeviceContext()->lpVtbl->PSSetConstantBuffers(RWGetDeviceContext(), 0, d3d_MaxCBufferSlot + 1, d3d_ConstantBuffers);
 }
-
+*/

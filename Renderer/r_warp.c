@@ -90,7 +90,7 @@ void D_DoWaterWarp (void)
     RWGetDeviceContext()->lpVtbl->PSSetShaderResources(RWGetDeviceContext(), 5, 1, &r_WarpNoise.SRV);
 
 	// and draw it
-	D_BindShaderBundle (d3d_WaterWarpShader);
+    SLBindShaderBundle(d3d_WaterWarpShader);
 	SMSetRenderStates(BSNone, DSNoDepth, RSNoCull);
 
 	// this can't be bound once at the start of the frame because setting it as an RT will unbind it
@@ -104,7 +104,7 @@ void D_DoWaterWarp (void)
 
 void R_InitWarp (void)
 {
-	d3d_WaterWarpShader = D_CreateShaderBundle (IDR_WATERWARP, "WaterWarpVS", NULL, "WaterWarpPS", NULL, 0);
+	d3d_WaterWarpShader = SLCreateShaderBundle(IDR_WATERWARP, "WaterWarpVS", NULL, "WaterWarpPS", NULL, 0);
 
 	R_CreateRenderTarget (&r_WaterWarpRT);
 	D_CreateNoiseTexture ();

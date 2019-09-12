@@ -79,13 +79,13 @@ void R_InitMesh (void)
 		0
 	};
 
-	d3d_MeshLightmapShader = D_CreateShaderBundle (IDR_MESHSHADER, "MeshLightmapVS", NULL, "MeshLightmapPS", DEFINE_LAYOUT (layout));
-	d3d_MeshDynamicShader = D_CreateShaderBundle (IDR_MESHSHADER, "MeshDynamicVS", NULL, "GenericDynamicPS", DEFINE_LAYOUT (layout));
-	d3d_MeshPowersuitShader = D_CreateShaderBundle (IDR_MESHSHADER, "MeshPowersuitVS", NULL, "MeshPowersuitPS", DEFINE_LAYOUT (layout));
-	d3d_MeshFullbrightShader = D_CreateShaderBundle (IDR_MESHSHADER, "MeshLightmapVS", NULL, "MeshFullbrightPS", DEFINE_LAYOUT (layout));
+	d3d_MeshLightmapShader = SLCreateShaderBundle(IDR_MESHSHADER, "MeshLightmapVS", NULL, "MeshLightmapPS", DEFINE_LAYOUT (layout));
+	d3d_MeshDynamicShader = SLCreateShaderBundle(IDR_MESHSHADER, "MeshDynamicVS", NULL, "GenericDynamicPS", DEFINE_LAYOUT (layout));
+	d3d_MeshPowersuitShader = SLCreateShaderBundle(IDR_MESHSHADER, "MeshPowersuitVS", NULL, "MeshPowersuitPS", DEFINE_LAYOUT (layout));
+	d3d_MeshFullbrightShader = SLCreateShaderBundle(IDR_MESHSHADER, "MeshLightmapVS", NULL, "MeshFullbrightPS", DEFINE_LAYOUT (layout));
 
     RWCreateBuffer(&cbPerMeshDesc, NULL, &d3d_MeshConstants);
-	D_RegisterConstantBuffer (d3d_MeshConstants, 3);
+    SLRegisterConstantBuffer(d3d_MeshConstants, 3);
 
 	// init vertex cache optimization
 	VCache_Init ();
@@ -422,12 +422,12 @@ void R_SelectAliasShader (int eflags)
 {
 	// figure the correct shaders to use
 	if (eflags & (RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM))
-		D_BindShaderBundle (d3d_MeshPowersuitShader);
+        SLBindShaderBundle(d3d_MeshPowersuitShader);
 	else if (r_newrefdef.rdflags & RDF_NOWORLDMODEL)
-		D_BindShaderBundle (d3d_MeshFullbrightShader);
+        SLBindShaderBundle(d3d_MeshFullbrightShader);
 	else if (!r_worldmodel->lightdata || r_fullbright->value)
-		D_BindShaderBundle (d3d_MeshFullbrightShader);
-	else D_BindShaderBundle (d3d_MeshLightmapShader);
+        SLBindShaderBundle(d3d_MeshFullbrightShader);
+	else SLBindShaderBundle(d3d_MeshLightmapShader);
 }
 
 
@@ -711,7 +711,7 @@ void R_AliasDlights (entity_t *e, model_t *mod, mmdl_t *hdr, QMATRIX *localMatri
 			D_SetupDynamicLight (dl, transformedorigin, e->flags);
 
 			// set up the shaders
-			D_BindShaderBundle (d3d_MeshDynamicShader);
+            SLBindShaderBundle(d3d_MeshDynamicShader);
 
 			// and draw it
 			R_DrawAliasPolySet (mod);
