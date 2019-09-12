@@ -166,8 +166,8 @@ void R_DrawBeam (entity_t *e, QMATRIX *localmatrix)
 			r_beamdetail->modified = false;
 		}
 
-		D_BindVertexBuffer (7, d3d_BeamVertexes, sizeof (beampolyvert_t), 0);
-		D_BindIndexBuffer (d3d_BeamIndexes, DXGI_FORMAT_R16_UINT);
+		SMBindVertexBuffer (7, d3d_BeamVertexes, sizeof (beampolyvert_t), 0);
+		SMBindIndexBuffer (d3d_BeamIndexes, DXGI_FORMAT_R16_UINT);
 
 		//d3d_Context->lpVtbl->DrawIndexed (d3d_Context, r_numbeamindexes, 0, 0);
         RWGetDeviceContext()->lpVtbl->DrawIndexed(RWGetDeviceContext(), r_numbeamindexes, 0, 0);

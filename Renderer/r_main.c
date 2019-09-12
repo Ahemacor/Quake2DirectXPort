@@ -204,8 +204,8 @@ void R_PrepareEntityForRendering (QMATRIX *localMatrix, float *color, float alph
 
 	// and set the correct states
 	if (rflags & RF_TRANSLUCENT)
-		D_SetRenderStates (d3d_BSAlphaBlend, d3d_DSDepthNoWrite, R_SelectRasterizerState (rflags));
-	else D_SetRenderStates (d3d_BSNone, d3d_DSFullDepth, R_SelectRasterizerState (rflags));
+		SMSetRenderStates(BSAlphaBlend, DSDepthNoWrite, R_SelectRasterizerState(rflags));
+	else SMSetRenderStates(BSNone, DSFullDepth, R_SelectRasterizerState(rflags));
 }
 
 
@@ -536,7 +536,7 @@ void R_SetupGL (void)
 	{
 		// we can't clear subrects in D3D11 so just clear the entire thing
 		//d3d_Context->lpVtbl->ClearDepthStencilView (d3d_Context, d3d_DepthBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 1);
-        RWGetDeviceContext()->lpVtbl->ClearDepthStencilView(RWGetDeviceContext(), GetDSV(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 1);
+        RWGetDeviceContext()->lpVtbl->ClearDepthStencilView(RWGetDeviceContext(), RWGetDSV(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 1);
 	}
 }
 
@@ -578,7 +578,7 @@ void R_PolyBlend (void)
 {
 	if (v_blend[3] > 0)
 	{
-		D_SetRenderStates (d3d_BSAlphaBlend, d3d_DSDepthNoWrite, d3d_RSNoCull);
+        SMSetRenderStates(BSAlphaBlend, DSDepthNoWrite, RSNoCull);
 		D_BindShaderBundle (d3d_PolyblendShader);
 
 		// full-screen triangle

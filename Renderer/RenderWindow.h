@@ -30,11 +30,9 @@ public:
     HRESULT CreateTexture2D(const D3D11_TEXTURE2D_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData, ID3D11Texture2D** ppTexture2D);
     HRESULT CreateShaderResourceView(ID3D11Resource* pResource, const D3D11_SHADER_RESOURCE_VIEW_DESC* pDesc, ID3D11ShaderResourceView** ppSRView);
 
-    void SetRTV(ID3D11RenderTargetView* pRTV);
     ID3D11RenderTargetView* GetRTV();
     ID3D11RenderTargetView** GetRTVAddr();
 
-    void SetDSV(ID3D11DepthStencilView* pDSV);
     ID3D11DepthStencilView* GetDSV();
 
     HWND GetWindowHandle();

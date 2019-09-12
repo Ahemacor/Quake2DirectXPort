@@ -89,9 +89,9 @@ void R_DrawParticles (void)
 
 		// square particles can potentially expose a faster path by not using alpha blending
 		// but we might wish to add particle fade at some time so we can't do it (note: all particles in Q2 have fade)
-		D_SetRenderStates (d3d_BSAlphaPreMult, d3d_DSDepthNoWrite, d3d_RSFullCull);
+		SMSetRenderStates (BSAlphaPreMult, DSDepthNoWrite, RSFullCull);
 		D_BindShaderBundle (d3d_ParticleShader);
-		D_BindVertexBuffer (6, d3d_ParticleVertexes, sizeof (particle_t), 0);
+		SMBindVertexBuffer (6, d3d_ParticleVertexes, sizeof (particle_t), 0);
 
 		// and draw it
 		//d3d_Context->lpVtbl->Draw (d3d_Context, r_newrefdef.num_particles, r_FirstParticle);

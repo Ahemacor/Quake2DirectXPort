@@ -67,14 +67,14 @@ qboolean D_BeginWaterWarp (void)
 	{
 		// underwater warped
 		//d3d_Context->lpVtbl->OMSetRenderTargets (d3d_Context, 1, &r_WaterWarpRT.RTV, d3d_DepthBuffer);
-        RWGetDeviceContext()->lpVtbl->OMSetRenderTargets(RWGetDeviceContext(), 1, &r_WaterWarpRT.RTV, GetDSV());
-		R_Clear (r_WaterWarpRT.RTV, GetDSV());
+        RWGetDeviceContext()->lpVtbl->OMSetRenderTargets(RWGetDeviceContext(), 1, &r_WaterWarpRT.RTV, RWGetDSV());
+		R_Clear (r_WaterWarpRT.RTV, RWGetDSV());
 		return true;
 	}
 	else
 	{
 		// normal, unwarped scene
-		R_Clear (GetRTV(), GetDSV());
+		R_Clear (RWGetRTV(), RWGetDSV());
 		return false;
 	}
 }
@@ -83,7 +83,7 @@ void D_DoWaterWarp (void)
 {
 	// revert the original RTs
 	//d3d_Context->lpVtbl->OMSetRenderTargets (d3d_Context, 1, &d3d_RenderTarget, d3d_DepthBuffer);
-    RWGetDeviceContext()->lpVtbl->OMSetRenderTargets(RWGetDeviceContext(), 1, GetRTVAddr(), GetDSV());
+    RWGetDeviceContext()->lpVtbl->OMSetRenderTargets(RWGetDeviceContext(), 1, RWGetRTVAddr(), RWGetDSV());
 
 	// noise goes to slot 5
 	//d3d_Context->lpVtbl->PSSetShaderResources (d3d_Context, 5, 1, &r_WarpNoise.SRV);
@@ -91,7 +91,7 @@ void D_DoWaterWarp (void)
 
 	// and draw it
 	D_BindShaderBundle (d3d_WaterWarpShader);
-	D_SetRenderStates (d3d_BSNone, d3d_DSNoDepth, d3d_RSNoCull);
+	SMSetRenderStates(BSNone, DSNoDepth, RSNoCull);
 
 	// this can't be bound once at the start of the frame because setting it as an RT will unbind it
 	R_BindTexture (r_WaterWarpRT.SRV);

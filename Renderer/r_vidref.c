@@ -131,14 +131,6 @@ int R_Init (void *hinstance, void *wndproc)
 
 	gl_config.allow_cds = true;
 
-	// initialize OS-specific parts of OpenGL
-	/*if (!GLimp_Init (hinstance, wndproc))
-    if (!GLimp_Init(hinstance, wndproc))
-	{
-		ri.Con_Printf (PRINT_ALL, "ref_gl::R_Init() - could not GLimp_Init()\n");
-		return -1;
-	}*/
-
 	// set our "safe" modes
 	gl_state.prev_mode = -1;
 
@@ -153,7 +145,8 @@ int R_Init (void *hinstance, void *wndproc)
 	ri.Vid_MenuInit ();
 
 	// this sets up state objects and NULLs-out cached state
-	R_SetDefaultState ();
+	//R_SetDefaultState ();
+    SMInitDefaultStates();
 
 	// initialize all objects, textures, shaders, etc
 	R_InitImages ();
@@ -218,37 +211,37 @@ refexport_t GetRefAPI (refimport_t rimp)
 
 	re.api_version = API_VERSION;
 
-	re.BeginRegistration = R_BeginRegistration;
-	re.RegisterModel = R_RegisterModel;
-	re.RegisterSkin = R_RegisterSkin;
-	re.RegisterPic = Draw_FindPic;
-	re.SetSky = R_SetSky;
-	re.EndRegistration = R_EndRegistration;
+	re.BeginRegistration = R_BeginRegistration; // init model_t *r_worldmodel
+	re.RegisterModel = R_RegisterModel; // Load Mod_ForName and load info by type mod_sprite mod_alias mod_brush
+	re.RegisterSkin = R_RegisterSkin; // Finds or loads the given image
+	re.RegisterPic = Draw_FindPic; // Finds or loads the given image
+	re.SetSky = R_SetSky; // Create sky cubemap texture
+	re.EndRegistration = R_EndRegistration; // Free unused models
 
-	re.RenderFrame = R_RenderFrame;
+	re.RenderFrame = R_RenderFrame; // Update resources and R_RenderScene
 
-	re.DrawConsoleBackground = Draw_ConsoleBackground;
-	re.DrawGetPicSize = Draw_GetPicSize;
-	re.DrawStretchPic = Draw_StretchPic;
-	re.DrawPic = Draw_Pic;
-	re.DrawFill = Draw_Fill;
-	re.DrawFadeScreen = Draw_FadeScreen;
-	re.Clear = R_ClearToBlack;
+	re.DrawConsoleBackground = Draw_ConsoleBackground; // Draw console background
+	re.DrawGetPicSize = Draw_GetPicSize; // Find picture and return it's H/W size
+	re.DrawStretchPic = Draw_StretchPic; // draw it at the correct scaled size for the HUD
+	re.DrawPic = Draw_Pic; // Draw_TexturedQuad
+	re.DrawFill = Draw_Fill; // Some drawing for menu
+	re.DrawFadeScreen = Draw_FadeScreen; // Draw darkened menu background
+	re.Clear = R_ClearToBlack; // Seems not used
 
-	re.DrawChar = Draw_Char;
-	re.DrawString = Draw_Flush;
-	re.DrawField = Draw_Field;
+	re.DrawChar = Draw_Char; // Draw_CharacterQuad
+	re.DrawString = Draw_Flush; // (sprite staff) D_BindVertexBuffer and draw or draw indexed
+	re.DrawField = Draw_Field; // Draw HUD strings
 
-	re.DrawStretchRaw = Draw_StretchRaw;
+	re.DrawStretchRaw = Draw_StretchRaw; // For SCR_DrawCinematic
 
-	re.Init = R_Init;
-	re.Shutdown = R_Shutdown;
+	re.Init = R_Init; // Init window and graphics
+	re.Shutdown = R_Shutdown; // free models, images, and graphics
 
 	re.BeginFrame = GLimp_BeginFrame;
-	re.Set2D = R_Set2D;
+	re.Set2D = R_Set2D; // HZ switch to our 2d viewport
 	re.EndFrame = GLimp_EndFrame;
 
-	re.AppActivate = GLimp_AppActivate;
+	re.AppActivate = GLimp_AppActivate; // minimize/restore
 	re.EnumerateVideoModes = D_EnumerateVideoModes;
 	re.CaptureScreenshot = D_CaptureScreenshot;
 
@@ -265,7 +258,8 @@ refexport_t GetRefAPI (refimport_t rimp)
 	// now create the new one we're going to use
 	hRefHeap = HeapCreate (0, 0, 0);
 
-    Init();
+    CPPRease();
+    CPPInit();
 
 	// and done
 	return re;

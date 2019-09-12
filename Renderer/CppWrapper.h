@@ -9,8 +9,11 @@
 extern "C" {
 #endif
 
-void Init();
-void Release();
+void CPPInit();
+void CPPRease();
+
+UINT RWGetModesNumber();
+DXGI_MODE_DESC RWGetMode(UINT index);
 
 void RWSetAppProps(HINSTANCE hInstance, WNDPROC wndproc);
 qboolean RWInitWindow(int width, int height, int mode, qboolean fullscreen);
@@ -26,15 +29,17 @@ void RWCreateBuffer(const D3D11_BUFFER_DESC* pDesc, const void* pSrcMem, ID3D11B
 HRESULT RWCreateTexture2D(const D3D11_TEXTURE2D_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData, ID3D11Texture2D** ppTexture2D);
 HRESULT RWCreateShaderResourceView(ID3D11Resource* pResource, const D3D11_SHADER_RESOURCE_VIEW_DESC* pDesc, ID3D11ShaderResourceView** ppSRView);
 
-void SetRTV(ID3D11RenderTargetView* pRTV);
-ID3D11RenderTargetView* GetRTV();
-ID3D11RenderTargetView** GetRTVAddr();
+ID3D11RenderTargetView* RWGetRTV();
+ID3D11RenderTargetView** RWGetRTVAddr();
+ID3D11DepthStencilView* RWGetDSV();
 
-void SetDSV(ID3D11DepthStencilView* pDSV);
-ID3D11DepthStencilView* GetDSV();
 
-UINT GetModesNumber();
-DXGI_MODE_DESC GetMode(UINT index);
+
+void SMSetRenderStates(BlendState bs, DepthStencilState ds, RasterizerState rs);
+void SMInitDefaultStates();
+void SMBindVertexBuffer(UINT Slot, ID3D11Buffer* Buffer, UINT Stride, UINT Offset);
+void SMBindIndexBuffer(ID3D11Buffer* Buffer, DXGI_FORMAT Format);
+void SMBindSamplers();
 
 #ifdef __cplusplus
 }

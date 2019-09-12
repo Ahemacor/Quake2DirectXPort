@@ -205,22 +205,19 @@ void Draw_Flush (void)
 {
 	if (d_drawverts)
 	{
-		//d3d_Context->lpVtbl->Unmap (d3d_Context, (ID3D11Resource *) d3d_DrawVertexes, 0);
         RWGetDeviceContext()->lpVtbl->Unmap(RWGetDeviceContext(), (ID3D11Resource*)d3d_DrawVertexes, 0);
 		d_drawverts = NULL;
 	}
 
-	D_BindVertexBuffer (0, d3d_DrawVertexes, sizeof (drawpolyvert_t), 0);
+	SMBindVertexBuffer (0, d3d_DrawVertexes, sizeof (drawpolyvert_t), 0);
 
 	if (d_numdrawverts == 3)
 	{
-		//d3d_Context->lpVtbl->Draw (d3d_Context, d_numdrawverts, d_firstdrawvert);
         RWGetDeviceContext()->lpVtbl->Draw(RWGetDeviceContext(), d_numdrawverts, d_firstdrawvert);
 	}
 	else if (d_numdrawverts > 3)
 	{
-		D_BindIndexBuffer (d3d_DrawIndexes, DXGI_FORMAT_R16_UINT);
-		//d3d_Context->lpVtbl->DrawIndexed (d3d_Context, (d_numdrawverts >> 2) * 6, 0, d_firstdrawvert);
+		SMBindIndexBuffer (d3d_DrawIndexes, DXGI_FORMAT_R16_UINT);
         RWGetDeviceContext()->lpVtbl->DrawIndexed(RWGetDeviceContext(), (d_numdrawverts >> 2) * 6, 0, d_firstdrawvert);
 	}
 
@@ -293,7 +290,7 @@ void Draw_TexturedQuad (image_t *image, int x, int y, int w, int h, unsigned col
 	R_BindTexture (image->SRV);
 
 	D_BindShaderBundle (d3d_DrawTexturedShader);
-	D_SetRenderStates (d3d_BSAlphaPreMult, d3d_DSNoDepth, d3d_RSNoCull);
+	SMSetRenderStates(BSAlphaPreMult, DSNoDepth, RSNoCull);
 
 	if (Draw_EnsureBufferSpace ())
 	{
@@ -346,7 +343,7 @@ void Draw_Field (int x, int y, int color, int width, int value)
 	R_BindTexArray (sb_nums[color]->SRV);
 
 	D_BindShaderBundle (d3d_DrawTexArrayShader);
-	D_SetRenderStates (d3d_BSAlphaPreMult, d3d_DSNoDepth, d3d_RSNoCull);
+    SMSetRenderStates(BSAlphaPreMult, DSNoDepth, RSNoCull);
 
 	while (*ptr && l)
 	{
@@ -386,7 +383,7 @@ void Draw_Char (int x, int y, int num)
 	R_BindTexArray (draw_chars->SRV);
 
 	D_BindShaderBundle (d3d_DrawTexArrayShader);
-	D_SetRenderStates (d3d_BSAlphaPreMult, d3d_DSNoDepth, d3d_RSNoCull);
+    SMSetRenderStates(BSAlphaPreMult, DSNoDepth, RSNoCull);
 
 	Draw_CharacterQuad (x, y, 8, 8, num & 255);
 }
@@ -463,7 +460,7 @@ void Draw_Pic (int x, int y, char *pic)
 
 void Draw_ConsoleBackground (int x, int y, int w, int h, char *pic, int alpha)
 {
-	image_t *gl = Draw_FindPic (pic);
+    image_t* gl = Draw_FindPic (pic);
 
 	if (!gl)
 	{
@@ -482,7 +479,7 @@ void Draw_Fill (int x, int y, int w, int h, int c)
 {
 	// this is a quad filled with a single solid colour so it doesn't need to blend
 	D_BindShaderBundle (d3d_DrawColouredShader);
-	D_SetRenderStates (d3d_BSNone, d3d_DSNoDepth, d3d_RSNoCull);
+    SMSetRenderStates(BSNone, DSNoDepth, RSNoCull);
 
 	if (Draw_EnsureBufferSpace ())
 	{
@@ -506,11 +503,10 @@ Draw_FadeScreen
 */
 void Draw_FadeScreen (void)
 {
-	D_SetRenderStates (d3d_BSAlphaPreMult, d3d_DSDepthNoWrite, d3d_RSNoCull);
+    SMSetRenderStates(BSAlphaPreMult, DSDepthNoWrite, RSNoCull);
 	D_BindShaderBundle (d3d_DrawFadescreenShader);
 
 	// full-screen triangle
-	//d3d_Context->lpVtbl->Draw (d3d_Context, 3, 0);
     RWGetDeviceContext()->lpVtbl->Draw(RWGetDeviceContext(), 3, 0);
 }
 
@@ -577,7 +573,7 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame, const unsigned 
 	R_BindTexture (r_CinematicPic.SRV);
 
 	D_BindShaderBundle (d3d_DrawCinematicShader);
-	D_SetRenderStates (d3d_BSNone, d3d_DSNoDepth, d3d_RSNoCull);
+    SMSetRenderStates(BSNone, DSNoDepth, RSNoCull);
 
 	if (Draw_EnsureBufferSpace ())
 	{
@@ -606,7 +602,6 @@ void R_Set2D (void)
 {
 	// switch to our 2d viewport
 	D3D11_VIEWPORT vp = {0, 0, vid.width, vid.height, 0, 0};
-	//d3d_Context->lpVtbl->RSSetViewports (d3d_Context, 1, &vp);
     RWGetDeviceContext()->lpVtbl->RSSetViewports(RWGetDeviceContext(), 1, &vp);
 }
 

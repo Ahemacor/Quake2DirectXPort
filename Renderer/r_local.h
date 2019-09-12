@@ -176,7 +176,7 @@ typedef enum _rserr_t
 
 #include "r_model.h"
 
-void R_SetDefaultState (void);
+//void R_SetDefaultState (void);
 
 #define	MAX_LBM_HEIGHT		480
 
@@ -377,7 +377,34 @@ void R_PrepareEntityForRendering (QMATRIX *localMatrix, float *color, float alph
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // states
-extern ID3D11BlendState *d3d_BSNone;
+typedef enum BSEnum
+{
+    BSNone,
+    BSAlphaBlend,
+    BSAlphaReverse,
+    BSAlphaPreMult,
+    BSAdditive,
+    BSRevSubtract
+} BlendState;
+
+typedef enum DSEnum
+{
+    DSFullDepth,
+    DSDepthNoWrite,
+    DSNoDepth,
+    DSEqualDepthNoWrite
+} DepthStencilState;
+
+typedef enum RSEnum
+{
+    RSFullCull,
+    RSReverseCull,
+    RSNoCull
+} RasterizerState;
+
+RasterizerState R_SelectRasterizerState(int rflags);
+
+/*extern ID3D11BlendState *d3d_BSNone;
 extern ID3D11BlendState *d3d_BSAlphaBlend;
 extern ID3D11BlendState *d3d_BSAlphaReverse;
 extern ID3D11BlendState *d3d_BSAlphaPreMult;
@@ -391,14 +418,14 @@ extern ID3D11DepthStencilState *d3d_DSEqualDepthNoWrite;
 
 extern ID3D11RasterizerState *d3d_RSFullCull;
 extern ID3D11RasterizerState *d3d_RSReverseCull;
-extern ID3D11RasterizerState *d3d_RSNoCull;
+extern ID3D11RasterizerState *d3d_RSNoCull;*/
 
-void D_SetRenderStates (ID3D11BlendState *bs, ID3D11DepthStencilState *ds, ID3D11RasterizerState *rs);
-void D_BindSamplers (void);
-ID3D11RasterizerState *R_SelectRasterizerState (int rflags);
+//void D_SetRenderStates (ID3D11BlendState *bs, ID3D11DepthStencilState *ds, ID3D11RasterizerState *rs);
+//void D_BindSamplers (void);
+//ID3D11RasterizerState *R_SelectRasterizerState (int rflags);
 
-void D_BindVertexBuffer (UINT Slot, ID3D11Buffer *Buffer, UINT Stride, UINT Offset);
-void D_BindIndexBuffer (ID3D11Buffer *Buffer, DXGI_FORMAT Format);
+//void D_BindVertexBuffer (UINT Slot, ID3D11Buffer *Buffer, UINT Stride, UINT Offset);
+//void D_BindIndexBuffer (ID3D11Buffer *Buffer, DXGI_FORMAT Format);
 
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------

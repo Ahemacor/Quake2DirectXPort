@@ -1,22 +1,29 @@
 #include "CppWrapper.h"
 #include "RenderWindow.h"
+#include "StateManager.h"
 #include <cassert>
 
 RenderWindow* g_pRenderWindow = nullptr;
+StateManager* g_pStateManager = nullptr;
 
-void Init()
+void CPPInit()
 {
     if (g_pRenderWindow != nullptr)
     {
         delete g_pRenderWindow;
     }
-
     g_pRenderWindow = new RenderWindow();
-
     assert(g_pRenderWindow != nullptr);
+
+    if (g_pStateManager != nullptr)
+    {
+        delete g_pStateManager;
+    }
+    g_pStateManager = new StateManager();
+    assert(g_pStateManager != nullptr);
 }
 
-void Release()
+void CPPRease()
 {
     if (g_pRenderWindow != nullptr)
     {
@@ -24,6 +31,13 @@ void Release()
         g_pRenderWindow = nullptr;
     }
     assert(g_pRenderWindow == nullptr);
+
+    if (g_pStateManager != nullptr)
+    {
+        delete g_pStateManager;
+        g_pStateManager = nullptr;
+    }
+    assert(g_pStateManager == nullptr);
 }
 
 void RWSetAppProps(HINSTANCE hInstance, WNDPROC wndproc)
@@ -86,45 +100,63 @@ IDXGISwapChain* RWGetSwapchain()
     return g_pRenderWindow->GetSwapchain();
 }
 
-void SetRTV(ID3D11RenderTargetView* pRTV)
-{
-    assert(g_pRenderWindow != nullptr);
-    g_pRenderWindow->SetRTV(pRTV);
-}
-
-ID3D11RenderTargetView* GetRTV()
+ID3D11RenderTargetView* RWGetRTV()
 {
     assert(g_pRenderWindow != nullptr);
     return g_pRenderWindow->GetRTV();
 }
 
-ID3D11RenderTargetView** GetRTVAddr()
+ID3D11RenderTargetView** RWGetRTVAddr()
 {
     assert(g_pRenderWindow != nullptr);
     return g_pRenderWindow->GetRTVAddr();
 }
 
-void SetDSV(ID3D11DepthStencilView* pDSV)
-{
-    assert(g_pRenderWindow != nullptr);
-    g_pRenderWindow->SetDSV(pDSV);
-}
-
-ID3D11DepthStencilView* GetDSV()
+ID3D11DepthStencilView* RWGetDSV()
 {
     assert(g_pRenderWindow != nullptr);
     return g_pRenderWindow->GetDSV();
 }
 
 
-UINT GetModesNumber()
+UINT RWGetModesNumber()
 {
     assert(g_pRenderWindow != nullptr);
     return g_pRenderWindow->GetModesNumber();
 }
 
-DXGI_MODE_DESC GetMode(UINT index)
+DXGI_MODE_DESC RWGetMode(UINT index)
 {
     assert(g_pRenderWindow != nullptr);
     return g_pRenderWindow->GetMode(index);
+}
+
+void SMSetRenderStates(BlendState bs, DepthStencilState ds, RasterizerState rs)
+{
+    assert(g_pStateManager != nullptr);
+    g_pStateManager->SetRenderStates(bs, ds, rs);
+}
+
+void SMInitDefaultStates()
+{
+    assert(g_pStateManager != nullptr);
+    g_pStateManager->SetDefaultState();
+}
+
+void SMBindVertexBuffer(UINT Slot, ID3D11Buffer* Buffer, UINT Stride, UINT Offset)
+{
+    assert(g_pStateManager != nullptr);
+    g_pStateManager->BindVertexBuffer(Slot, Buffer, Stride, Offset);
+}
+
+void SMBindIndexBuffer(ID3D11Buffer* Buffer, DXGI_FORMAT Format)
+{
+    assert(g_pStateManager != nullptr);
+    g_pStateManager->BindIndexBuffer(Buffer, Format);
+}
+
+void SMBindSamplers()
+{
+    assert(g_pStateManager != nullptr);
+    g_pStateManager->BindSamplers();
 }

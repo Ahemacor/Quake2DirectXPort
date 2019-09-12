@@ -234,8 +234,8 @@ void R_SelectSurfaceShader (const mtexinfo_t *ti, qboolean alpha)
 void R_SetupSurfaceState (QMATRIX *localmatrix, float alphaval, int flags)
 {
 	R_PrepareEntityForRendering (localmatrix, NULL, alphaval, flags);
-	D_BindVertexBuffer (4, d3d_SurfVertexes, sizeof (brushpolyvert_t), 0);
-	D_BindIndexBuffer (d3d_SurfIndexes, DXGI_FORMAT_R32_UINT);
+	SMBindVertexBuffer (4, d3d_SurfVertexes, sizeof (brushpolyvert_t), 0);
+	SMBindIndexBuffer (d3d_SurfIndexes, DXGI_FORMAT_R32_UINT);
 }
 
 

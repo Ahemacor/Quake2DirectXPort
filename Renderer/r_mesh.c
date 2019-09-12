@@ -448,11 +448,11 @@ void R_SetupAliasFrameLerp (entity_t *e, model_t *mod, aliasbuffers_t *set)
 
 	R_BindTexture (R_SelectAliasTexture (e, mod)->SRV);
 
-	D_BindVertexBuffer (1, set->PolyVerts, sizeof (dtrivertx_t), e->prevframe * sizeof (dtrivertx_t) * hdr->num_verts);
-	D_BindVertexBuffer (2, set->PolyVerts, sizeof (dtrivertx_t), e->currframe * sizeof (dtrivertx_t) * hdr->num_verts);
-	D_BindVertexBuffer (3, set->TexCoords, sizeof (float) * 2, 0);
+	SMBindVertexBuffer (1, set->PolyVerts, sizeof (dtrivertx_t), e->prevframe * sizeof (dtrivertx_t) * hdr->num_verts);
+	SMBindVertexBuffer (2, set->PolyVerts, sizeof (dtrivertx_t), e->currframe * sizeof (dtrivertx_t) * hdr->num_verts);
+	SMBindVertexBuffer (3, set->TexCoords, sizeof (float) * 2, 0);
 
-	D_BindIndexBuffer (set->Indexes, DXGI_FORMAT_R16_UINT);
+	SMBindIndexBuffer (set->Indexes, DXGI_FORMAT_R16_UINT);
 }
 
 

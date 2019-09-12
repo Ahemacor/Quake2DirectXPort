@@ -101,6 +101,7 @@
     <ClCompile Include="r_vcache.c" />
     <ClCompile Include="r_vidref.c" />
     <ClCompile Include="r_warp.c" />
+    <ClCompile Include="StateManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\DirectQII\anorms.h" />
@@ -113,6 +114,7 @@
     <ClInclude Include="RenderWindow.h" />
     <ClInclude Include="r_local.h" />
     <ClInclude Include="r_model.h" />
+    <ClInclude Include="StateManager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="envmap.pcx" />

@@ -58,11 +58,6 @@ IDXGISwapChain* RenderWindow::GetSwapchain()
     return swapchain.Get();
 }
 
-void RenderWindow::SetRTV(ID3D11RenderTargetView* pRTV)
-{
-    renderTargetView = pRTV;
-}
-
 ID3D11RenderTargetView* RenderWindow::GetRTV()
 {
     return renderTargetView.Get();
@@ -71,11 +66,6 @@ ID3D11RenderTargetView* RenderWindow::GetRTV()
 ID3D11RenderTargetView** RenderWindow::GetRTVAddr()
 {
     return renderTargetView.GetAddressOf();
-}
-
-void RenderWindow::SetDSV(ID3D11DepthStencilView* pDSV)
-{
-    depthStencilView = pDSV;
 }
 
 ID3D11DepthStencilView* RenderWindow::GetDSV()

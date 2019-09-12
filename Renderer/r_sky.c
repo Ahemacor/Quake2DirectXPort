@@ -70,7 +70,7 @@ void R_SetupSky (QMATRIX *SkyMatrix)
 
 void R_DrawSkyChain (msurface_t *surf)
 {
-	D_SetRenderStates (d3d_BSNone, d3d_DSDepthNoWrite, d3d_RSFullCull);
+	SMSetRenderStates(BSNone, DSDepthNoWrite, RSFullCull);
 
 	if (r_lightmap->value)
 		D_BindShaderBundle (d3d_SkyNoSkyShader);

@@ -86,8 +86,7 @@ failed:;
 void R_ClearToBlack (void)
 {
 	float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-	//d3d_Context->lpVtbl->ClearRenderTargetView (d3d_Context, d3d_RenderTarget, clear);
-    RWGetDeviceContext()->lpVtbl->ClearRenderTargetView(RWGetDeviceContext(), GetRTV(), clear);
+    RWGetDeviceContext()->lpVtbl->ClearRenderTargetView(RWGetDeviceContext(), RWGetRTV(), clear);
 }
 
 
