@@ -8,10 +8,11 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+// Common interface.
 void CPPInit();
 void CPPRease();
 
+// Render Window interface.
 UINT RWGetModesNumber();
 DXGI_MODE_DESC RWGetMode(UINT index);
 
@@ -33,13 +34,14 @@ ID3D11RenderTargetView* RWGetRTV();
 ID3D11RenderTargetView** RWGetRTVAddr();
 ID3D11DepthStencilView* RWGetDSV();
 
-
-
+// State Manager interface.
 void SMSetRenderStates(BlendState bs, DepthStencilState ds, RasterizerState rs);
 void SMInitDefaultStates();
 void SMBindVertexBuffer(UINT Slot, ID3D11Buffer* Buffer, UINT Stride, UINT Offset);
 void SMBindIndexBuffer(ID3D11Buffer* Buffer, DXGI_FORMAT Format);
 void SMBindSamplers();
+
+// Shader Loader interface.
 
 #ifdef __cplusplus
 }

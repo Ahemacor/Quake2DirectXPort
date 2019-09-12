@@ -1,10 +1,14 @@
 #include "CppWrapper.h"
 #include "RenderWindow.h"
 #include "StateManager.h"
+#include "ShaderLoader.h"
 #include <cassert>
 
 RenderWindow* g_pRenderWindow = nullptr;
 StateManager* g_pStateManager = nullptr;
+ShaderLoader* g_pShaderLoader = nullptr;
+
+// Common interface.
 
 void CPPInit()
 {
@@ -21,6 +25,13 @@ void CPPInit()
     }
     g_pStateManager = new StateManager();
     assert(g_pStateManager != nullptr);
+
+    if (g_pShaderLoader != nullptr)
+    {
+        delete g_pShaderLoader;
+    }
+    g_pShaderLoader = new ShaderLoader();
+    assert(g_pShaderLoader != nullptr);
 }
 
 void CPPRease()
@@ -38,7 +49,16 @@ void CPPRease()
         g_pStateManager = nullptr;
     }
     assert(g_pStateManager == nullptr);
+
+    if (g_pShaderLoader != nullptr)
+    {
+        delete g_pShaderLoader;
+        g_pShaderLoader = nullptr;
+    }
+    assert(g_pStateManager == nullptr);
 }
+
+// Render Window interface.
 
 void RWSetAppProps(HINSTANCE hInstance, WNDPROC wndproc)
 {
@@ -131,6 +151,8 @@ DXGI_MODE_DESC RWGetMode(UINT index)
     return g_pRenderWindow->GetMode(index);
 }
 
+// State Manager interface.
+
 void SMSetRenderStates(BlendState bs, DepthStencilState ds, RasterizerState rs)
 {
     assert(g_pStateManager != nullptr);
@@ -160,3 +182,5 @@ void SMBindSamplers()
     assert(g_pStateManager != nullptr);
     g_pStateManager->BindSamplers();
 }
+
+// Shader Loader interface.
