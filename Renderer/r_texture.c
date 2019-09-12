@@ -100,8 +100,7 @@ void R_CreateTexture32 (image_t *image, unsigned *data)
 		R_DescribeTexture (&Desc, image->width >> 4, image->height >> 4, 256, image->flags);
 
 		// failure is not an option...
-		//if (FAILED (d3d_Device->lpVtbl->CreateTexture2D (d3d_Device, &Desc, srd, &image->Texture))) ri.Sys_Error (ERR_FATAL, "CreateTexture2D failed");
-        if (FAILED(RWGetDevice()->lpVtbl->CreateTexture2D(RWGetDevice(), &Desc, srd, &image->Texture))) ri.Sys_Error(ERR_FATAL, "CreateTexture2D failed");
+        if (FAILED(RWCreateTexture2D(&Desc, srd, &image->Texture))) ri.Sys_Error(ERR_FATAL, "CreateTexture2D failed");
 	}
 	else
 	{
@@ -141,13 +140,11 @@ void R_CreateTexture32 (image_t *image, unsigned *data)
 		R_DescribeTexture (&Desc, image->width, image->height, 1, image->flags);
 
 		// failure is not an option...
-		//if (FAILED (d3d_Device->lpVtbl->CreateTexture2D (d3d_Device, &Desc, srd, &image->Texture))) ri.Sys_Error (ERR_FATAL, "CreateTexture2D failed");
-        if (FAILED(RWGetDevice()->lpVtbl->CreateTexture2D(RWGetDevice(), &Desc, srd, &image->Texture))) ri.Sys_Error(ERR_FATAL, "CreateTexture2D failed");
+        if (FAILED(RWCreateTexture2D(&Desc, srd, &image->Texture))) ri.Sys_Error(ERR_FATAL, "CreateTexture2D failed");
 	}
 
 	// failure is not an option...
-	//if (FAILED (d3d_Device->lpVtbl->CreateShaderResourceView (d3d_Device, (ID3D11Resource *) image->Texture, NULL, &image->SRV))) ri.Sys_Error (ERR_FATAL, "CreateShaderResourceView failed");
-    if (FAILED(RWGetDevice()->lpVtbl->CreateShaderResourceView(RWGetDevice(), (ID3D11Resource*)image->Texture, NULL, &image->SRV))) ri.Sys_Error(ERR_FATAL, "CreateShaderResourceView failed");
+    if (FAILED(RWCreateShaderResourceView((ID3D11Resource*)image->Texture, NULL, &image->SRV))) ri.Sys_Error(ERR_FATAL, "CreateShaderResourceView failed");
 }
 
 
@@ -597,10 +594,8 @@ image_t *R_LoadTexArray (char *base)
 	R_DescribeTexture (&Desc, sb_width[0], sb_height[0], 11, image->flags);
 
 	// failure is not an option...
-	//if (FAILED (d3d_Device->lpVtbl->CreateTexture2D (d3d_Device, &Desc, srd, &image->Texture))) ri.Sys_Error (ERR_FATAL, "CreateTexture2D failed");
-    if (FAILED(RWGetDevice()->lpVtbl->CreateTexture2D(RWGetDevice(), &Desc, srd, &image->Texture))) ri.Sys_Error(ERR_FATAL, "CreateTexture2D failed");
-	//if (FAILED (d3d_Device->lpVtbl->CreateShaderResourceView (d3d_Device, (ID3D11Resource *) image->Texture, NULL, &image->SRV))) ri.Sys_Error (ERR_FATAL, "CreateShaderResourceView failed");
-    if (FAILED(RWGetDevice()->lpVtbl->CreateShaderResourceView(RWGetDevice(), (ID3D11Resource*)image->Texture, NULL, &image->SRV))) ri.Sys_Error(ERR_FATAL, "CreateShaderResourceView failed");
+    if (FAILED(RWCreateTexture2D(&Desc, srd, &image->Texture))) ri.Sys_Error(ERR_FATAL, "CreateTexture2D failed");
+    if (FAILED(RWCreateShaderResourceView((ID3D11Resource*)image->Texture, NULL, &image->SRV))) ri.Sys_Error(ERR_FATAL, "CreateShaderResourceView failed");
 
 	// free memory used for loading the image
 	ri.Load_FreeMemory ();
@@ -629,10 +624,8 @@ void R_CreateRenderTarget (rendertarget_t *rt)
 	rt->Desc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
 
 	// and create it - failure is not an option...
-	//if (FAILED (d3d_Device->lpVtbl->CreateTexture2D (d3d_Device, &rt->Desc, NULL, &rt->Texture))) ri.Sys_Error (ERR_FATAL, "CreateTexture2D failed");
-    if (FAILED(RWGetDevice()->lpVtbl->CreateTexture2D(RWGetDevice(), &rt->Desc, NULL, &rt->Texture))) ri.Sys_Error(ERR_FATAL, "CreateTexture2D failed");
-	//if (FAILED (d3d_Device->lpVtbl->CreateShaderResourceView (d3d_Device, (ID3D11Resource *) rt->Texture, NULL, &rt->SRV))) ri.Sys_Error (ERR_FATAL, "CreateShaderResourceView failed");
-    if (FAILED(RWGetDevice()->lpVtbl->CreateShaderResourceView(RWGetDevice(), (ID3D11Resource*)rt->Texture, NULL, &rt->SRV))) ri.Sys_Error(ERR_FATAL, "CreateShaderResourceView failed");
+    if (FAILED(RWCreateTexture2D(&rt->Desc, NULL, &rt->Texture))) ri.Sys_Error(ERR_FATAL, "CreateTexture2D failed");
+    if (FAILED(RWCreateShaderResourceView((ID3D11Resource*)rt->Texture, NULL, &rt->SRV))) ri.Sys_Error(ERR_FATAL, "CreateShaderResourceView failed");
 	//if (FAILED (d3d_Device->lpVtbl->CreateRenderTargetView (d3d_Device, (ID3D11Resource *) rt->Texture, NULL, &rt->RTV))) ri.Sys_Error (ERR_FATAL, "CreateRenderTargetView failed");
     if (FAILED(RWGetDevice()->lpVtbl->CreateRenderTargetView(RWGetDevice(), (ID3D11Resource*)rt->Texture, NULL, &rt->RTV))) ri.Sys_Error(ERR_FATAL, "CreateRenderTargetView failed");
 }
@@ -657,10 +650,8 @@ void R_CreateTexture (texture_t *t, D3D11_SUBRESOURCE_DATA *srd, int width, int 
 	R_DescribeTexture (&t->Desc, width, height, arraysize, flags);
 
 	// failure is not an option...
-	//if (FAILED (d3d_Device->lpVtbl->CreateTexture2D (d3d_Device, &t->Desc, srd, &t->Texture))) ri.Sys_Error (ERR_FATAL, "CreateTexture2D failed");
-    if (FAILED(RWGetDevice()->lpVtbl->CreateTexture2D(RWGetDevice(), &t->Desc, srd, &t->Texture))) ri.Sys_Error(ERR_FATAL, "CreateTexture2D failed");
-	//if (FAILED (d3d_Device->lpVtbl->CreateShaderResourceView (d3d_Device, (ID3D11Resource *) t->Texture, NULL, &t->SRV))) ri.Sys_Error (ERR_FATAL, "CreateShaderResourceView failed");
-    if (FAILED(RWGetDevice()->lpVtbl->CreateShaderResourceView(RWGetDevice(), (ID3D11Resource*)t->Texture, NULL, &t->SRV))) ri.Sys_Error(ERR_FATAL, "CreateShaderResourceView failed");
+    if (FAILED(RWCreateTexture2D(&t->Desc, srd, &t->Texture))) ri.Sys_Error(ERR_FATAL, "CreateTexture2D failed");
+    if (FAILED(RWCreateShaderResourceView((ID3D11Resource*)t->Texture, NULL, &t->SRV))) ri.Sys_Error(ERR_FATAL, "CreateShaderResourceView failed");
 }
 
 
@@ -701,8 +692,7 @@ void R_CreateTBuffer (tbuffer_t *tb, void *data, int NumElements, int ElementSiz
         RWCreateBuffer(&tbDesc, NULL, &tb->Buffer);
 	}
 
-	//d3d_Device->lpVtbl->CreateShaderResourceView (d3d_Device, (ID3D11Resource *) tb->Buffer, &srvDesc, &tb->SRV);
-    RWGetDevice()->lpVtbl->CreateShaderResourceView(RWGetDevice(), (ID3D11Resource*)tb->Buffer, &srvDesc, &tb->SRV);
+    RWCreateShaderResourceView((ID3D11Resource*)tb->Buffer, &srvDesc, &tb->SRV);
 }
 
 

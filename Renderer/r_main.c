@@ -569,25 +569,6 @@ void R_Clear (ID3D11RenderTargetView *RTV, ID3D11DepthStencilView *DSV)
     RWGetDeviceContext()->lpVtbl->ClearDepthStencilView(RWGetDeviceContext(), DSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 1);
 }
 
-
-void R_SyncPipeline (void)
-{
-	// forces the pipeline to sync by issuing a query then waiting for it to complete
-	ID3D11Query *FinishEvent = NULL;
-	D3D11_QUERY_DESC Desc = {D3D11_QUERY_EVENT, 0};
-
-	//if (SUCCEEDED (d3d_Device->lpVtbl->CreateQuery (d3d_Device, &Desc, &FinishEvent)))
-    if (SUCCEEDED(RWGetDevice()->lpVtbl->CreateQuery(RWGetDevice(), &Desc, &FinishEvent)))
-	{
-		//d3d_Context->lpVtbl->End (d3d_Context, (ID3D11Asynchronous *) FinishEvent);
-        RWGetDeviceContext()->lpVtbl->End(RWGetDeviceContext(), (ID3D11Asynchronous*)FinishEvent);
-		//while (d3d_Context->lpVtbl->GetData (d3d_Context, (ID3D11Asynchronous *) FinishEvent, NULL, 0, 0) == S_FALSE);
-        while (RWGetDeviceContext()->lpVtbl->GetData(RWGetDeviceContext(), (ID3D11Asynchronous*)FinishEvent, NULL, 0, 0) == S_FALSE);
-		SAFE_RELEASE (FinishEvent);
-	}
-}
-
-
 /*
 ============
 R_PolyBlend
@@ -697,9 +678,6 @@ void R_RenderFrame (refdef_t *fd)
 		ri.Sys_Error (ERR_DROP, "R_RenderFrame: NULL worldmodel");
 
 	R_BindLightmaps ();
-
-	if (gl_finish->value)
-		R_SyncPipeline ();
 
 	R_SetupFrame ();
 

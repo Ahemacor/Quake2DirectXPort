@@ -23,11 +23,12 @@ public:
     DXGI_MODE_DESC GetMode(UINT index);
 
     ID3D11Device* GetDevice();
-    void CreateBuffer(const D3D11_BUFFER_DESC* pDesc, const void* pSrcMem, ID3D11Buffer** outBufferAddr);
-
     ID3D11DeviceContext* GetDeviceContext();
-
     IDXGISwapChain* GetSwapchain();
+
+    void CreateBuffer(const D3D11_BUFFER_DESC* pDesc, const void* pSrcMem, ID3D11Buffer** outBufferAddr);
+    HRESULT CreateTexture2D(const D3D11_TEXTURE2D_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData, ID3D11Texture2D** ppTexture2D);
+    HRESULT CreateShaderResourceView(ID3D11Resource* pResource, const D3D11_SHADER_RESOURCE_VIEW_DESC* pDesc, ID3D11ShaderResourceView** ppSRView);
 
     void SetRTV(ID3D11RenderTargetView* pRTV);
     ID3D11RenderTargetView* GetRTV();

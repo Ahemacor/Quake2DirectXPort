@@ -26,7 +26,7 @@ void Release()
     assert(g_pRenderWindow == nullptr);
 }
 
-void SetAppProps(HINSTANCE hInstance, WNDPROC wndproc)
+void RWSetAppProps(HINSTANCE hInstance, WNDPROC wndproc)
 {
     assert(g_pRenderWindow != nullptr);
     g_pRenderWindow->SetAppProps(hInstance, wndproc);
@@ -38,13 +38,13 @@ qboolean RWInitWindow(int width, int height, int mode, qboolean fullscreen)
     return g_pRenderWindow->InitWindow(width, height, mode, fullscreen);
 }
 
-void CloseRenderWindow()
+void RWClose()
 {
     assert(g_pRenderWindow != nullptr);
     g_pRenderWindow->CloseWindow();
 }
 
-void* GetWindowHandle()
+void* RWGetHandle()
 {
     assert(g_pRenderWindow != nullptr);
     return (void*)g_pRenderWindow->GetWindowHandle();
@@ -60,6 +60,18 @@ void RWCreateBuffer(const D3D11_BUFFER_DESC* pDesc, const void* pSrcMem, ID3D11B
 {
     assert(g_pRenderWindow != nullptr);
     g_pRenderWindow->CreateBuffer(pDesc, pSrcMem, outBufferAddr);
+}
+
+HRESULT RWCreateTexture2D(const D3D11_TEXTURE2D_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData, ID3D11Texture2D** ppTexture2D)
+{
+    assert(g_pRenderWindow != nullptr);
+    return g_pRenderWindow->CreateTexture2D(pDesc, pInitialData, ppTexture2D);
+}
+
+HRESULT RWCreateShaderResourceView(ID3D11Resource* pResource, const D3D11_SHADER_RESOURCE_VIEW_DESC* pDesc, ID3D11ShaderResourceView** ppSRView)
+{
+    assert(g_pRenderWindow != nullptr);
+    return g_pRenderWindow->CreateShaderResourceView(pResource, pDesc, ppSRView);
 }
 
 ID3D11DeviceContext* RWGetDeviceContext()

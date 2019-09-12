@@ -12,17 +12,19 @@ extern "C" {
 void Init();
 void Release();
 
-void SetAppProps(HINSTANCE hInstance, WNDPROC wndproc);
+void RWSetAppProps(HINSTANCE hInstance, WNDPROC wndproc);
 qboolean RWInitWindow(int width, int height, int mode, qboolean fullscreen);
-void CloseRenderWindow();
+void RWClose();
 
-void* GetWindowHandle();
+void* RWGetHandle();
 
 ID3D11Device* RWGetDevice();
 ID3D11DeviceContext* RWGetDeviceContext();
 IDXGISwapChain* RWGetSwapchain();
 
 void RWCreateBuffer(const D3D11_BUFFER_DESC* pDesc, const void* pSrcMem, ID3D11Buffer** outBufferAddr);
+HRESULT RWCreateTexture2D(const D3D11_TEXTURE2D_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData, ID3D11Texture2D** ppTexture2D);
+HRESULT RWCreateShaderResourceView(ID3D11Resource* pResource, const D3D11_SHADER_RESOURCE_VIEW_DESC* pDesc, ID3D11ShaderResourceView** ppSRView);
 
 void SetRTV(ID3D11RenderTargetView* pRTV);
 ID3D11RenderTargetView* GetRTV();

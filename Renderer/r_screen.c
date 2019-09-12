@@ -45,8 +45,7 @@ void D_CaptureScreenshot (char *checkname)
 	descRT.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE | D3D11_CPU_ACCESS_READ;
 
 	// create a copy of the back buffer
-	//if (FAILED (d3d_Device->lpVtbl->CreateTexture2D (d3d_Device, &descRT, NULL, &pScreenShot)))
-    if (FAILED(RWGetDevice()->lpVtbl->CreateTexture2D(RWGetDevice(), &descRT, NULL, &pScreenShot)))
+    if (FAILED(RWCreateTexture2D(&descRT, NULL, &pScreenShot)))
 	{
 		ri.Con_Printf (PRINT_ALL, "SCR_GetScreenData : failed to create scratch texture\n");
 		goto failed;
@@ -55,7 +54,6 @@ void D_CaptureScreenshot (char *checkname)
 	// copy over the back buffer to the screenshot texture
 	//d3d_Context->lpVtbl->CopyResource (d3d_Context, (ID3D11Resource *) pScreenShot, (ID3D11Resource *) pBackBuffer);
     RWGetDeviceContext()->lpVtbl->CopyResource(RWGetDeviceContext(), (ID3D11Resource*)pScreenShot, (ID3D11Resource*)pBackBuffer);
-	R_SyncPipeline ();
 
 	//if (FAILED (d3d_Context->lpVtbl->Map (d3d_Context, (ID3D11Resource *) pScreenShot, 0, D3D11_MAP_READ_WRITE, 0, &msr)))
     if (FAILED(RWGetDeviceContext()->lpVtbl->Map(RWGetDeviceContext(), (ID3D11Resource*)pScreenShot, 0, D3D11_MAP_READ_WRITE, 0, &msr)))

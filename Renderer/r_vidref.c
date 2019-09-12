@@ -121,7 +121,7 @@ R_Init
 */
 int R_Init (void *hinstance, void *wndproc)
 {
-    SetAppProps(hinstance, wndproc);
+    RWSetAppProps(hinstance, wndproc);
 
 	ri.Con_Printf (PRINT_ALL, "ref_gl version: "REF_VERSION"\n");
 
@@ -178,7 +178,7 @@ void R_Shutdown (void)
 
 	// shut down OS specific OpenGL stuff like contexts, etc.
 	//GLimp_Shutdown ();
-    CloseRenderWindow();
+    RWClose();
 }
 
 

@@ -48,9 +48,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // cacheable objects are persistent for the run of the app and may be stored here for disposal on shutdown
 void D_CacheObject (ID3D11DeviceChild *Object, const char *name);
 
-// emulate glFinish
-void R_SyncPipeline (void);
-
 // different viewport
 void R_Set2D (void);
 

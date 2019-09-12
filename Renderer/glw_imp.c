@@ -224,9 +224,9 @@ rserr_t GLimp_SetMode (int *pwidth, int *pheight, int mode, qboolean fullscreen)
 	ri.Con_Printf (PRINT_ALL, " %d %d %s\n", modeDesc.Width, modeDesc.Height, win_fs[fullscreen]);
 
 	// destroy the existing window
-	if (GetWindowHandle() != NULL)
+	if (RWGetHandle() != NULL)
 	{
-        CloseRenderWindow();
+        RWClose();
 	}
 
 	// do a CDS if needed
@@ -310,7 +310,7 @@ void GLimp_BeginFrame (viddef_t *vd, int scrflags)
 {
 	// get client dimensions
 	RECT cr;
-	GetClientRect (GetWindowHandle(), &cr);
+	GetClientRect (RWGetHandle(), &cr);
 
 	// setup dimensions for the refresh
 	vid.width = cr.right - cr.left;
@@ -352,9 +352,6 @@ void GLimp_EndFrame (int scrflags)
 	// free any loading memory that may have been used during the frame
 	ri.Load_FreeMemory ();
 
-	if (scrflags & SCR_SYNC_PIPELINE)
-		R_SyncPipeline ();
-
 	// perform the buffer swap with or without vsync as appropriate
 	if (scrflags & SCR_NO_PRESENT)
 		return;
@@ -379,13 +376,13 @@ void GLimp_AppActivate (qboolean active)
 	// does DXGI not do this for us????
 	if (active)
 	{
-		SetForegroundWindow (GetWindowHandle());
-		ShowWindow (GetWindowHandle(), SW_RESTORE);
+		SetForegroundWindow (RWGetHandle());
+		ShowWindow (RWGetHandle(), SW_RESTORE);
 	}
 	else
 	{
 		if (vid_fullscreen->value)
-			ShowWindow (GetWindowHandle(), SW_MINIMIZE);
+			ShowWindow (RWGetHandle(), SW_MINIMIZE);
 	}
 }
 

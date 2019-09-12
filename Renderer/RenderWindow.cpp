@@ -38,6 +38,16 @@ void RenderWindow::CreateBuffer(const D3D11_BUFFER_DESC* pDesc, const void* pSrc
     device->CreateBuffer(pDesc, (pSrcMem == nullptr ? nullptr : &srd), outBufferAddr);
 }
 
+HRESULT RenderWindow::CreateTexture2D(const D3D11_TEXTURE2D_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData, ID3D11Texture2D** ppTexture2D)
+{
+    return device->CreateTexture2D(pDesc, pInitialData, ppTexture2D);
+}
+
+HRESULT RenderWindow::CreateShaderResourceView(ID3D11Resource* pResource, const D3D11_SHADER_RESOURCE_VIEW_DESC* pDesc, ID3D11ShaderResourceView** ppSRView)
+{
+    return device->CreateShaderResourceView(pResource, pDesc, ppSRView);
+}
+
 ID3D11DeviceContext* RenderWindow::GetDeviceContext()
 {
     return deviceContext.Get();
@@ -241,7 +251,8 @@ bool RenderWindow::InitDirectX()
     sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
     // always initially create a windowed swapchain at the desired resolution, then switch to fullscreen post-creation if it was requested
-    sd.Windowed = fullscreen;
+    //sd.Windowed = fullscreen;
+    sd.Windowed = true;
 
     // now we try to create it
     if (FAILED(D3D11CreateDeviceAndSwapChain(
@@ -309,7 +320,7 @@ bool RenderWindow::InitDirectX()
     descDepth.MiscFlags = 0;
 
     // and create it
-    if (SUCCEEDED(device->CreateTexture2D(&descDepth, NULL, &pDepthStencil)))
+    if (SUCCEEDED(CreateTexture2D(&descDepth, NULL, &pDepthStencil)))
     {
         // Create the depth stencil view
         device->CreateDepthStencilView((ID3D11Resource*)pDepthStencil, NULL, depthStencilView.GetAddressOf());
@@ -366,32 +377,24 @@ bool RenderWindow::InitWindow(int width_, int height_, int mode, bool fullscreen
 
     int exstyle = 0;
     int stylebits = 0;
-    if (fullscreen)
-    {
-        exstyle = WS_EX_TOPMOST;
-        stylebits = WS_POPUP | WS_VISIBLE;
-    }
-    else
-    {
-        exstyle = 0;
-        stylebits = WS_OVERLAPPED | WS_BORDER | WS_CAPTION | WS_VISIBLE;
-    }
-
     RECT rect;
     rect.left = 0;
     rect.top = 0;
     if (fullscreen)
     {
-        //rect.right = GetSystemMetrics(SM_CXSCREEN);
-        //rect.bottom = GetSystemMetrics(SM_CYSCREEN);
+        exstyle = WS_EX_TOPMOST;
+        stylebits = WS_POPUP | WS_VISIBLE;
         rect.right = GetMode(currentMode).Width;
         rect.bottom = GetMode(currentMode).Height;
     }
     else
     {
+        exstyle = 0;
+        stylebits = WS_OVERLAPPED | WS_BORDER | WS_CAPTION | WS_VISIBLE;
         rect.right = width;
         rect.bottom = height;
     }
+
     AdjustWindowRect(&rect, stylebits, FALSE);
 
     handle = CreateWindowEx(
