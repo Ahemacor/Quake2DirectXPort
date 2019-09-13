@@ -218,6 +218,7 @@ image_t *R_SelectSurfaceTexture (mtexinfo_t *ti, int frame)
 
 void R_SelectSurfaceShader (const mtexinfo_t *ti, qboolean alpha)
 {
+#if FEATURE_LIGHT
 	if (ti->flags & SURF_WARP)
         SLBindShaderBundle(d3d_SurfDrawTurbShader);
 	else if (alpha)
@@ -228,6 +229,9 @@ void R_SelectSurfaceShader (const mtexinfo_t *ti, qboolean alpha)
             SLBindShaderBundle(d3d_SurfBasicShader);
 		else SLBindShaderBundle(d3d_SurfLightmapShader);
 	}
+#else
+    SLBindShaderBundle(d3d_SurfBasicShader);
+#endif // #if FEATURE_LIGHT
 }
 
 

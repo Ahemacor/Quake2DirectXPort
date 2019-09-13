@@ -420,6 +420,7 @@ image_t *R_SelectAliasTexture (entity_t *e, model_t *mod)
 
 void R_SelectAliasShader (int eflags)
 {
+#if FEATURE_LIGHT
 	// figure the correct shaders to use
 	if (eflags & (RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM))
         SLBindShaderBundle(d3d_MeshPowersuitShader);
@@ -428,6 +429,9 @@ void R_SelectAliasShader (int eflags)
 	else if (!r_worldmodel->lightdata || r_fullbright->value)
         SLBindShaderBundle(d3d_MeshFullbrightShader);
 	else SLBindShaderBundle(d3d_MeshLightmapShader);
+#else
+    SLBindShaderBundle(d3d_MeshFullbrightShader);
+#endif // FEATURE_LIGHT
 }
 
 
