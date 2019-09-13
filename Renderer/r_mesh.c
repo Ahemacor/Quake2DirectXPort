@@ -20,6 +20,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // gl_mesh.c: triangle model functions
 
 #include "r_local.h"
+
+#if FEATURE_ALIAS
 #include "CppWrapper.h"
 
 qboolean VCache_ReorderIndices (char *name, unsigned short *outIndices, const unsigned short *indices, int nTriangles, int nVertices);
@@ -806,3 +808,11 @@ void R_PrepareAliasModel (entity_t *e, QMATRIX *localmatrix)
 	R_MatrixRotate (localmatrix, e->angles[0], e->angles[1], -e->angles[2]);
 }
 
+#else
+void R_FreeUnusedAliasBuffers(void) {}
+void D_RegisterAliasBuffers(model_t* mod) {}
+void R_PrepareAliasModel(entity_t* e, QMATRIX* localmatrix) {}
+void R_DrawAliasModel(entity_t* e, QMATRIX* localmatrix) {}
+void R_InitMesh(void) {}
+void R_ShutdownMesh(void) {}
+#endif // FEATURE_ALIAS

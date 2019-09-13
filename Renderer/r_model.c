@@ -361,6 +361,7 @@ struct model_s *R_RegisterModel (char *name)
 			for (i = 0; i < sprout->numframes; i++)
 				mod->skins[i] = GL_FindImage (sprout->frames[i].name, it_sprite);
 		}
+#if FEATURE_ALIAS
 		else if (mod->type == mod_alias)
 		{
 			mmdl_t *pheader = mod->md2header;
@@ -373,6 +374,7 @@ struct model_s *R_RegisterModel (char *name)
 			// register vertex and index buffers
 			D_RegisterAliasBuffers (mod);
 		}
+#endif // FEATURE_ALIAS
 		else if (mod->type == mod_brush)
 		{
 			for (i = 0; i < mod->numtexinfo; i++)
