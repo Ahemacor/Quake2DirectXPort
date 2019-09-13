@@ -19,6 +19,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include "r_local.h"
+
+#if FEATURE_PARTICLES
 #include "CppWrapper.h"
 
 static int d3d_ParticleCircleShader;
@@ -106,5 +108,8 @@ void R_DrawParticles (void)
 
 	r_newrefdef.num_particles = 0;
 }
-
+#else
+void R_InitParticles(void) {}
+void R_DrawParticles(void) {}
+#endif // FEATURE_PARTICLES
 
