@@ -19,6 +19,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include "r_local.h"
+
+#if FEATURE_SPRITE_MODEL
 #include "CppWrapper.h"
 
 typedef struct spritepolyvert_s {
@@ -232,4 +234,11 @@ void R_PrepareSpriteModel (entity_t *e, QMATRIX *localmatrix)
 	R_MatrixTranslate (localmatrix, e->currorigin[0], e->currorigin[1], e->currorigin[2]);
 }
 
+#else 
+void R_FreeUnusedSpriteBuffers(void) {}
+void R_PrepareSpriteModel(entity_t* e, QMATRIX* localmatrix) {}
+void R_DrawSpriteModel(entity_t* e, QMATRIX* localmatrix) {}
+void R_InitSprites(void) {}
+void R_ShutdownSprites(void) {}
+#endif // FEATURE_SPRITE_MODEL
 

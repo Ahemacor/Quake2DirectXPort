@@ -353,7 +353,7 @@ struct model_s *R_RegisterModel (char *name)
 	if (mod)
 	{
 		mod->registration_sequence = r_registration_sequence;
-
+#if FEATURE_SPRITE_MODEL
 		// register any images used by the models
 		if (mod->type == mod_sprite)
 		{
@@ -361,9 +361,10 @@ struct model_s *R_RegisterModel (char *name)
 
 			for (i = 0; i < sprout->numframes; i++)
 				mod->skins[i] = GL_FindImage (sprout->frames[i].name, it_sprite);
-		}
+		} else
+#endif // FEATURE_SPRITE_MODEL
 #if FEATURE_ALIAS_MODEL
-		else if (mod->type == mod_alias)
+		if (mod->type == mod_alias)
 		{
 			mmdl_t *pheader = mod->md2header;
 
