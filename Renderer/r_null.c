@@ -50,7 +50,6 @@ void R_DrawNullModel (entity_t *e, QMATRIX *localmatrix)
 	R_PrepareEntityForRendering (localmatrix, shadelight, e->alpha, e->flags);
     SLBindShaderBundle(d3d_NullShader);
 
-	//d3d_Context->lpVtbl->Draw (d3d_Context, 24, 0);
     RWGetDeviceContext()->lpVtbl->Draw(RWGetDeviceContext(), 24, 0);
 }
 
