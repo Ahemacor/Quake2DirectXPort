@@ -767,4 +767,5 @@ void R_DrawAlphaSurfaces(void) {}
 void R_MarkLeaves(void){}
 void R_InitSurfaces(void) {}
 void R_ShutdownSurfaces(void) {}
+void R_DrawDlightChains(entity_t* e, model_t* mod, QMATRIX* localmatrix) {}
 #endif // FEATURE_BRUSH_MODEL

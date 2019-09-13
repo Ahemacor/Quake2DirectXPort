@@ -375,15 +375,16 @@ struct model_s *R_RegisterModel (char *name)
 
 			// register vertex and index buffers
 			D_RegisterAliasBuffers (mod);
-		}
+		} else
 #endif // FEATURE_ALIAS
 #if FEATURE_BRUSH_MODEL
-		else if (mod->type == mod_brush)
+		if (mod->type == mod_brush)
 		{
 			for (i = 0; i < mod->numtexinfo; i++)
 				mod->texinfo[i].image->registration_sequence = r_registration_sequence;
 		}
 #endif // FEATURE_BRUSH_MODEL
+        ;
 	}
 
 	return mod;
