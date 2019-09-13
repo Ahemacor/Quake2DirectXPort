@@ -171,7 +171,6 @@ void R_InitSprites (void)
 	d3d_SpriteShader = SLCreateShaderBundle(IDR_SPRITESHADER, "SpriteVS", NULL, "SpritePS", DEFINE_LAYOUT (layout));
 
     RWCreateBuffer(&ibDesc, indexes, &d3d_SpriteIndexes);
-	D_CacheObject ((ID3D11DeviceChild *) d3d_SpriteIndexes, "d3d_SpriteIndexes");
 }
 
 

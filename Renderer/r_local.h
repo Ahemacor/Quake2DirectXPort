@@ -21,6 +21,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifndef R_LOCAL_H
 #define R_LOCAL_H
 
+// Enable render features
+#define FEATURE_SKY_CUBEMAP 1
+
+
+
 #include <windows.h>
 #include <stdio.h>
 #include <math.h>
@@ -37,9 +42,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "matrix.h"
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-// cacheable objects are persistent for the run of the app and may be stored here for disposal on shutdown
-void D_CacheObject (ID3D11DeviceChild *Object, const char *name);
 
 // different viewport
 void R_Set2D (void);

@@ -48,6 +48,8 @@ public:
     void CloseWindow();
 
 private:
+    std::vector<Microsoft::WRL::ComPtr<ID3D11Buffer>> buffers;
+
     Microsoft::WRL::ComPtr<ID3D11Device> device;
     Microsoft::WRL::ComPtr<ID3D11DeviceContext> deviceContext;
     Microsoft::WRL::ComPtr<IDXGISwapChain> swapchain;

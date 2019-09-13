@@ -110,10 +110,7 @@ void Draw_CreateBuffers (void)
 	}
 
     RWCreateBuffer(&vbDesc, NULL, &d3d_DrawVertexes);
-	D_CacheObject ((ID3D11DeviceChild *) d3d_DrawIndexes, "d3d_DrawIndexes");
-
     RWCreateBuffer(&ibDesc, ndx, &d3d_DrawIndexes);
-	D_CacheObject ((ID3D11DeviceChild *) d3d_DrawVertexes, "d3d_DrawVertexes");
 
 	ri.Load_FreeMemory ();
 }

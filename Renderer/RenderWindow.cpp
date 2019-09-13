@@ -37,6 +37,7 @@ void RenderWindow::CreateBuffer(const D3D11_BUFFER_DESC* pDesc, const void* pSrc
 {
     D3D11_SUBRESOURCE_DATA srd = { pSrcMem, 0, 0 };
     device->CreateBuffer(pDesc, (pSrcMem == nullptr ? nullptr : &srd), outBufferAddr);
+    buffers.emplace_back(*outBufferAddr);
 }
 
 HRESULT RenderWindow::CreateTexture2D(const D3D11_TEXTURE2D_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData, ID3D11Texture2D** ppTexture2D)
@@ -474,5 +475,7 @@ void RenderWindow::CloseWindow()
     }
 
     UnregisterClass(window_class.c_str(), hInstance);
+
+    buffers.clear();
 
 }

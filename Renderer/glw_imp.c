@@ -145,53 +145,6 @@ void D_EnumerateVideoModes (void)
 	ri.Load_FreeMemory ();
 }
 
-
-/*
-=========================================================================================================================================================================
-
-OBJECT LIFETIME MANAGEMENT
-
-=========================================================================================================================================================================
-*/
-
-// object cache lets us store out objects on creation so that indivdual routines don't need to destroy them
-#define MAX_OBJECT_CACHE	1024
-
-typedef struct d3dobject_s {
-	ID3D11DeviceChild *Object;
-	char *name;
-} d3dobject_t;
-
-d3dobject_t ObjectCache[MAX_OBJECT_CACHE];
-int NumObjectCache = 0;
-
-void D_CacheObject (ID3D11DeviceChild *Object, const char *name)
-{
-	if (!Object)
-		return;
-	else if (NumObjectCache < MAX_OBJECT_CACHE)
-	{
-		ObjectCache[NumObjectCache].Object = Object;
-		ObjectCache[NumObjectCache].name = (char *) HeapAlloc (hRefHeap, HEAP_ZERO_MEMORY, strlen (name) + 1);
-		strcpy(ObjectCache[NumObjectCache].name, name);
-
-		NumObjectCache++;
-	}
-	else Sys_Error ("R_CacheObject : object cache overflow!");
-}
-
-
-void D_ReleaseObjectCache (void)
-{
-	int i;
-
-	for (i = 0; i < MAX_OBJECT_CACHE; i++)
-		SAFE_RELEASE (ObjectCache[i].Object);
-
-	memset (ObjectCache, 0, sizeof (ObjectCache));
-}
-
-
 /*
 =========================================================================================================================================================================
 

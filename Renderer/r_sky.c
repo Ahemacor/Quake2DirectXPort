@@ -19,8 +19,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include "r_local.h"
-#include "CppWrapper.h"
 
+#if FEATURE_SKY_CUBEMAP
+
+#include "CppWrapper.h"
 
 char	skyname[MAX_QPATH];
 float	skyrotate;
@@ -157,4 +159,10 @@ void R_SetSky (char *name, float rotate, vec3_t axis)
 	// throw away memory used for loading
 	ri.Load_FreeMemory ();
 }
-
+#else
+void R_SetSky(char* name, float rotate, vec3_t axis) {}
+void R_DrawSkyChain(msurface_t* surf) {}
+void R_SetupSky(QMATRIX* SkyMatrix) {}
+void R_InitSky(void) {}
+void R_ShutdownSky(void) {}
+#endif // FEATURE_SKY_CUBEMAP

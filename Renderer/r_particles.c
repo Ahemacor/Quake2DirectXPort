@@ -51,7 +51,6 @@ void R_InitParticles (void)
 	};
 
     RWCreateBuffer(&vbDesc, NULL, &d3d_ParticleVertexes);
-	D_CacheObject ((ID3D11DeviceChild *) d3d_ParticleVertexes, "d3d_ParticleVertexes");
 
 	// creating a square shader even though we don't currently use it
 	d3d_ParticleCircleShader = SLCreateShaderBundle(IDR_PARTSHADER, "ParticleVS", "ParticleCircleGS", "ParticleCirclePS", DEFINE_LAYOUT (layout));
