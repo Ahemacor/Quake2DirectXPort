@@ -21,6 +21,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <assert.h>
 
 #include "r_local.h"
+
+#if FEATURE_BRUSH_MODEL
 #include "CppWrapper.h"
 
 #define MAX_SURF_INDEXES	0x100000
@@ -756,5 +758,13 @@ void R_EndBuildingSurfaces (model_t *mod, dbsp_t *bsp)
 	r_NumSurfVertexes = 0;
 	r_FirstSurfIndex = 0; // force a buffer discard on the first draw call to flush all indexes from the previous map
 }
-
-
+#else
+void R_RegeneratePVS(void) { r_oldviewleaf = NULL; }
+void R_PrepareBrushModel(entity_t* e, QMATRIX* localmatrix) {}
+void R_DrawBrushModel(entity_t* e, QMATRIX* localmatrix) {}
+void R_DrawWorld(void) {}
+void R_DrawAlphaSurfaces(void) {}
+void R_MarkLeaves(void){}
+void R_InitSurfaces(void) {}
+void R_ShutdownSurfaces(void) {}
+#endif // FEATURE_BRUSH_MODEL

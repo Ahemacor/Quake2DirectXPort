@@ -374,11 +374,11 @@ R_SetupFrame
 void R_SetupFrame (void)
 {
 	r_framecount++;
-
+#if FEATURE_BRUSH_MODEL
 	// current viewcluster
 	if (!(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
 		r_viewleaf = Mod_PointInLeaf (r_newrefdef.vieworg, r_worldmodel);
-
+#endif // FEATURE_BRUSH_MODEL
 	// scale for value of gl_polyblend
 	Vector4Copy (v_blend, r_newrefdef.blend);
 	v_blend[3] *= gl_polyblend->value;
@@ -548,6 +548,7 @@ R_Clear
 */
 void R_Clear (ID3D11RenderTargetView *RTV, ID3D11DepthStencilView *DSV)
 {
+#if FEATURE_BRUSH_MODEL
 	mleaf_t *leaf = Mod_PointInLeaf (r_newrefdef.vieworg, r_worldmodel);
 
 	if (leaf->contents & CONTENTS_SOLID)
@@ -558,6 +559,7 @@ void R_Clear (ID3D11RenderTargetView *RTV, ID3D11DepthStencilView *DSV)
         RWGetDeviceContext()->lpVtbl->ClearRenderTargetView(RWGetDeviceContext(), RTV, clear);
 	}
 	else if (gl_clear->value)
+#endif // FEATURE_BRUSH_MODEL
 	{
 		float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 		//d3d_Context->lpVtbl->ClearRenderTargetView (d3d_Context, RTV, clear);

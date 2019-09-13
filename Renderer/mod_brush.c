@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // models.c -- model loading and caching
 
 #include "r_local.h"
-
+#if FEATURE_BRUSH_MODEL
 extern model_t	*loadmodel;
 extern int		modfilelen;
 
@@ -636,4 +636,7 @@ void Mod_LoadBrushModel (model_t *mod, void *buffer)
 
 	Mod_SetupSubmodels (mod);
 }
+#else
+void Mod_LoadBrushModel(model_t* mod, void* buffer) { mod->type = mod_brush; }
+#endif // FEATURE_BRUSH_MODEL
 

@@ -47,6 +47,7 @@ Mod_PointInLeaf
 */
 mleaf_t *Mod_PointInLeaf (vec3_t p, model_t *model)
 {
+#if FEATURE_BRUSH_MODEL
 	mnode_t		*node;
 
 	if (!model || !model->nodes)
@@ -63,7 +64,7 @@ mleaf_t *Mod_PointInLeaf (vec3_t p, model_t *model)
 			node = node->children[0];
 		else node = node->children[1];
 	}
-
+#endif // FEATURE_BRUSH_MODEL
 	return NULL;	// never reached
 }
 
@@ -188,7 +189,7 @@ model_t *Mod_ForName (char *name, qboolean crash)
 
 	if (!name[0])
 		ri.Sys_Error (ERR_DROP, "Mod_ForName: NULL name");
-
+#if FEATURE_BRUSH_MODEL
 	// inline models are grabbed only from worldmodel
 	if (name[0] == '*')
 	{
@@ -199,7 +200,7 @@ model_t *Mod_ForName (char *name, qboolean crash)
 
 		return &mod_inline[i];
 	}
-
+#endif // FEATURE_BRUSH_MODEL
 	// search the currently loaded models
 	for (i = 0, mod = mod_known; i < mod_numknown; i++, mod++)
 	{
@@ -361,7 +362,7 @@ struct model_s *R_RegisterModel (char *name)
 			for (i = 0; i < sprout->numframes; i++)
 				mod->skins[i] = GL_FindImage (sprout->frames[i].name, it_sprite);
 		}
-#if FEATURE_ALIAS
+#if FEATURE_ALIAS_MODEL
 		else if (mod->type == mod_alias)
 		{
 			mmdl_t *pheader = mod->md2header;
@@ -375,11 +376,13 @@ struct model_s *R_RegisterModel (char *name)
 			D_RegisterAliasBuffers (mod);
 		}
 #endif // FEATURE_ALIAS
+#if FEATURE_BRUSH_MODEL
 		else if (mod->type == mod_brush)
 		{
 			for (i = 0; i < mod->numtexinfo; i++)
 				mod->texinfo[i].image->registration_sequence = r_registration_sequence;
 		}
+#endif // FEATURE_BRUSH_MODEL
 	}
 
 	return mod;

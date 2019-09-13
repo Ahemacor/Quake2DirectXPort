@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // models.c -- model loading and caching
 
 #include "r_local.h"
-#if FEATURE_ALIAS
+#if FEATURE_ALIAS_MODEL
 extern model_t	*loadmodel;
 extern int		modfilelen;
 
