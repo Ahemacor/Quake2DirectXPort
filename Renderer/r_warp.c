@@ -19,6 +19,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include "r_local.h"
+
+#if FEATURE_WATER_WARP
 #include "CppWrapper.h"
 
 static int d3d_WaterWarpShader;
@@ -82,11 +84,9 @@ qboolean D_BeginWaterWarp (void)
 void D_DoWaterWarp (void)
 {
 	// revert the original RTs
-	//d3d_Context->lpVtbl->OMSetRenderTargets (d3d_Context, 1, &d3d_RenderTarget, d3d_DepthBuffer);
     RWGetDeviceContext()->lpVtbl->OMSetRenderTargets(RWGetDeviceContext(), 1, RWGetRTVAddr(), RWGetDSV());
 
 	// noise goes to slot 5
-	//d3d_Context->lpVtbl->PSSetShaderResources (d3d_Context, 5, 1, &r_WarpNoise.SRV);
     RWGetDeviceContext()->lpVtbl->PSSetShaderResources(RWGetDeviceContext(), 5, 1, &r_WarpNoise.SRV);
 
 	// and draw it
@@ -97,7 +97,6 @@ void D_DoWaterWarp (void)
 	R_BindTexture (r_WaterWarpRT.SRV);
 
 	// full-screen triangle
-	//d3d_Context->lpVtbl->Draw (d3d_Context, 3, 0);
     RWGetDeviceContext()->lpVtbl->Draw(RWGetDeviceContext(), 3, 0);
 }
 
@@ -117,5 +116,15 @@ void R_ShutdownWarp (void)
 	R_ReleaseRenderTarget (&r_WaterWarpRT);
 }
 
+#else
+qboolean D_BeginWaterWarp(void) 
+{
+    R_Clear(RWGetRTV(), RWGetDSV());
+    return false;
+}
+void D_DoWaterWarp(void) {}
+void R_InitWarp(void) {}
+void R_ShutdownWarp(void) {}
+#endif // FEATURE_WATER_WARP
 
 

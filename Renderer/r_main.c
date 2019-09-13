@@ -582,7 +582,6 @@ void R_PolyBlend (void)
         SLBindShaderBundle(d3d_PolyblendShader);
 
 		// full-screen triangle
-		//d3d_Context->lpVtbl->Draw (d3d_Context, 3, 0);
         RWGetDeviceContext()->lpVtbl->Draw(RWGetDeviceContext(), 3, 0);
 	}
 }
