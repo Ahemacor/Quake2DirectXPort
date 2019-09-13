@@ -62,16 +62,10 @@
     <ClCompile Include="r_screen.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="r_shader.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="r_sky.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="r_sprite.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="r_state.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="r_surf.c">

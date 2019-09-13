@@ -37,13 +37,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "matrix.h"
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
-// main objects
-//extern ID3D11Device *d3d_Device;
-//extern ID3D11DeviceContext *d3d_Context;
-//extern IDXGISwapChain *d3d_SwapChain;
-
-//extern ID3D11RenderTargetView *d3d_RenderTarget;
-//extern ID3D11DepthStencilView *d3d_DepthBuffer;
 
 // cacheable objects are persistent for the run of the app and may be stored here for disposal on shutdown
 void D_CacheObject (ID3D11DeviceChild *Object, const char *name);
@@ -402,31 +395,10 @@ typedef enum RSEnum
     RSNoCull
 } RasterizerState;
 
-RasterizerState R_SelectRasterizerState(int rflags);
 
-/*extern ID3D11BlendState *d3d_BSNone;
-extern ID3D11BlendState *d3d_BSAlphaBlend;
-extern ID3D11BlendState *d3d_BSAlphaReverse;
-extern ID3D11BlendState *d3d_BSAlphaPreMult;
-extern ID3D11BlendState *d3d_BSAdditive;
-extern ID3D11BlendState *d3d_BSRevSubtract;
-
-extern ID3D11DepthStencilState *d3d_DSFullDepth;
-extern ID3D11DepthStencilState *d3d_DSDepthNoWrite;
-extern ID3D11DepthStencilState *d3d_DSNoDepth;
-extern ID3D11DepthStencilState *d3d_DSEqualDepthNoWrite;
-
-extern ID3D11RasterizerState *d3d_RSFullCull;
-extern ID3D11RasterizerState *d3d_RSReverseCull;
-extern ID3D11RasterizerState *d3d_RSNoCull;*/
-
-//void D_SetRenderStates (ID3D11BlendState *bs, ID3D11DepthStencilState *ds, ID3D11RasterizerState *rs);
-//void D_BindSamplers (void);
-//ID3D11RasterizerState *R_SelectRasterizerState (int rflags);
-
-//void D_BindVertexBuffer (UINT Slot, ID3D11Buffer *Buffer, UINT Stride, UINT Offset);
-//void D_BindIndexBuffer (ID3D11Buffer *Buffer, DXGI_FORMAT Format);
-
+#ifndef __cplusplus
+#define SELECT_RASTERIZER( FLAGS ) ((((FLAGS) & RF_WEAPONMODEL) && r_lefthand->value) ? RSReverseCull : RSFullCull )
+#endif // __cplusplus
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // textures
