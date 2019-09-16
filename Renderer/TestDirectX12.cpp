@@ -72,6 +72,9 @@ bool g_TearingSupported = false;
 // Can be toggled with the Alt+Enter or F11
 bool g_Fullscreen = false;
 
+const char window_class[] = "DirectX12Class";
+const char window_title[] = "Test DirectX 12 Window";
+
 void ThrowIfFailed(HRESULT hr)
 {
     if (FAILED(hr))
@@ -80,10 +83,10 @@ void ThrowIfFailed(HRESULT hr)
     }
 }
 
-void RegisterWindowClass(HINSTANCE hInst, const wchar_t* windowClassName, WNDPROC winproc)
+void RegisterWindowClass(HINSTANCE hInst, const char* windowClassName, WNDPROC winproc)
 {
     // Register a window class for creating our render window with.
-    WNDCLASSEXW windowClass = {};
+    WNDCLASSEXA windowClass = {};
 
     windowClass.cbSize = sizeof(WNDCLASSEXW);
     windowClass.style = CS_HREDRAW | CS_VREDRAW;
@@ -98,11 +101,11 @@ void RegisterWindowClass(HINSTANCE hInst, const wchar_t* windowClassName, WNDPRO
     windowClass.lpszClassName = windowClassName;
     windowClass.hIconSm = ::LoadIcon(hInst, NULL); //  MAKEINTRESOURCE(APPLICATION_ICON));
 
-    static HRESULT hr = ::RegisterClassExW(&windowClass);
+    static HRESULT hr = ::RegisterClassExA(&windowClass);
     assert(SUCCEEDED(hr));
 }
 
-HWND CreateWindow_(const wchar_t* windowClassName, HINSTANCE hInst, const wchar_t* windowTitle, uint32_t width, uint32_t height)
+HWND CreateWindow_(const char* windowClassName, HINSTANCE hInst, const char* windowTitle, uint32_t width, uint32_t height)
 {
     int screenWidth = ::GetSystemMetrics(SM_CXSCREEN);
     int screenHeight = ::GetSystemMetrics(SM_CYSCREEN);
@@ -117,7 +120,7 @@ HWND CreateWindow_(const wchar_t* windowClassName, HINSTANCE hInst, const wchar_
     int windowX = std::max<int>(0, (screenWidth - windowWidth) / 2);
     int windowY = std::max<int>(0, (screenHeight - windowHeight) / 2);
 
-    HWND hWnd = ::CreateWindowExW(
+    HWND hWnd = ::CreateWindowExA(
         NULL,
         windowClassName,
         windowTitle,
@@ -396,12 +399,9 @@ void Render_End()
 
 void StartApp(HINSTANCE hInstance, WNDPROC winproc)
 {
-    // Window class name. Used for registering / creating the window.
-    const wchar_t* windowClassName = L"DX12WindowClass";
+    RegisterWindowClass(hInstance, window_class, winproc);
 
-    RegisterWindowClass(hInstance, windowClassName, winproc);
-
-    g_hWnd = CreateWindow_(windowClassName, hInstance, L"Learning DirectX 12",
+    g_hWnd = CreateWindow_(window_class, hInstance, window_title,
         g_ClientWidth, g_ClientHeight);
 
     // Initialize the global window rect variable.
