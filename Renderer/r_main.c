@@ -19,6 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // r_main.c
 #include "r_local.h"
+#if DX11_IMPL
 #include "CppWrapper.h"
 
 void R_DrawParticles (void);
@@ -704,4 +705,78 @@ void R_RenderFrame (refdef_t *fd)
 	R_SetLightLevel ();
 }
 
+#else
+viddef_t	vid;
 
+refimport_t	ri;
+
+model_t* r_worldmodel;
+
+glconfig_t gl_config;
+glstate_t  gl_state;
+
+image_t* r_notexture;		// use for bad textures
+image_t* r_blacktexture;	// use for bad textures
+image_t* r_greytexture;		// use for bad textures
+image_t* r_whitetexture;	// use for bad textures
+
+cplane_t	frustum[4];
+
+mleaf_t* r_viewleaf, * r_oldviewleaf;
+
+int			r_visframecount;	// bumped when going to a new PVS
+int			r_framecount;		// used for dlight push checking
+
+int			c_brush_polys, c_alias_polys;
+
+float		v_blend[4];			// final blending color
+
+// world transforms
+QMATRIX	r_view_matrix;
+QMATRIX	r_proj_matrix;
+QMATRIX	r_gun_matrix;
+QMATRIX	r_mvp_matrix;
+QMATRIX r_local_matrix[MAX_ENTITIES];
+
+// view origin
+vec3_t	vup;
+vec3_t	vpn;
+vec3_t	vright;
+
+// screen size info
+refdef_t	r_newrefdef;
+
+cvar_t* scr_viewsize;
+cvar_t* r_testnullmodels;
+cvar_t* r_lightmap;
+cvar_t* r_testnotexture;
+cvar_t* r_lightmodel;
+cvar_t* r_fullbright;
+cvar_t* r_beamdetail;
+cvar_t* r_drawentities;
+cvar_t* r_drawworld;
+cvar_t* r_novis;
+cvar_t* r_lefthand;
+
+cvar_t* r_lightlevel;	// FIXME: This is a HACK to get the client's light level
+cvar_t* r_desaturatelighting;
+
+cvar_t* vid_mode;
+cvar_t* gl_finish;
+cvar_t* gl_clear;
+cvar_t* gl_polyblend;
+cvar_t* gl_lockpvs;
+
+cvar_t* vid_fullscreen;
+cvar_t* vid_gamma;
+cvar_t* vid_brightness;
+
+cvar_t* vid_width;
+cvar_t* vid_height;
+cvar_t* vid_vsync;
+
+void R_RenderFrame(refdef_t* fd) {}
+void R_InitMain(void) {}
+void R_Clear(ID3D11RenderTargetView* RTV, ID3D11DepthStencilView* DSV) {}
+
+#endif // DX11_IMPL

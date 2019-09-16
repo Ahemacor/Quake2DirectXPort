@@ -4,6 +4,10 @@
 #include "ShaderLoader.h"
 #include <cassert>
 
+#if !DX11_IMPL
+#include "TestDirectX12.h"
+#endif // !DX11_IMPL
+
 RenderWindow* g_pRenderWindow = nullptr;
 StateManager* g_pStateManager = nullptr;
 ShaderLoader* g_pShaderLoader = nullptr;
@@ -62,8 +66,12 @@ void CPPRease()
 
 void RWSetAppProps(HINSTANCE hInstance, WNDPROC wndproc)
 {
+#if DX11_IMPL
     assert(g_pRenderWindow != nullptr);
     g_pRenderWindow->SetAppProps(hInstance, wndproc);
+#else
+    StartApp(hInstance, wndproc);
+#endif // DX11_IMPL
 }
 
 qboolean RWInitWindow(int width, int height, int mode, qboolean fullscreen)
@@ -161,8 +169,10 @@ void SMSetRenderStates(BlendState bs, DepthStencilState ds, RasterizerState rs)
 
 void SMInitDefaultStates()
 {
+#if DX11_IMPL
     assert(g_pStateManager != nullptr);
     g_pStateManager->SetDefaultState();
+#endif // DX11_IMPL
 }
 
 void SMBindVertexBuffer(UINT Slot, ID3D11Buffer* Buffer, UINT Stride, UINT Offset)

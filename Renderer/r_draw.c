@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // draw.c
 
 #include "r_local.h"
+#if DX11_IMPL
 #include "CppWrapper.h"
 
 typedef struct drawpolyvert_s {
@@ -602,4 +603,18 @@ void R_Set2D (void)
     RWGetDeviceContext()->lpVtbl->RSSetViewports(RWGetDeviceContext(), 1, &vp);
 }
 
-
+#else
+void R_Set2D(void) {}
+void Draw_InitLocal(void) {}
+qboolean Draw_GetPicSize(int* w, int* h, char* pic) { return false; }
+void Draw_StretchPic(int x, int y, int w, int h, char* pic) {}
+void Draw_Pic(int x, int y, char* pic) {}
+void Draw_ConsoleBackground(int x, int y, int w, int h, char* pic, int alpha) {}
+void Draw_Fill(int x, int y, int w, int h, int c) {}
+void Draw_FadeScreen(void) {}
+void Draw_StretchRaw(int cols, int rows, byte* data, int frame, const unsigned char* palette) {}
+void Draw_Char(int x, int y, int num) {}
+void Draw_Field(int x, int y, int color, int width, int value) {}
+void Draw_Flush(void) {}
+image_t* Draw_FindPic(char* name) { return NULL; }
+#endif // DX11_IMPL

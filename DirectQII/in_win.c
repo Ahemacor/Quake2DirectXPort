@@ -26,6 +26,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <dinput.h>
 
 #pragma comment (lib, "dinput8.lib")
+#pragma comment (lib, "d3d11.lib")
+#pragma comment (lib, "dxgi.lib")
+
+// this just needs to be included anywhere....
+#pragma comment (lib, "dxguid.lib")
 
 // directinput objects
 IDirectInput8 *di_Object = NULL;

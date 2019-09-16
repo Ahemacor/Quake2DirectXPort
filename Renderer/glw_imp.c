@@ -32,9 +32,10 @@ GLimp_Shutdown
 =========================================================================================================
 */
 
+#include "r_local.h"
+#if DX11_IMPL
 #include <assert.h>
 #include <windows.h>
-#include "r_local.h"
 #include "CppWrapper.h"
 
 #pragma comment (lib, "d3d11.lib")
@@ -340,4 +341,34 @@ void GLimp_AppActivate (qboolean active)
 	}
 }
 
+#else
+#include "TestDirectX12.h"
 
+HANDLE hRefHeap;
+vidmenu_t vid_modedata;
+
+void GLimp_BeginFrame(viddef_t* vd, int scrflags)
+{
+    Render_Begin();
+}
+
+void GLimp_EndFrame(int scrflags)
+{
+    Render_End();
+}
+
+rserr_t GLimp_SetMode(int* pwidth, int* pheight, int mode, qboolean fullscreen) { return rserr_ok; }
+void GLimp_AppActivate(qboolean active) {}
+void D_EnumerateVideoModes(void)
+{
+    static int modedata_widths[] = { 640, 0 };
+    static int modedata_heights[] = { 480, 0 };
+    static const char* modedata_descr[] = { "text", "" };
+    vid_modedata.widths = modedata_widths;
+    vid_modedata.numwidths = 1;
+    vid_modedata.heights = modedata_heights;
+    vid_modedata.numheights = 1;
+    vid_modedata.fsmodes = modedata_descr;
+    vid_modedata.numfsmodes = 1;
+}
+#endif // DX11_IMPL

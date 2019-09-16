@@ -19,6 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include "r_local.h"
+#if DX11_IMPL
 #include "CppWrapper.h"
 
 image_t		gltextures[MAX_GLTEXTURES];
@@ -738,4 +739,18 @@ void R_CreateSpecialTextures (void)
 	r_notexture = GL_LoadPic ("***r_notexture***", notexturedata, 4, 4, it_wall, 8, d_8to24table_solid);
 }
 
+#else
+image_t		gltextures[MAX_GLTEXTURES];
+
+unsigned	d_8to24table_solid[256];
+unsigned	d_8to24table_alpha[256];
+unsigned	d_8to24table_trans33[256];
+unsigned	d_8to24table_trans66[256];
+
+void R_CreateSpecialTextures(void) {}
+struct image_s* R_RegisterSkin(char* name) {}
+void R_InitImages(void) {}
+void R_ShutdownImages(void) {}
+void R_FreeUnusedImages(void) {}
+#endif // DX11_IMPL
 

@@ -467,5 +467,3 @@ float Mod_PlaneDist (cplane_t *plane, float *pt)
 	default: return Vector3Dot (pt, plane->normal) - plane->dist;
 	}
 }
-
-
