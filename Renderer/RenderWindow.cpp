@@ -1,6 +1,7 @@
+#include "r_local.h"
+#if DX11_IMPL
 #include "RenderWindow.h"
 #include "CppWrapper.h"
-#include "r_local.h"
 #include <cassert>
 
 #pragma comment (lib, "d3d11.lib")
@@ -479,3 +480,14 @@ void RenderWindow::CloseWindow()
     buffers.clear();
 
 }
+#else // !DX11_IMPL
+#include "RenderWindow.h"
+
+RenderWindow::RenderWindow(HINSTANCE hInstance, WNDPROC wndproc, UINT width, UINT height)
+: osWindow(hInstance, wndproc, {0, 0, width, height})
+, dx12environment(osWindow.GetHandle(), width, height)
+{
+    dx12environment.InitializeAll();
+    osWindow.Show();
+}
+#endif // DX11_IMPL

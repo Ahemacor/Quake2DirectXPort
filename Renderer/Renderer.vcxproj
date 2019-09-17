@@ -81,6 +81,7 @@
     <ClCompile Include="mod_alias.c" />
     <ClCompile Include="mod_brush.c" />
     <ClCompile Include="mod_sprite.c" />
+    <ClCompile Include="RenderEnvironment.cpp" />
     <ClCompile Include="RenderWindow.cpp" />
     <ClCompile Include="r_beam.c" />
     <ClCompile Include="r_draw.c" />
@@ -113,6 +114,7 @@
     <ClInclude Include="CppWrapper.h" />
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="matrix.h" />
+    <ClInclude Include="RenderEnvironment.h" />
     <ClInclude Include="RenderWindow.h" />
     <ClInclude Include="r_local.h" />
     <ClInclude Include="r_model.h" />

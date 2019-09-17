@@ -2,6 +2,7 @@
 #ifdef __cplusplus
 #undef CINTERFACE
 
+#if DX11_IMPL
 #include "d3dcommon.h"
 #include <d3d11.h>
 #include <wrl/client.h>
@@ -68,4 +69,19 @@ private:
     int height = 0;
     bool fullscreen = false;
 };
-#endif
+#else // !DX11_IMPL
+#include <windows.h>
+#include "WindowsWindow.h"
+#include "RenderEnvironment.h"
+#include <memory>
+
+struct RenderWindow
+{
+    RenderWindow(HINSTANCE hInstance, WNDPROC wndproc, UINT width, UINT height);
+
+    WindowsWindow osWindow;
+    RenderEnvironment dx12environment;
+};
+
+#endif // DX11_IMPL
+#endif // __cplusplus
