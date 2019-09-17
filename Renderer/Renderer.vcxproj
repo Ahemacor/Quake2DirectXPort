@@ -102,6 +102,7 @@
     <ClCompile Include="ShaderLoader.cpp" />
     <ClCompile Include="StateManager.cpp" />
     <ClCompile Include="TestDirectX12.cpp" />
+    <ClCompile Include="WindowsWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\DirectQII\anorms.h" />
@@ -118,6 +119,7 @@
     <ClInclude Include="ShaderLoader.h" />
     <ClInclude Include="StateManager.h" />
     <ClInclude Include="TestDirectX12.h" />
+    <ClInclude Include="WindowsWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="envmap.pcx" />

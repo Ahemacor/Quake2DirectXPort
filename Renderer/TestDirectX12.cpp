@@ -1,5 +1,5 @@
 #include "TestDirectX12.h"
-
+#include "WindowsWindow.h"
 #include <wrl.h>
 #include <d3d12.h>
 #include <dxgi1_6.h>
@@ -29,6 +29,8 @@
 #pragma comment (lib, "dxgi.lib")
 
 
+WindowsWindow* g_window = nullptr;
+
 using namespace Microsoft::WRL;
 
 // The number of swap chain back buffers.
@@ -41,11 +43,6 @@ uint32_t g_ClientHeight = 720;
 
 // Set to true once the DX12 objects have been initialized.
 bool g_IsInitialized = false;
-
-// Window handle.
-HWND g_hWnd;
-// Window rectangle (used to toggle fullscreen state).
-RECT g_WindowRect;
 
 // DirectX 12 Objects
 ComPtr<ID3D12Device2> g_Device;
@@ -83,62 +80,7 @@ void ThrowIfFailed(HRESULT hr)
     }
 }
 
-void RegisterWindowClass(HINSTANCE hInst, const char* windowClassName, WNDPROC winproc)
-{
-    // Register a window class for creating our render window with.
-    WNDCLASSEXA windowClass = {};
 
-    windowClass.cbSize = sizeof(WNDCLASSEXW);
-    windowClass.style = CS_HREDRAW | CS_VREDRAW;
-    windowClass.lpfnWndProc = winproc;
-    windowClass.cbClsExtra = 0;
-    windowClass.cbWndExtra = 0;
-    windowClass.hInstance = hInst;
-    windowClass.hIcon = ::LoadIcon(hInst, NULL); //  MAKEINTRESOURCE(APPLICATION_ICON));
-    windowClass.hCursor = ::LoadCursor(NULL, IDC_ARROW);
-    windowClass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-    windowClass.lpszMenuName = NULL;
-    windowClass.lpszClassName = windowClassName;
-    windowClass.hIconSm = ::LoadIcon(hInst, NULL); //  MAKEINTRESOURCE(APPLICATION_ICON));
-
-    static HRESULT hr = ::RegisterClassExA(&windowClass);
-    assert(SUCCEEDED(hr));
-}
-
-HWND CreateWindow_(const char* windowClassName, HINSTANCE hInst, const char* windowTitle, uint32_t width, uint32_t height)
-{
-    int screenWidth = ::GetSystemMetrics(SM_CXSCREEN);
-    int screenHeight = ::GetSystemMetrics(SM_CYSCREEN);
-
-    RECT windowRect = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
-    ::AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);
-
-    int windowWidth = windowRect.right - windowRect.left;
-    int windowHeight = windowRect.bottom - windowRect.top;
-
-    // Center the window within the screen. Clamp to 0, 0 for the top-left corner.
-    int windowX = std::max<int>(0, (screenWidth - windowWidth) / 2);
-    int windowY = std::max<int>(0, (screenHeight - windowHeight) / 2);
-
-    HWND hWnd = ::CreateWindowExA(
-        NULL,
-        windowClassName,
-        windowTitle,
-        WS_OVERLAPPEDWINDOW,
-        windowX,
-        windowY,
-        windowWidth,
-        windowHeight,
-        NULL,
-        NULL,
-        hInst,
-        nullptr
-    );
-
-    assert(hWnd && "Failed to create window");
-
-    return hWnd;
-}
 
 ComPtr<IDXGIAdapter4> GetAdapter(bool useWarp)
 {
@@ -399,13 +341,12 @@ void Render_End()
 
 void StartApp(HINSTANCE hInstance, WNDPROC winproc)
 {
-    RegisterWindowClass(hInstance, window_class, winproc);
-
-    g_hWnd = CreateWindow_(window_class, hInstance, window_title,
-        g_ClientWidth, g_ClientHeight);
-
-    // Initialize the global window rect variable.
-    ::GetWindowRect(g_hWnd, &g_WindowRect);
+    RECT winrect = {};
+    winrect.left = 0;
+    winrect.top = 0;
+    winrect.right = g_ClientWidth;
+    winrect.bottom = g_ClientHeight;
+    g_window = new WindowsWindow(hInstance, winproc, winrect, false, window_title);
 
     ComPtr<IDXGIAdapter4> dxgiAdapter4 = GetAdapter(g_UseWarp);
 
@@ -413,7 +354,7 @@ void StartApp(HINSTANCE hInstance, WNDPROC winproc)
 
     g_CommandQueue = CreateCommandQueue(g_Device, D3D12_COMMAND_LIST_TYPE_DIRECT);
 
-    g_SwapChain = CreateSwapChain(g_hWnd, g_CommandQueue,
+    g_SwapChain = CreateSwapChain(g_window->GetHandle(), g_CommandQueue,
         g_ClientWidth, g_ClientHeight, g_NumFrames);
 
     g_CurrentBackBufferIndex = g_SwapChain->GetCurrentBackBufferIndex();
@@ -435,5 +376,5 @@ void StartApp(HINSTANCE hInstance, WNDPROC winproc)
 
     g_IsInitialized = true;
 
-    ::ShowWindow(g_hWnd, SW_SHOW);
+    g_window->Show();
 }
