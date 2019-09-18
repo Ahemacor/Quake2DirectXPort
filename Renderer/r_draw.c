@@ -603,7 +603,7 @@ void R_Set2D (void)
     RWGetDeviceContext()->lpVtbl->RSSetViewports(RWGetDeviceContext(), 1, &vp);
 }
 
-#else
+#else // !DX11_IMPL
 void R_Set2D(void) {}
 void Draw_InitLocal(void) {}
 qboolean Draw_GetPicSize(int* w, int* h, char* pic) { return false; }

@@ -15,17 +15,27 @@ bool g_Fullscreen = false;
 const char window_class[] = "DirectX12Class";
 const char window_title[] = "Test DirectX 12 Window";
 
-void Render_Begin()
+void DX12_Init()
+{
+
+}
+
+void DX12_Release()
+{
+
+}
+
+void DX12_Render_Begin()
 {
     g_renderEnv->ClearScreen();
 }
 
-void Render_End()
+void DX12_Render_End()
 {
     g_renderEnv->Present();
 }
 
-void StartApp(HINSTANCE hInstance, WNDPROC winproc)
+void DX12_StartApp(HINSTANCE hInstance, WNDPROC winproc)
 {
     RECT winrect = {};
     winrect.left = 0;

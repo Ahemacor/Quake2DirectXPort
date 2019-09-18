@@ -28,6 +28,13 @@ public:
 
     void InitializeAll();
 
+    void ClearScreen();
+    void Present();
+
+private:
+    RenderEnvironment(const RenderEnvironment&) = delete;
+    RenderEnvironment& operator=(const RenderEnvironment&) = delete;
+
     void InitializeFactory();
     void InitializeAdapters();
     std::size_t GetNumberOfAdapters();
@@ -46,13 +53,6 @@ public:
     void Synchronize();
     void BarrierFromTargetToPresent();
     void BarrierFromPresentToTarget();
-
-    void ClearScreen();
-    void Present();
-
-private:
-    RenderEnvironment(const RenderEnvironment&) = delete;
-    RenderEnvironment& operator=(const RenderEnvironment&) = delete;
 
     HWND parentWindowHandle;
     std::size_t windowWidth;

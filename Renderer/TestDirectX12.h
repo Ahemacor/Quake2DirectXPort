@@ -9,9 +9,11 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-    void Render_Begin();
-    void Render_End();
-    void StartApp(HINSTANCE hInstance, WNDPROC winproc);
+    void DX12_Init();
+    void DX12_Release();
+    void DX12_Render_Begin();
+    void DX12_Render_End();
+    void DX12_StartApp(HINSTANCE hInstance, WNDPROC winproc);
 #ifdef __cplusplus
 }
 #endif
