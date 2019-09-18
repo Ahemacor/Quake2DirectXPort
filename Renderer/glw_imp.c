@@ -349,14 +349,12 @@ vidmenu_t vid_modedata;
 
 void GLimp_BeginFrame(viddef_t* vd, int scrflags)
 {
-    //Render_Begin();
-    RWClearScreen();
+    Render_Begin();
 }
 
 void GLimp_EndFrame(int scrflags)
 {
-    //Render_End();
-    RWPresent();
+    Render_End();
 }
 
 rserr_t GLimp_SetMode(int* pwidth, int* pheight, int mode, qboolean fullscreen) { return rserr_ok; }

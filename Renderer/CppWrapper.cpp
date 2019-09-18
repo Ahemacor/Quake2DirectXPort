@@ -16,12 +16,12 @@ ShaderLoader* g_pShaderLoader = nullptr;
 
 void CPPInit()
 {
-    /*if (g_pRenderWindow != nullptr)
+    if (g_pRenderWindow != nullptr)
     {
         delete g_pRenderWindow;
     }
     g_pRenderWindow = new RenderWindow();
-    assert(g_pRenderWindow != nullptr);*/
+    assert(g_pRenderWindow != nullptr);
 
     if (g_pStateManager != nullptr)
     {
@@ -63,124 +63,100 @@ void CPPRease()
 }
 
 // Render Window interface.
-HINSTANCE g_Instance = nullptr; 
-WNDPROC g_wndproc = nullptr;
+
 void RWSetAppProps(HINSTANCE hInstance, WNDPROC wndproc)
 {
-    g_Instance = hInstance;
-    g_wndproc = wndproc;
-/*#if DX11_IMPL
+#if DX11_IMPL
     assert(g_pRenderWindow != nullptr);
     g_pRenderWindow->SetAppProps(hInstance, wndproc);
 #else
     StartApp(hInstance, wndproc);
-#endif // DX11_IMPL*/
+#endif // DX11_IMPL
 }
 
 qboolean RWInitWindow(int width, int height, int mode, qboolean fullscreen)
 {
-    g_pRenderWindow = new RenderWindow(g_Instance, g_wndproc, width, height);
-    /*assert(g_pRenderWindow != nullptr);
-    return g_pRenderWindow->InitWindow(width, height, mode, fullscreen);*/
+    assert(g_pRenderWindow != nullptr);
+    return g_pRenderWindow->InitWindow(width, height, mode, fullscreen);
 }
 
 void RWClose()
 {
-    /*assert(g_pRenderWindow != nullptr);
-    g_pRenderWindow->CloseWindow();*/
+    assert(g_pRenderWindow != nullptr);
+    g_pRenderWindow->CloseWindow();
 }
 
 void* RWGetHandle()
 {
-    /*assert(g_pRenderWindow != nullptr);
-    return (void*)g_pRenderWindow->GetWindowHandle();*/
-    return nullptr;
+    assert(g_pRenderWindow != nullptr);
+    return (void*)g_pRenderWindow->GetWindowHandle();
 }
 
 ID3D11Device* RWGetDevice()
 {
-    /*assert(g_pRenderWindow != nullptr);
-    return g_pRenderWindow->GetDevice();*/
-    return nullptr;
+    assert(g_pRenderWindow != nullptr);
+    return g_pRenderWindow->GetDevice();
 }
 
 void RWCreateBuffer(const D3D11_BUFFER_DESC* pDesc, const void* pSrcMem, ID3D11Buffer** outBufferAddr)
 {
-    /*assert(g_pRenderWindow != nullptr);
-    g_pRenderWindow->CreateBuffer(pDesc, pSrcMem, outBufferAddr);*/
+    assert(g_pRenderWindow != nullptr);
+    g_pRenderWindow->CreateBuffer(pDesc, pSrcMem, outBufferAddr);
 }
 
 HRESULT RWCreateTexture2D(const D3D11_TEXTURE2D_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData, ID3D11Texture2D** ppTexture2D)
 {
-    /*assert(g_pRenderWindow != nullptr);
-    return g_pRenderWindow->CreateTexture2D(pDesc, pInitialData, ppTexture2D);*/
-    return 0;
+    assert(g_pRenderWindow != nullptr);
+    return g_pRenderWindow->CreateTexture2D(pDesc, pInitialData, ppTexture2D);
 }
 
 HRESULT RWCreateShaderResourceView(ID3D11Resource* pResource, const D3D11_SHADER_RESOURCE_VIEW_DESC* pDesc, ID3D11ShaderResourceView** ppSRView)
 {
-    /*assert(g_pRenderWindow != nullptr);
-    return g_pRenderWindow->CreateShaderResourceView(pResource, pDesc, ppSRView);*/
+    assert(g_pRenderWindow != nullptr);
+    return g_pRenderWindow->CreateShaderResourceView(pResource, pDesc, ppSRView);
 }
 
 ID3D11DeviceContext* RWGetDeviceContext()
 {
-    /*assert(g_pRenderWindow != nullptr);
-    return g_pRenderWindow->GetDeviceContext();*/
-    return nullptr;
+    assert(g_pRenderWindow != nullptr);
+    return g_pRenderWindow->GetDeviceContext();
 }
 
 IDXGISwapChain* RWGetSwapchain()
 {
-    /*assert(g_pRenderWindow != nullptr);
-    return g_pRenderWindow->GetSwapchain();*/
-    return nullptr;
+    assert(g_pRenderWindow != nullptr);
+    return g_pRenderWindow->GetSwapchain();
 }
 
 ID3D11RenderTargetView* RWGetRTV()
 {
-    /*assert(g_pRenderWindow != nullptr);
-    return g_pRenderWindow->GetRTV();*/
-    return nullptr;
+    assert(g_pRenderWindow != nullptr);
+    return g_pRenderWindow->GetRTV();
 }
 
 ID3D11RenderTargetView** RWGetRTVAddr()
 {
-    /*assert(g_pRenderWindow != nullptr);
-    return g_pRenderWindow->GetRTVAddr();*/
-    return nullptr;
+    assert(g_pRenderWindow != nullptr);
+    return g_pRenderWindow->GetRTVAddr();
 }
 
 ID3D11DepthStencilView* RWGetDSV()
 {
-    /*assert(g_pRenderWindow != nullptr);
-    return g_pRenderWindow->GetDSV();*/
-    return nullptr;
+    assert(g_pRenderWindow != nullptr);
+    return g_pRenderWindow->GetDSV();
 }
 
 
 UINT RWGetModesNumber()
 {
-    /*assert(g_pRenderWindow != nullptr);
-    return g_pRenderWindow->GetModesNumber();*/
-    return 0;
+    assert(g_pRenderWindow != nullptr);
+    return g_pRenderWindow->GetModesNumber();
 }
 
 DXGI_MODE_DESC RWGetMode(UINT index)
 {
-    /*assert(g_pRenderWindow != nullptr);
-    return g_pRenderWindow->GetMode(index);*/
-    return {};
-}
-
-void RWClearScreen()
-{
-    g_pRenderWindow->dx12environment.ClearScreen();
-}
-
-void RWPresent()
-{
-    g_pRenderWindow->dx12environment.Present();
+    assert(g_pRenderWindow != nullptr);
+    return g_pRenderWindow->GetMode(index);
 }
 
 // State Manager interface.

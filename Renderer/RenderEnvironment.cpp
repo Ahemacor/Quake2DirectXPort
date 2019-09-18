@@ -2,6 +2,11 @@
 #include <dxgi1_6.h>
 #include <cassert>
 
+#pragma comment (lib, "d3dcompiler.lib")
+#pragma comment (lib, "dxguid.lib")
+#pragma comment (lib, "d3d12.lib")
+#pragma comment (lib, "dxgi.lib")
+
 static inline void ThrowIfFailed(HRESULT hr)
 {
     if (FAILED(hr))
@@ -31,6 +36,8 @@ void RenderEnvironment::InitializeAll()
     InitializeDevice();
     commandQueue = CreateCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
     InitializeSwapChain();
+    rtvDescriptorHeap = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, bufferCount);
+    dsvDescriptorHeap = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1);
     InitializeAllocatorsAndCommandList();
     InitializeRenderTargetViews();
     InitializeDepthStencilView();
@@ -75,7 +82,7 @@ std::size_t RenderEnvironment::GetNumberOfAdapters()
 
 RenderEnvironment::AdapterData RenderEnvironment::GetAdapter(std::size_t index)
 {
-    assert(index > 0 && index < adapters.size());
+    assert(index < adapters.size());
     return adapters[index];
 }
 
@@ -188,7 +195,7 @@ void RenderEnvironment::InitializeRenderTargetViews()
         viewDesc.Texture2D.MipSlice = 0;
         viewDesc.Texture2D.PlaneSlice = 0;
         device->CreateRenderTargetView(backBuffer.Get(), &viewDesc, rtvHandle);
-
+        renderTargets[i] = backBuffer;
         rtvHandle.Offset(rtvDescriptorSize);
     }
 }
@@ -313,27 +320,30 @@ void RenderEnvironment::BarrierFromPresentToTarget()
 
 void RenderEnvironment::ClearScreen()
 {
+    // Prepare command list.
     auto currentBufferIndex = GetCurrentBufferIndex();
     ThrowIfFailed(commandAllocators[currentBufferIndex]->Reset());
     ThrowIfFailed(commandList->Reset(commandAllocators[currentBufferIndex].Get(), nullptr));
 
-    BarrierFromPresentToTarget();
+    // Reset resources (descr heps, root sig ...)
+    auto rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    D3D12_CPU_DESCRIPTOR_HANDLE renderTargetHandle;
+    CD3DX12_CPU_DESCRIPTOR_HANDLE::InitOffsetted(renderTargetHandle, rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), currentBufferIndex, rtvDescriptorSize);
 
+    // Setup viewport.
     commandList->RSSetViewports(1, &screenViewport);
     commandList->RSSetScissorRects(1, &scissorRect);
 
-    {
-        auto rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-        CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), currentBufferIndex, rtvDescriptorSize);
+    BarrierFromPresentToTarget();
 
-        // Record commands.
-        const float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-        commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-        commandList->ClearDepthStencilView(dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+    // Record commands.
+    const float clearColor[] = { 0.1f, 0.1f, 0.1f, 1.0f };
+    commandList->ClearRenderTargetView(renderTargetHandle, clearColor, 0, nullptr);
+    commandList->ClearDepthStencilView(dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
-        // Set the back buffer as the render target.
-        commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
-    }
+    // Set the back buffer as the render target.
+    commandList->OMSetRenderTargets(1, &renderTargetHandle, FALSE, &dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+    
 }
 
 void RenderEnvironment::Present()
