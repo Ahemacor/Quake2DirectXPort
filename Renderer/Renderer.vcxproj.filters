@@ -12,6 +12,9 @@
     <Filter Include="Images">
       <UniqueIdentifier>{4c85ae16-e338-4167-a9d2-8e3910f82caf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{fbed1468-fdbb-4a6b-acea-58135817ef33}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glw_imp.c">
@@ -104,6 +107,9 @@
     <ClCompile Include="RenderEnvironment.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\DirectQII\anorms.h">
@@ -154,10 +160,21 @@
     <ClInclude Include="RenderEnvironment.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Renderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="envmap.pcx">
       <Filter>Images</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="TestVertexShader.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="TestPixelShader.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

@@ -82,6 +82,7 @@
     <ClCompile Include="mod_brush.c" />
     <ClCompile Include="mod_sprite.c" />
     <ClCompile Include="RenderEnvironment.cpp" />
+    <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderWindow.cpp" />
     <ClCompile Include="r_beam.c" />
     <ClCompile Include="r_draw.c" />
@@ -115,6 +116,7 @@
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="matrix.h" />
     <ClInclude Include="RenderEnvironment.h" />
+    <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderWindow.h" />
     <ClInclude Include="r_local.h" />
     <ClInclude Include="r_model.h" />
@@ -125,6 +127,20 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="envmap.pcx" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="TestPixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PixelShaderEntryPoint</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PixelShaderEntryPoint</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="TestVertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">VertexShaderEntryPoint</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">VertexShaderEntryPoint</EntryPointName>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

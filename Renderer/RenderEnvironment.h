@@ -31,6 +31,12 @@ public:
     void ClearScreen();
     void Present();
 
+    void Synchronize();
+
+    Microsoft::WRL::ComPtr<ID3D12Device> GetDevice() { return device; }
+    Microsoft::WRL::ComPtr<ID3D12CommandQueue> GetQueue() { return commandQueue; }
+    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> GetGraphicsCommandList();
+
 private:
     RenderEnvironment(const RenderEnvironment&) = delete;
     RenderEnvironment& operator=(const RenderEnvironment&) = delete;
@@ -50,7 +56,6 @@ private:
     void InitializeDepthStencilView();
     void InitializeSynchronizationObjects();
     void InitializeViewportAndScissor();
-    void Synchronize();
     void BarrierFromTargetToPresent();
     void BarrierFromPresentToTarget();
 
