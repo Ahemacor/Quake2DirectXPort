@@ -1,5 +1,6 @@
 #include "Renderer.h"
 #include "Utils.h"
+#include "ImageIO/ImageIO.h"
 #include <cassert>
 #pragma comment(lib, "D3DCompiler.lib")
 #include <d3dcompiler.h>
@@ -42,6 +43,7 @@ void Renderer::Init(RenderEnvironment* environment)
     CreateRootSignature();
     CreatePipelineStateObject();
     CreateTestMesh();
+    CreateTexture();
     
     pRenderEnv->ExecuteCommandList();
 }
@@ -56,6 +58,14 @@ void Renderer::RenderImpl()
     auto commandList = pRenderEnv->GetGraphicsCommandList();
     commandList->SetPipelineState(pso.Get());
     commandList->SetGraphicsRootSignature(rootSignature.Get());
+
+    // Set the descriptor heap containing the texture srv
+    ID3D12DescriptorHeap* heaps[] = { srvDescriptorHeap.Get() };
+    commandList->SetDescriptorHeaps(1, heaps);
+
+    // Set slot 0 of our root signature to point to our descriptor heap with the texture SRV
+    commandList->SetGraphicsRootDescriptorTable(0, srvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
     commandList->IASetIndexBuffer(&indexBufferView);
@@ -67,12 +77,19 @@ void Renderer::RenderImpl()
 void Renderer::CreateRootSignature()
 {
     CD3DX12_ROOT_PARAMETER parameters[1];
-    parameters[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
-    CD3DX12_ROOT_SIGNATURE_DESC descRootSignature;
+
+    // Create a descriptor table with one entry in our descriptor heap
+    CD3DX12_DESCRIPTOR_RANGE range{ D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0 };
+    parameters[0].InitAsDescriptorTable(1, &range);
+
+    // We don't use another descriptor heap for the sampler, instead we use a
+    // static sampler
+    CD3DX12_STATIC_SAMPLER_DESC samplers[1];
+    samplers[0].Init(0, D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT);
 
     // Create the root signature
-    descRootSignature.Init(1, parameters,
-        0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    CD3DX12_ROOT_SIGNATURE_DESC descRootSignature = {};
+    descRootSignature.Init(1, parameters, 1, samplers, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
     Microsoft::WRL::ComPtr<ID3DBlob> rootBlob;
     Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
@@ -193,4 +210,58 @@ void Renderer::CreateTestMesh()
     };
 
     commandList->ResourceBarrier(2, barriers);
+}
+
+void Renderer::CreateTexture()
+{
+    // Create Descriptor Heap
+    D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc = {};
+    descriptorHeapDesc.NumDescriptors = 1;
+    descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+    descriptorHeapDesc.NodeMask = 0;
+    descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+    ENSURE_RESULT(pRenderEnv->GetDevice()->CreateDescriptorHeap(&descriptorHeapDesc, IID_PPV_ARGS(&srvDescriptorHeap)));
+
+    // Load image binary Data
+    int width = 0, height = 0;
+    //imageData = LoadImageFromMemory(RubyTexture, sizeof(RubyTexture), 1 /* tight row packing */, &width, &height);
+    const char* imageFilePath = R"(C:\CPP\RenderingTask\Renderer\ImageIO\ruby.jpg)";
+    imageData = LoadImageFromFile(imageFilePath, 1, &width, &height);
+
+    ENSURE_RESULT(pRenderEnv->GetDevice()->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+                                                    D3D12_HEAP_FLAG_NONE,
+                                                    &CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, width, height, 1, 1),
+                                                    D3D12_RESOURCE_STATE_COPY_DEST,
+                                                    nullptr,
+                                                    IID_PPV_ARGS(&image)));
+
+    const auto uploadBufferSize = GetRequiredIntermediateSize(image.Get(), 0, 1);
+    ENSURE_RESULT(pRenderEnv->GetDevice()->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+                                                    D3D12_HEAP_FLAG_NONE,
+                                                    &CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize),
+                                                    D3D12_RESOURCE_STATE_GENERIC_READ,
+                                                    nullptr,
+                                                    IID_PPV_ARGS(&uploadImage)));
+
+    D3D12_SUBRESOURCE_DATA srcData;
+    srcData.pData = imageData.data();
+    srcData.RowPitch = width * 4;
+    srcData.SlicePitch = width * height * 4;
+
+    auto uploadCommandList = pRenderEnv->GetGraphicsCommandList();
+    UpdateSubresources(uploadCommandList.Get(), image.Get(), uploadImage.Get(), 0, 0, 1, &srcData);
+    const auto transition = CD3DX12_RESOURCE_BARRIER::Transition(image.Get(),
+        D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    uploadCommandList->ResourceBarrier(1, &transition);
+
+    D3D12_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc = {};
+    shaderResourceViewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+    shaderResourceViewDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    shaderResourceViewDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+    shaderResourceViewDesc.Texture2D.MipLevels = 1;
+    shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
+    shaderResourceViewDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+
+    pRenderEnv->GetDevice()->CreateShaderResourceView(image.Get(), &shaderResourceViewDesc,
+        srvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 }

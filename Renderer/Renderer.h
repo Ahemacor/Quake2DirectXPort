@@ -22,6 +22,7 @@ public:
 
     void CreateRootSignature();
     void CreatePipelineStateObject();
+    void CreateTexture();
 
 private:
     void CreateTestMesh();
@@ -40,6 +41,11 @@ private:
 
     Microsoft::WRL::ComPtr<ID3DBlob> vertexShaderBlob;
     Microsoft::WRL::ComPtr<ID3DBlob> pixelShaderBlob;
+
+    Microsoft::WRL::ComPtr<ID3D12Resource>	image;
+    Microsoft::WRL::ComPtr<ID3D12Resource>	uploadImage;
+    std::vector<std::uint8_t>				imageData;
+    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>    srvDescriptorHeap;
 
 };
 

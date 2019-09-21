@@ -77,6 +77,8 @@
     <ClCompile Include="..\DirectQII\q_shared.c" />
     <ClCompile Include="CppWrapper.cpp" />
     <ClCompile Include="glw_imp.c" />
+    <ClCompile Include="ImageIO\ImageIO.cpp" />
+    <ClCompile Include="ImageIO\Utility.cpp" />
     <ClCompile Include="matrix.c" />
     <ClCompile Include="mod_alias.c" />
     <ClCompile Include="mod_brush.c" />
@@ -115,6 +117,8 @@
     <ClInclude Include="..\DirectQII\resource.h" />
     <ClInclude Include="CppWrapper.h" />
     <ClInclude Include="d3dx12.h" />
+    <ClInclude Include="ImageIO\ImageIO.h" />
+    <ClInclude Include="ImageIO\Utility.h" />
     <ClInclude Include="matrix.h" />
     <ClInclude Include="RenderEnvironment.h" />
     <ClInclude Include="Renderer.h" />
