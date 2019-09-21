@@ -36,6 +36,8 @@ public:
     Microsoft::WRL::ComPtr<ID3D12Device> GetDevice() { return device; }
     Microsoft::WRL::ComPtr<ID3D12CommandQueue> GetQueue() { return commandQueue; }
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> GetGraphicsCommandList();
+    void ResetCommandList();
+    void ExecuteCommandList();
 
 private:
     RenderEnvironment(const RenderEnvironment&) = delete;

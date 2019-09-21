@@ -1,4 +1,5 @@
 #include "RenderEnvironment.h"
+#include "Utils.h"
 #include <dxgi1_6.h>
 #include <cassert>
 
@@ -6,14 +7,6 @@
 #pragma comment (lib, "dxguid.lib")
 #pragma comment (lib, "d3d12.lib")
 #pragma comment (lib, "dxgi.lib")
-
-static inline void ThrowIfFailed(HRESULT hr)
-{
-    if (FAILED(hr))
-    {
-        throw std::exception();
-    }
-}
 
 RenderEnvironment::RenderEnvironment(HWND handle, std::size_t width, std::size_t height)
 : parentWindowHandle(handle)
@@ -47,7 +40,7 @@ void RenderEnvironment::InitializeAll()
 void RenderEnvironment::InitializeFactory()
 {
     factory.Reset();
-    ThrowIfFailed(CreateDXGIFactory(IID_PPV_ARGS(&factory)));
+    ENSURE_RESULT(CreateDXGIFactory(IID_PPV_ARGS(&factory)));
 }
 
 void RenderEnvironment::InitializeAdapters()
@@ -67,7 +60,7 @@ void RenderEnvironment::InitializeAdapters()
     {
         AdapterData adapterData;
         adapterData.adapter = pAdapter;
-        ThrowIfFailed(pAdapter->GetDesc(&adapterData.description));
+        ENSURE_RESULT(pAdapter->GetDesc(&adapterData.description));
         if (checkAdapter(adapterData))
         {
             adapters.push_back(adapterData);
@@ -102,7 +95,7 @@ Microsoft::WRL::ComPtr<IDXGIAdapter> RenderEnvironment::GetMaxMemoryAdapter()
 
 void RenderEnvironment::InitializeDevice()
 {
-    ThrowIfFailed(D3D12CreateDevice(GetMaxMemoryAdapter().Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(device.GetAddressOf())));
+    ENSURE_RESULT(D3D12CreateDevice(GetMaxMemoryAdapter().Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(device.GetAddressOf())));
 }
 
 Microsoft::WRL::ComPtr<ID3D12CommandQueue> RenderEnvironment::CreateCommandQueue(D3D12_COMMAND_LIST_TYPE type)
@@ -116,7 +109,7 @@ Microsoft::WRL::ComPtr<ID3D12CommandQueue> RenderEnvironment::CreateCommandQueue
     desc.NodeMask = 0;
 
     Microsoft::WRL::ComPtr<ID3D12CommandQueue> createdQueue;
-    ThrowIfFailed(device->CreateCommandQueue(&desc, IID_PPV_ARGS(createdQueue.GetAddressOf())));
+    ENSURE_RESULT(device->CreateCommandQueue(&desc, IID_PPV_ARGS(createdQueue.GetAddressOf())));
 
     return createdQueue;
 }
@@ -129,7 +122,7 @@ void RenderEnvironment::InitializeSwapChain()
     assert(parentWindowHandle != nullptr);
 
     Microsoft::WRL::ComPtr<IDXGIFactory2> dxgiFactory2;
-    ThrowIfFailed(factory.As(&dxgiFactory2));
+    ENSURE_RESULT(factory.As(&dxgiFactory2));
 
     DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
     swapChainDesc.Width = windowWidth;
@@ -145,20 +138,20 @@ void RenderEnvironment::InitializeSwapChain()
     swapChainDesc.Flags = 0;
 
     Microsoft::WRL::ComPtr<IDXGISwapChain1> dxgiSwapChain1;
-    ThrowIfFailed(dxgiFactory2->CreateSwapChainForHwnd(commandQueue.Get(),
+    ENSURE_RESULT(dxgiFactory2->CreateSwapChainForHwnd(commandQueue.Get(),
                                                        parentWindowHandle,
                                                        &swapChainDesc,
                                                        nullptr,
                                                        nullptr,
                                                        &dxgiSwapChain1));
-    ThrowIfFailed(dxgiSwapChain1.As(&swapChain));
+    ENSURE_RESULT(dxgiSwapChain1.As(&swapChain));
 }
 
 UINT RenderEnvironment::GetCurrentBufferIndex()
 {
     assert(swapChain != nullptr);
     Microsoft::WRL::ComPtr<IDXGISwapChain3> swapChain3;
-    ThrowIfFailed(swapChain.As(&swapChain3));
+    ENSURE_RESULT(swapChain.As(&swapChain3));
     return swapChain3->GetCurrentBackBufferIndex();
 }
 
@@ -172,7 +165,7 @@ Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> RenderEnvironment::CreateDescriptor
     desc.NumDescriptors = numDescriptors;
     desc.Type = type;
 
-    ThrowIfFailed(device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&descriptorHeap)));
+    ENSURE_RESULT(device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&descriptorHeap)));
 
     return descriptorHeap;
 }
@@ -187,7 +180,7 @@ void RenderEnvironment::InitializeRenderTargetViews()
     Microsoft::WRL::ComPtr<ID3D12Resource> backBuffer;
     for (int i = 0; i < bufferCount; ++i)
     {
-        ThrowIfFailed(swapChain->GetBuffer(i, IID_PPV_ARGS(&backBuffer)));
+        ENSURE_RESULT(swapChain->GetBuffer(i, IID_PPV_ARGS(&backBuffer)));
 
         D3D12_RENDER_TARGET_VIEW_DESC viewDesc;
         viewDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
@@ -212,8 +205,8 @@ void RenderEnvironment::InitializeAllocatorsAndCommandList()
     }
 
     auto currentBufferIndex = GetCurrentBufferIndex();
-    ThrowIfFailed(device->CreateCommandList(0, type, commandAllocators[currentBufferIndex].Get(), nullptr, IID_PPV_ARGS(&commandList)));
-    ThrowIfFailed(commandList->Close());
+    ENSURE_RESULT(device->CreateCommandList(0, type, commandAllocators[currentBufferIndex].Get(), nullptr, IID_PPV_ARGS(&commandList)));
+    ENSURE_RESULT(commandList->Close());
 }
 
 
@@ -235,7 +228,7 @@ void RenderEnvironment::InitializeDepthStencilView()
     depthOptimizedClearValue.DepthStencil.Depth = 1.0f;
     depthOptimizedClearValue.DepthStencil.Stencil = 0;
 
-    ThrowIfFailed(device->CreateCommittedResource(
+    ENSURE_RESULT(device->CreateCommittedResource(
         &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
         D3D12_HEAP_FLAG_NONE,
         &depthStencilDesc,
@@ -257,7 +250,7 @@ void RenderEnvironment::InitializeSynchronizationObjects()
 {
     assert(device != nullptr);
 
-    ThrowIfFailed(device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)));
+    ENSURE_RESULT(device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)));
     fenceEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
 
     assert(fence != nullptr && fenceEvent != nullptr && "InitializeSynchronizationObjects() failed.");
@@ -281,11 +274,11 @@ void RenderEnvironment::Synchronize()
     assert(fence != nullptr);
     assert(fenceEvent != nullptr);
 
-    ThrowIfFailed(commandQueue->Signal(fence.Get(), ++fenceValue));
+    ENSURE_RESULT(commandQueue->Signal(fence.Get(), ++fenceValue));
 
     if (fence->GetCompletedValue() < fenceValue)
     {
-        ThrowIfFailed(fence->SetEventOnCompletion(fenceValue, fenceEvent));
+        ENSURE_RESULT(fence->SetEventOnCompletion(fenceValue, fenceEvent));
         WaitForSingleObjectEx(fenceEvent, INFINITE, FALSE);
     }
 }
@@ -322,8 +315,8 @@ void RenderEnvironment::ClearScreen()
 {
     // Prepare command list.
     auto currentBufferIndex = GetCurrentBufferIndex();
-    ThrowIfFailed(commandAllocators[currentBufferIndex]->Reset());
-    ThrowIfFailed(commandList->Reset(commandAllocators[currentBufferIndex].Get(), nullptr));
+    ENSURE_RESULT(commandAllocators[currentBufferIndex]->Reset());
+    ENSURE_RESULT(commandList->Reset(commandAllocators[currentBufferIndex].Get(), nullptr));
 
     // Reset resources (descr heps, root sig ...)
     auto rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
@@ -352,14 +345,14 @@ void RenderEnvironment::Present()
 {
     BarrierFromTargetToPresent();
 
-    ThrowIfFailed(commandList->Close());
+    ENSURE_RESULT(commandList->Close());
 
     // Execute command list
     ID3D12CommandList* ppCommandLists[] = { commandList.Get() };
     commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
     // Present
-    ThrowIfFailed(swapChain->Present(vSynch, 0));
+    ENSURE_RESULT(swapChain->Present(vSynch, 0));
 
     Synchronize();
 }
@@ -367,6 +360,22 @@ void RenderEnvironment::Present()
 Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> RenderEnvironment::GetGraphicsCommandList()
 {
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> grphCmdLst;
-    ThrowIfFailed(commandList.As(&grphCmdLst));
+    ENSURE_RESULT(commandList.As(&grphCmdLst));
     return grphCmdLst;
+}
+
+void RenderEnvironment::ResetCommandList()
+{
+    Synchronize();
+    auto currentBufferIndex = GetCurrentBufferIndex();
+    ENSURE_RESULT(commandAllocators[currentBufferIndex]->Reset());
+    ENSURE_RESULT(commandList->Reset(commandAllocators[currentBufferIndex].Get(), nullptr));
+}
+
+void RenderEnvironment:: ExecuteCommandList()
+{
+    ENSURE_RESULT(commandList->Close());
+    ID3D12CommandList* ppCommandLists[] = { commandList.Get() };
+    commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+    Synchronize();
 }

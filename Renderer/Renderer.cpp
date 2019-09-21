@@ -1,10 +1,10 @@
 #include "Renderer.h"
+#include "Utils.h"
 #include <cassert>
 #pragma comment(lib, "D3DCompiler.lib")
 #include <d3dcompiler.h>
 #include <string>
 
-#define HR_ASSERT(HResult) (assert(SUCCEEDED(HResult)))
 
 struct Vertex
 {
@@ -37,18 +37,13 @@ void Renderer::Init(RenderEnvironment* environment)
     assert(environment != nullptr);
     pRenderEnv = environment;
 
+    pRenderEnv->ResetCommandList();
+
     CreateRootSignature();
     CreatePipelineStateObject();
     CreateTestMesh();
-
-    // Execute command list
-    auto commandList = pRenderEnv->GetGraphicsCommandList();
-    commandList->Close();
-    auto commandQueue = pRenderEnv->GetQueue();
-    ID3D12CommandList* ppCommandLists[] = { commandList.Get() };
-    commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
-
-    pRenderEnv->Synchronize();
+    
+    pRenderEnv->ExecuteCommandList();
 }
 
 void Renderer::Release()
@@ -81,25 +76,21 @@ void Renderer::CreateRootSignature()
 
     Microsoft::WRL::ComPtr<ID3DBlob> rootBlob;
     Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
-    D3D12SerializeRootSignature(&descRootSignature,
-        D3D_ROOT_SIGNATURE_VERSION_1, &rootBlob, &errorBlob);
-
-    pRenderEnv->GetDevice()->CreateRootSignature(0,
-        rootBlob->GetBufferPointer(),
-        rootBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
+    ENSURE_RESULT(D3D12SerializeRootSignature(&descRootSignature, D3D_ROOT_SIGNATURE_VERSION_1, &rootBlob, &errorBlob));
+    ENSURE_RESULT( pRenderEnv->GetDevice()->CreateRootSignature(0, rootBlob->GetBufferPointer(), rootBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature)));
 }
 
 void Renderer::CreatePipelineStateObject()
 {
-    std::wstring shaderDir = LR"(D:\Private\Quake2Port\Debug\)";
+    std::wstring shaderDir = LR"(C:\CPP\RenderingTask\Debug\)";
     std::wstring vertexShaderFilename = L"TestVertexShader.cso";
     std::wstring pixelShaderFilename = L"TestPixelShader.cso";
 
     std::wstring VSPath = shaderDir + vertexShaderFilename;
     std::wstring PSPath = shaderDir + pixelShaderFilename;
 
-    HR_ASSERT(D3DReadFileToBlob(VSPath.c_str(), vertexShaderBlob.GetAddressOf()));
-    HR_ASSERT(D3DReadFileToBlob(PSPath.c_str(), pixelShaderBlob.GetAddressOf()));
+    ENSURE_RESULT(D3DReadFileToBlob(VSPath.c_str(), vertexShaderBlob.GetAddressOf()));
+    ENSURE_RESULT(D3DReadFileToBlob(PSPath.c_str(), pixelShaderBlob.GetAddressOf()));
 
     static const D3D12_INPUT_ELEMENT_DESC inputLayout[] =
     {
@@ -135,7 +126,7 @@ void Renderer::CreatePipelineStateObject()
     psoDesc.SampleMask = 0xFFFFFFFF;
     psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 
-    pRenderEnv->GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso));
+    ENSURE_RESULT(pRenderEnv->GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso)));
 }
 
 void Renderer::CreateTestMesh()
@@ -143,29 +134,29 @@ void Renderer::CreateTestMesh()
     static const int uploadBufferSize = sizeof(vertices) + sizeof(indices);
 
     // Create upload buffer on CPU
-    pRenderEnv->GetDevice()->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+    ENSURE_RESULT(pRenderEnv->GetDevice()->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
                                                      D3D12_HEAP_FLAG_NONE,
                                                      &CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize),
                                                      D3D12_RESOURCE_STATE_GENERIC_READ,
                                                      nullptr,
-                                                     IID_PPV_ARGS(&uploadBuffer));
+                                                     IID_PPV_ARGS(&uploadBuffer)));
 
     // Create vertex & index buffer on the GPU
     // HEAP_TYPE_DEFAULT is on GPU, we also initialize with COPY_DEST state
     // so we don't have to transition into this before copying into them
-    pRenderEnv->GetDevice()->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+    ENSURE_RESULT(pRenderEnv->GetDevice()->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
                                                      D3D12_HEAP_FLAG_NONE,
                                                      &CD3DX12_RESOURCE_DESC::Buffer(sizeof(vertices)),
                                                      D3D12_RESOURCE_STATE_COPY_DEST,
                                                      nullptr,
-                                                     IID_PPV_ARGS(&vertexBuffer));
+                                                     IID_PPV_ARGS(&vertexBuffer)));
 
-    pRenderEnv->GetDevice()->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+    ENSURE_RESULT(pRenderEnv->GetDevice()->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
                                                      D3D12_HEAP_FLAG_NONE,
                                                      &CD3DX12_RESOURCE_DESC::Buffer(sizeof(indices)),
                                                      D3D12_RESOURCE_STATE_COPY_DEST,
                                                      nullptr,
-                                                     IID_PPV_ARGS(&indexBuffer));
+                                                     IID_PPV_ARGS(&indexBuffer)));
 
     // Create buffer views
     vertexBufferView.BufferLocation = vertexBuffer->GetGPUVirtualAddress();

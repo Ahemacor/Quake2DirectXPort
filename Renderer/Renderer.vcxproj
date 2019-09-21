@@ -104,6 +104,7 @@
     <ClCompile Include="ShaderLoader.cpp" />
     <ClCompile Include="StateManager.cpp" />
     <ClCompile Include="TestDirectX12.cpp" />
+    <ClCompile Include="Utils.cpp" />
     <ClCompile Include="WindowsWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -123,6 +124,7 @@
     <ClInclude Include="ShaderLoader.h" />
     <ClInclude Include="StateManager.h" />
     <ClInclude Include="TestDirectX12.h" />
+    <ClInclude Include="Utils.h" />
     <ClInclude Include="WindowsWindow.h" />
   </ItemGroup>
   <ItemGroup>
