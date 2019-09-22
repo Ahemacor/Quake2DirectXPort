@@ -99,7 +99,6 @@ void Renderer::CreateRootSignature()
 
 void Renderer::CreatePipelineStateObject()
 {
-    std::wstring shaderDir = LR"(C:\CPP\RenderingTask\Debug\)";
     std::wstring vertexShaderFilename = L"TestVertexShader.cso";
     std::wstring pixelShaderFilename = L"TestPixelShader.cso";
 
@@ -224,8 +223,7 @@ void Renderer::CreateTexture()
 
     // Load image binary Data
     int width = 0, height = 0;
-    //imageData = LoadImageFromMemory(RubyTexture, sizeof(RubyTexture), 1 /* tight row packing */, &width, &height);
-    const char* imageFilePath = R"(C:\CPP\RenderingTask\Renderer\ImageIO\ruby.jpg)";
+    const char* imageFilePath = "ruby.jpg";
     imageData = LoadImageFromFile(imageFilePath, 1, &width, &height);
 
     ENSURE_RESULT(pRenderEnv->GetDevice()->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
