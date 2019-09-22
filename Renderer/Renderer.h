@@ -27,7 +27,7 @@ public:
     void CreatePipelineStateObject();
     void CreateTexture();
 
-    //void SetPrimitiveTopologyTriangleList();
+    void SetPrimitiveTopologyTriangleList();
 
 private:
     void CreateTestMesh();

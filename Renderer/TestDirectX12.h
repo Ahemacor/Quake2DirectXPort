@@ -22,7 +22,7 @@ extern "C" {
     UINT DX12_GetModesNumber();
     DXGI_MODE_DESC DX12_GetVideoMode(UINT index);
     HWND DX12_GetOsWindowHandle();
-    //void DX12_SetPrimitiveTopologyTriangleList();
+    void DX12_SetPrimitiveTopologyTriangleList();
 #ifdef __cplusplus
 }
 #endif

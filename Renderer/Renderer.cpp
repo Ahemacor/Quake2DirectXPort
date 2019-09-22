@@ -295,3 +295,9 @@ void Renderer::CreateTexture()
     pRenderEnv->GetDevice()->CreateShaderResourceView(image.Get(), &shaderResourceViewDesc,
         srvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 }
+
+void Renderer::SetPrimitiveTopologyTriangleList()
+{
+    auto commandList = pRenderEnv->GetGraphicsCommandList();
+    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
