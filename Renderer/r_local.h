@@ -31,8 +31,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define FEATURE_ALIAS_MODEL 0
 #define FEATURE_BRUSH_MODEL 0
 #define FEATURE_SPRITE_MODEL 0
+#define FEATURE_NULL 0
+#define FEATURE_FADE_SCREEN 0
+#define FEATURE_CINEMATIC 0
+#define FEATURE_DRAW_FILL 0
+#define FEATURE_DRAW_TEXT 0
+#define FEATURE_DRAW_PICTURES 0
 
-#define DX11_IMPL 0
+
+#define DX11_IMPL 1
 
 #include <windows.h>
 #include <stdio.h>

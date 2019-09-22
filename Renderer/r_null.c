@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include "r_local.h"
-#if DX11_IMPL
+#if FEATURE_NULL
 #include "CppWrapper.h"
 
 int d3d_NullShader = 0;
@@ -64,4 +64,6 @@ void R_PrepareNullModel (entity_t *e, QMATRIX *localmatrix)
 
 #else 
 void R_InitNull(void) {}
-#endif // #if DX11_IMPL
+void R_DrawNullModel(entity_t* e, QMATRIX* localmatrix) {}
+void R_PrepareNullModel(entity_t* e, QMATRIX* localmatrix) {}
+#endif // #if FEATURE_NULL
