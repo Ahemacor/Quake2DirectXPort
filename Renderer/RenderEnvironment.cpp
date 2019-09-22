@@ -8,26 +8,26 @@
 #pragma comment (lib, "d3d12.lib")
 #pragma comment (lib, "dxgi.lib")
 
-RenderEnvironment::RenderEnvironment(HWND handle, std::size_t width, std::size_t height)
-: parentWindowHandle(handle)
-, windowWidth(width)
-, windowHeight(height)
+RenderEnvironment::RenderEnvironment()
 {
-    InitializeViewportAndScissor();
+    InitializeFactory();
+    InitializeAdapters();
+    InitializeVideoModes();
+    InitializeDevice();
 }
 
 RenderEnvironment::~RenderEnvironment()
 {
-    Synchronize();
-    CloseHandle(fenceEvent);
+    Release();
 }
 
-void RenderEnvironment::InitializeAll()
+bool RenderEnvironment::Initialize(HWND handle, std::size_t width, std::size_t height)
 {
-    InitializeFactory();
-    InitializeAdapters();
-    InitializeDevice();
     commandQueue = CreateCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
+    parentWindowHandle = handle;
+    windowWidth = width;
+    windowHeight = height;
+
     InitializeSwapChain();
     rtvDescriptorHeap = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, bufferCount);
     dsvDescriptorHeap = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1);
@@ -35,6 +35,27 @@ void RenderEnvironment::InitializeAll()
     InitializeRenderTargetViews();
     InitializeDepthStencilView();
     InitializeSynchronizationObjects();
+    InitializeViewportAndScissor();
+
+    isInitialized = true;
+    return isInitialized;
+}
+
+void RenderEnvironment::Release()
+{
+    Synchronize();
+
+    commandQueue.Reset();
+    swapChain.Reset();
+    rtvDescriptorHeap.Reset();
+    dsvDescriptorHeap.Reset();
+    depthStencil.Reset();
+    for (auto rt : renderTargets) rt.Reset();
+    for (auto ca : commandAllocators) ca.Reset();
+    commandList.Reset();
+    CloseHandle(fenceEvent);
+
+    isInitialized = false;
 }
 
 void RenderEnvironment::InitializeFactory()
@@ -91,6 +112,105 @@ Microsoft::WRL::ComPtr<IDXGIAdapter> RenderEnvironment::GetMaxMemoryAdapter()
     }
 
     return maxMemoryAdapterData.adapter;
+}
+
+Microsoft::WRL::ComPtr<IDXGIOutput> RenderEnvironment::GetAdapterOutput()
+{
+    Microsoft::WRL::ComPtr<IDXGIAdapter> maxMemoryAdapter = GetMaxMemoryAdapter();
+    Microsoft::WRL::ComPtr<IDXGIOutput> output;
+
+    DXGI_OUTPUT_DESC Desc;
+    IDXGIOutput* pOutput = nullptr;
+    for (UINT i = 0; maxMemoryAdapter->EnumOutputs(i, &pOutput) != DXGI_ERROR_NOT_FOUND; ++i)
+    {
+        if (FAILED(pOutput->GetDesc(&Desc))) continue;
+
+        if (!Desc.AttachedToDesktop) continue;
+
+        if (Desc.Rotation == DXGI_MODE_ROTATION_ROTATE90 || Desc.Rotation == DXGI_MODE_ROTATION_ROTATE180 || Desc.Rotation == DXGI_MODE_ROTATION_ROTATE270) continue;
+
+        // this is a valid output now
+        output = pOutput;
+        break;
+    }
+
+    return output;
+}
+
+void RenderEnvironment::InitializeVideoModes()
+{
+    Microsoft::WRL::ComPtr<IDXGIOutput> output = GetAdapterOutput();
+    std::vector<DXGI_MODE_DESC> allVideoModes;
+    const UINT EnumFlags = (DXGI_ENUM_MODES_SCALING | DXGI_ENUM_MODES_INTERLACED);
+    UINT NumModes = 0;
+    if (SUCCEEDED(output->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, EnumFlags, &NumModes, NULL)))
+    {
+        allVideoModes.resize(NumModes);
+        DXGI_MODE_DESC* vectorData = const_cast<DXGI_MODE_DESC*>(allVideoModes.data());
+        if (FAILED(output->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, EnumFlags, &NumModes, vectorData)))
+        {
+            allVideoModes.clear();
+        }
+    }
+
+    videoModeDescriptions.clear();
+    // cleanup the modes by removing unspecified modes where a specified option or options exists, then copy them out to the final array
+    for (int i = 0; i < allVideoModes.size(); ++i)
+    {
+        DXGI_MODE_DESC* mode = &allVideoModes[i];
+        BOOL deadmode = FALSE;
+
+        // don't allow < 640x480 modes
+        if (mode->Width < 640) continue;
+        if (mode->Height < 480) continue;
+
+        if (mode->Scaling == DXGI_MODE_SCALING_UNSPECIFIED)
+        {
+            for (int j = 0; j < allVideoModes.size(); j++)
+            {
+                DXGI_MODE_DESC* mode2 = &allVideoModes[i];
+
+                if (mode->Format != mode2->Format) continue;
+                if (mode->Height != mode2->Height) continue;
+                if (mode->RefreshRate.Denominator != mode2->RefreshRate.Denominator) continue;
+                if (mode->RefreshRate.Numerator != mode2->RefreshRate.Numerator) continue;
+                if (mode->ScanlineOrdering != mode2->ScanlineOrdering) continue;
+                if (mode->Width != mode2->Width) continue;
+
+                if (mode2->Scaling != DXGI_MODE_SCALING_UNSPECIFIED)
+                {
+                    deadmode = TRUE;
+                    break;
+                }
+            }
+        }
+
+        if (mode->ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED)
+        {
+            for (int j = 0; j < allVideoModes.size(); j++)
+            {
+                DXGI_MODE_DESC* mode2 = &allVideoModes[i];
+
+                if (mode->Format != mode2->Format) continue;
+                if (mode->Height != mode2->Height) continue;
+                if (mode->RefreshRate.Denominator != mode2->RefreshRate.Denominator) continue;
+                if (mode->RefreshRate.Numerator != mode2->RefreshRate.Numerator) continue;
+                if (mode->Scaling != mode2->Scaling) continue;
+                if (mode->Width != mode2->Width) continue;
+
+                if (mode2->ScanlineOrdering != DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED)
+                {
+                    deadmode = TRUE;
+                    break;
+                }
+            }
+        }
+
+        if (deadmode) continue;
+
+        // this is a real mode now - copy it out
+        videoModeDescriptions.push_back(*mode);
+    }
 }
 
 void RenderEnvironment::InitializeDevice()
@@ -270,6 +390,7 @@ void RenderEnvironment::InitializeViewportAndScissor()
 
 void RenderEnvironment::Synchronize()
 {
+    assert(isInitialized == true);
     assert(commandQueue != nullptr);
     assert(fence != nullptr);
     assert(fenceEvent != nullptr);
@@ -313,6 +434,8 @@ void RenderEnvironment::BarrierFromPresentToTarget()
 
 void RenderEnvironment::ClearScreen()
 {
+    assert(isInitialized == true);
+
     // Prepare command list.
     auto currentBufferIndex = GetCurrentBufferIndex();
     ENSURE_RESULT(commandAllocators[currentBufferIndex]->Reset());
@@ -343,6 +466,8 @@ void RenderEnvironment::ClearScreen()
 
 void RenderEnvironment::Present()
 {
+    assert(isInitialized == true);
+
     BarrierFromTargetToPresent();
 
     ENSURE_RESULT(commandList->Close());
@@ -359,6 +484,8 @@ void RenderEnvironment::Present()
 
 Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> RenderEnvironment::GetGraphicsCommandList()
 {
+    assert(isInitialized == true);
+
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> grphCmdLst;
     ENSURE_RESULT(commandList.As(&grphCmdLst));
     return grphCmdLst;
@@ -366,6 +493,8 @@ Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> RenderEnvironment::GetGraphics
 
 void RenderEnvironment::ResetCommandList()
 {
+    assert(isInitialized == true);
+
     Synchronize();
     auto currentBufferIndex = GetCurrentBufferIndex();
     ENSURE_RESULT(commandAllocators[currentBufferIndex]->Reset());
@@ -374,8 +503,20 @@ void RenderEnvironment::ResetCommandList()
 
 void RenderEnvironment:: ExecuteCommandList()
 {
+    assert(isInitialized == true);
+
     ENSURE_RESULT(commandList->Close());
     ID3D12CommandList* ppCommandLists[] = { commandList.Get() };
     commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
     Synchronize();
+}
+
+UINT RenderEnvironment::GetVideoModesNumber()
+{
+    return videoModeDescriptions.size();
+}
+
+DXGI_MODE_DESC RenderEnvironment::GetVideoMode(UINT index)
+{
+    return videoModeDescriptions[index];
 }

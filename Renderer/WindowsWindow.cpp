@@ -1,36 +1,59 @@
 #include "WindowsWindow.h"
 #include <cassert>
 
-WindowsWindow::WindowsWindow(HINSTANCE hInstance, WNDPROC proc, RECT sizePosition, bool isFullscreen, const std::string& title)
-: appInstance(hInstance)
-, procedure(proc)
-, rectangle(sizePosition)
-, fullscreen(isFullscreen)
-, title(title)
-{
-    RegisterWindowClass();
-    Initialize();
-}
+WindowsWindow::WindowsWindow() {}
 
 WindowsWindow::~WindowsWindow()
+{
+    Hide();
+}
+
+void WindowsWindow::SetParentInstance(HINSTANCE inst)
+{
+    assert(inst != nullptr);
+    appInstance = inst;
+}
+
+void WindowsWindow::SetWindowProcedure(WNDPROC proc)
+{
+    assert(proc != nullptr);
+    procedure = proc;
+}
+
+bool WindowsWindow::Show(RECT sizePosition, bool isFullscreen, const std::string& title)
+{
+    bool winInitSuccess = RegisterWindowClass();
+
+    if (winInitSuccess)
+    {
+        windowHandle = CreateOSWindow(sizePosition, isFullscreen, title);
+        if (windowHandle != nullptr)
+        {
+            ShowWindow(windowHandle, SW_SHOW);
+            UpdateWindow(windowHandle);
+
+            SetForegroundWindow(windowHandle);
+            SetFocus(windowHandle);
+        }
+        else
+        {
+            winInitSuccess = false;
+        }
+    }
+
+    return winInitSuccess;
+}
+
+void WindowsWindow::Hide()
 {
     if (windowHandle != nullptr)
     {
         ShowWindow(windowHandle, SW_HIDE);
         DestroyWindow(windowHandle);
-        windowHandle = NULL;
+        windowHandle = nullptr;
     }
 
-    UnregisterClass(className.c_str(), appInstance);
-}
-
-void WindowsWindow::Show()
-{
-    ShowWindow(windowHandle, SW_SHOW);
-    UpdateWindow(windowHandle);
-
-    SetForegroundWindow(windowHandle);
-    SetFocus(windowHandle);
+    UnregisterClass(CLASS_NAME.c_str(), appInstance);
 }
 
 HWND WindowsWindow::GetHandle()
@@ -38,11 +61,13 @@ HWND WindowsWindow::GetHandle()
     return windowHandle;
 }
 
-bool WindowsWindow::Initialize()
+HWND WindowsWindow::CreateOSWindow(RECT rect, bool isFullscreen, const std::string& title)
 {
+    assert(appInstance != nullptr);
+
     int exstyle = 0;
     int stylebits = 0;
-    if (fullscreen)
+    if (isFullscreen)
     {
         exstyle = WS_EX_TOPMOST;
         stylebits = WS_POPUP | WS_VISIBLE;
@@ -53,26 +78,27 @@ bool WindowsWindow::Initialize()
         stylebits = WS_OVERLAPPED | WS_BORDER | WS_CAPTION | WS_VISIBLE;
     }
 
-    AdjustWindowRect(&rectangle, stylebits, FALSE);
+    AdjustWindowRect(&rect, stylebits, FALSE);
 
-    windowHandle = CreateWindowEx(
-        exstyle,
-        className.c_str(),
-        title.c_str(),
-        stylebits,
-        rectangle.left, rectangle.top, rectangle.right - rectangle.left, rectangle.bottom - rectangle.top,//x, y, w, h,
-        NULL,
-        NULL,
-        appInstance,
-        NULL);
+    HWND handle = CreateWindowEx(exstyle,
+                                 CLASS_NAME.c_str(),
+                                 title.c_str(),
+                                 stylebits,
+                                 rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, //x, y, w, h,
+                                 NULL,
+                                 NULL,
+                                 appInstance,
+                                 NULL);
+    assert(handle != nullptr);
 
-    assert(windowHandle && "Initialize() failed");
-
-    return windowHandle != nullptr;
+    return handle;
 }
 
 bool WindowsWindow::RegisterWindowClass()
 {
+    assert(procedure != nullptr);
+    assert(appInstance != nullptr);
+
     // Register a window class for creating our render window with.
     WNDCLASSEXA windowClass = {};
     windowClass.cbSize = sizeof(WNDCLASSEXW);
@@ -85,7 +111,7 @@ bool WindowsWindow::RegisterWindowClass()
     windowClass.hCursor = ::LoadCursor(NULL, IDC_ARROW);
     windowClass.hbrBackground = (HBRUSH)COLOR_GRAYTEXT;
     windowClass.lpszMenuName = 0;
-    windowClass.lpszClassName = className.c_str();
+    windowClass.lpszClassName = CLASS_NAME.c_str();
 
     static HRESULT hr = ::RegisterClassExA(&windowClass);
     assert(SUCCEEDED(hr) && "RegisterWindowClass() failed");

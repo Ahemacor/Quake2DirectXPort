@@ -23,10 +23,11 @@ public:
         DXGI_ADAPTER_DESC description = {};
     };
 
-    RenderEnvironment(HWND handle, std::size_t width, std::size_t height);
+    RenderEnvironment();
     ~RenderEnvironment();
 
-    void InitializeAll();
+    bool Initialize(HWND handle, std::size_t width, std::size_t height);
+    void Release();
 
     void ClearScreen();
     void Present();
@@ -39,6 +40,9 @@ public:
     void ResetCommandList();
     void ExecuteCommandList();
 
+    UINT GetVideoModesNumber();
+    DXGI_MODE_DESC GetVideoMode(UINT index);
+
 private:
     RenderEnvironment(const RenderEnvironment&) = delete;
     RenderEnvironment& operator=(const RenderEnvironment&) = delete;
@@ -48,6 +52,8 @@ private:
     std::size_t GetNumberOfAdapters();
     AdapterData GetAdapter(std::size_t index);
     Microsoft::WRL::ComPtr<IDXGIAdapter> GetMaxMemoryAdapter();
+    Microsoft::WRL::ComPtr<IDXGIOutput> GetAdapterOutput();
+    void InitializeVideoModes();
     void InitializeDevice();
     Microsoft::WRL::ComPtr<ID3D12CommandQueue> CreateCommandQueue(D3D12_COMMAND_LIST_TYPE type);
     void InitializeSwapChain();
@@ -85,5 +91,9 @@ private:
     std::uint64_t fenceValue = 0;
 
     bool vSynch = false;
+
+    std::vector<DXGI_MODE_DESC> videoModeDescriptions;
+
+    bool isInitialized = false;
 };
 

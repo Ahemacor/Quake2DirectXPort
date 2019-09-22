@@ -33,28 +33,59 @@ static const int indices[6] = {
 
 static Microsoft::WRL::ComPtr<ID3D12Resource> uploadBuffer;
 
-void Renderer::Init(RenderEnvironment* environment)
+Renderer::Renderer() : vertexBufferView(), indexBufferView(), imageData() {}
+
+Renderer::~Renderer()
+{
+    Release();
+}
+
+bool Renderer::Init(RenderEnvironment* environment)
 {
     assert(environment != nullptr);
     pRenderEnv = environment;
 
     pRenderEnv->ResetCommandList();
-
     CreateRootSignature();
     CreatePipelineStateObject();
     CreateTestMesh();
     CreateTexture();
     
     pRenderEnv->ExecuteCommandList();
+            
+    isInitialized = true;
+    return isInitialized;
 }
 
 void Renderer::Release()
 {
+    pRenderEnv = nullptr;
 
+    rootSignature.Reset();
+    pso.Reset();
+    uploadBuffer.Reset();
+
+    vertexBuffer.Reset();
+    vertexBufferView = {};
+
+    indexBuffer.Reset();
+    indexBufferView = {};
+
+    vertexShaderBlob.Reset();
+    pixelShaderBlob.Reset();
+
+    image.Reset();
+    uploadImage.Reset();
+    imageData = {};
+    srvDescriptorHeap.Reset();
+
+    isInitialized = false;
 }
 
 void Renderer::RenderImpl()
 {
+    assert(isInitialized == true);
+
     auto commandList = pRenderEnv->GetGraphicsCommandList();
     commandList->SetPipelineState(pso.Get());
     commandList->SetGraphicsRootSignature(rootSignature.Get());
@@ -99,6 +130,7 @@ void Renderer::CreateRootSignature()
 
 void Renderer::CreatePipelineStateObject()
 {
+    std::wstring shaderDir = L"";
     std::wstring vertexShaderFilename = L"TestVertexShader.cso";
     std::wstring pixelShaderFilename = L"TestPixelShader.cso";
 

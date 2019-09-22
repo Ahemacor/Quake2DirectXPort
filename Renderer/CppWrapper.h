@@ -34,6 +34,11 @@ ID3D11RenderTargetView* RWGetRTV();
 ID3D11RenderTargetView** RWGetRTVAddr();
 ID3D11DepthStencilView* RWGetDSV();
 
+void RWSetPrimitiveTopologyTriangleList();
+
+void RWRenderBegin();
+void RWRenderEnd();
+
 // State Manager interface.
 void SMSetRenderStates(BlendState bs, DepthStencilState ds, RasterizerState rs);
 void SMInitDefaultStates();

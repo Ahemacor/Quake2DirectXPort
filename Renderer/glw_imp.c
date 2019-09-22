@@ -33,16 +33,18 @@ GLimp_Shutdown
 */
 
 #include "r_local.h"
-#if DX11_IMPL
+
 #include <assert.h>
 #include <windows.h>
 #include "CppWrapper.h"
 
+#if DX11_IMPL
 #pragma comment (lib, "d3d11.lib")
 #pragma comment (lib, "dxgi.lib")
 
 // this just needs to be included anywhere....
 #pragma comment (lib, "dxguid.lib")
+#endif // DX11_IMPL
 
 HANDLE hRefHeap;
 
@@ -254,7 +256,6 @@ static void GLimp_GetGUIScale (void)
 	vid.conheight = vid.height;
 }
 
-
 /*
 ===============
 GLimp_BeginFrame
@@ -279,17 +280,21 @@ void GLimp_BeginFrame (viddef_t *vd, int scrflags)
 	vd->conwidth = vid.conwidth;
 	vd->conheight = vid.conheight;
 
+#if DX11_IMPL
 	// set up the 2D ortho view, brightness and contrast
 	Draw_UpdateConstants (scrflags);
 
 	// everything in all draws is drawn as an indexed triangle list, even if it's ultimately a strip or a single tri, so this can be set-and-forget once per frame
 	//d3d_Context->lpVtbl->IASetPrimitiveTopology (d3d_Context, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    RWGetDeviceContext()->lpVtbl->IASetPrimitiveTopology(RWGetDeviceContext(), D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    RWSetPrimitiveTopologyTriangleList();
 
 	// bind buffers and samplers that will remain bound for the duration of the frame
 	//D_BindSamplers ();
     SMBindSamplers();
     SLBindConstantBuffers();
+#else // !DX11_IMPL
+    RWRenderBegin();
+#endif // DX11_IMPL
 }
 
 
@@ -306,7 +311,7 @@ void GLimp_EndFrame (int scrflags)
 {
 	// free any loading memory that may have been used during the frame
 	ri.Load_FreeMemory ();
-
+#if DX11_IMPL
 	// perform the buffer swap with or without vsync as appropriate
 	if (scrflags & SCR_NO_PRESENT)
 		return;
@@ -318,6 +323,9 @@ void GLimp_EndFrame (int scrflags)
         RWGetSwapchain()->lpVtbl->Present(RWGetSwapchain(), 1, 0);
 	else //d3d_SwapChain->lpVtbl->Present (d3d_SwapChain, 0, 0);
         RWGetSwapchain()->lpVtbl->Present(RWGetSwapchain(), 0, 0);
+#else // !DX11_IMPL
+    RWRenderEnd();
+#endif // DX11_IMPL
 }
 
 
@@ -341,7 +349,7 @@ void GLimp_AppActivate (qboolean active)
 	}
 }
 
-#else
+/*
 #include "TestDirectX12.h"
 
 HANDLE hRefHeap;
@@ -372,3 +380,4 @@ void D_EnumerateVideoModes(void)
     vid_modedata.numfsmodes = 1;
 }
 #endif // DX11_IMPL
+*/

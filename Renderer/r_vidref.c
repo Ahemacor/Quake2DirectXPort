@@ -19,11 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include "r_local.h"
-#if DX11_IMPL
 #include "CppWrapper.h"
-#else // !DX11_IMPL
-#include "TestDirectX12.h"
-#endif // DX11_IMPL
 
 extern vidmenu_t vid_modedata;
 
@@ -125,11 +121,7 @@ R_Init
 */
 int R_Init (void *hinstance, void *wndproc)
 {
-#if DX11_IMPL
     RWSetAppProps(hinstance, wndproc);
-#else // !DX11_IMPL
-    DX12_StartApp(hinstance, wndproc);
-#endif // DX11_IMPL
 
 	ri.Con_Printf (PRINT_ALL, "ref_gl version: "REF_VERSION"\n");
 
@@ -153,11 +145,8 @@ int R_Init (void *hinstance, void *wndproc)
 	ri.Vid_MenuInit ();
 
 	// this sets up state objects and NULLs-out cached state
-#if DX11_IMPL
     SMInitDefaultStates();
-#else // !DX11_IMPL
 
-#endif // DX11_IMPL
 	// initialize all objects, textures, shaders, etc
 	R_InitImages ();
 	Mod_Init ();
@@ -180,7 +169,6 @@ void R_Shutdown (void)
 	R_ShutdownImages ();
 
 	// shut down OS specific OpenGL stuff like contexts, etc.
-	//GLimp_Shutdown ();
     RWClose();
 }
 
@@ -268,13 +256,8 @@ refexport_t GetRefAPI (refimport_t rimp)
 	// now create the new one we're going to use
 	hRefHeap = HeapCreate (0, 0, 0);
 
-#if DX11_IMPL
     CPPRease();
     CPPInit();
-#else // !DX11_IMPL
-    DX12_Release();
-    DX12_Init();
-#endif // DX11_IMPL
 
 	// and done
 	return re;

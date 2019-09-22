@@ -16,7 +16,10 @@ extern "C" {
 class Renderer
 {
 public:
-    void Init(RenderEnvironment* environment);
+    Renderer();
+    ~Renderer();
+
+    bool Init(RenderEnvironment* environment);
     void Release();
     void RenderImpl();
 
@@ -24,10 +27,12 @@ public:
     void CreatePipelineStateObject();
     void CreateTexture();
 
+    //void SetPrimitiveTopologyTriangleList();
+
 private:
     void CreateTestMesh();
 
-    RenderEnvironment* pRenderEnv;
+    RenderEnvironment* pRenderEnv = nullptr;
 
     Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature;
     Microsoft::WRL::ComPtr<ID3D12PipelineState> pso;
@@ -47,6 +52,7 @@ private:
     std::vector<std::uint8_t>				imageData;
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>    srvDescriptorHeap;
 
+    bool isInitialized = false;
 };
 
 #ifdef __cplusplus
