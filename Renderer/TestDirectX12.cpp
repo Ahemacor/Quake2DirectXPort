@@ -110,5 +110,5 @@ HWND DX12_GetOsWindowHandle()
 
 void DX12_SetPrimitiveTopologyTriangleList()
 {
-    g_renderer->SetPrimitiveTopologyTriangleList();
+    //g_renderer->SetPrimitiveTopologyTriangleList();
 }

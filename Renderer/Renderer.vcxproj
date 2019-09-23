@@ -89,6 +89,7 @@
     <ClCompile Include="mod_alias.c" />
     <ClCompile Include="mod_brush.c" />
     <ClCompile Include="mod_sprite.c" />
+    <ClCompile Include="PipelineStateManager.cpp" />
     <ClCompile Include="RenderEnvironment.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderWindow.cpp" />
@@ -126,6 +127,7 @@
     <ClInclude Include="ImageIO\ImageIO.h" />
     <ClInclude Include="ImageIO\Utility.h" />
     <ClInclude Include="matrix.h" />
+    <ClInclude Include="PipelineStateManager.h" />
     <ClInclude Include="RenderEnvironment.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderWindow.h" />

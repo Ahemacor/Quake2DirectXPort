@@ -2,9 +2,7 @@
 #include "Utils.h"
 #include "ImageIO/ImageIO.h"
 #include <cassert>
-#pragma comment(lib, "D3DCompiler.lib")
-#include <d3dcompiler.h>
-#include <string>
+
 
 
 struct Vertex
@@ -31,8 +29,6 @@ static const int indices[6] = {
     0, 1, 2, 2, 3, 0
 };
 
-static Microsoft::WRL::ComPtr<ID3D12Resource> uploadBuffer;
-
 Renderer::Renderer() : vertexBufferView(), indexBufferView(), imageData() {}
 
 Renderer::~Renderer()
@@ -46,8 +42,9 @@ bool Renderer::Init(RenderEnvironment* environment)
     pRenderEnv = environment;
 
     pRenderEnv->ResetCommandList();
-    CreateRootSignature();
-    CreatePipelineStateObject();
+    stateManager.SetVertexShader(PipelineStateManager::VS_Test);
+    stateManager.SetPixelShader(PipelineStateManager::PS_Test);
+    stateManager.Initialize(pRenderEnv->GetDevice());
     CreateTestMesh();
     CreateTexture();
     
@@ -61,9 +58,7 @@ void Renderer::Release()
 {
     pRenderEnv = nullptr;
 
-    rootSignature.Reset();
-    pso.Reset();
-    uploadBuffer.Reset();
+    stateManager.Release();
 
     vertexBuffer.Reset();
     vertexBufferView = {};
@@ -71,13 +66,9 @@ void Renderer::Release()
     indexBuffer.Reset();
     indexBufferView = {};
 
-    vertexShaderBlob.Reset();
-    pixelShaderBlob.Reset();
-
     image.Reset();
-    uploadImage.Reset();
     imageData = {};
-    srvDescriptorHeap.Reset();
+    descriptorHeap.Reset();
 
     isInitialized = false;
 }
@@ -87,15 +78,19 @@ void Renderer::RenderImpl()
     assert(isInitialized == true);
 
     auto commandList = pRenderEnv->GetGraphicsCommandList();
-    commandList->SetPipelineState(pso.Get());
-    commandList->SetGraphicsRootSignature(rootSignature.Get());
+
+    stateManager.RebuildState();
+    commandList->SetPipelineState(stateManager.GetPSO());
+    commandList->SetGraphicsRootSignature(stateManager.GetRootSignature());
+
 
     // Set the descriptor heap containing the texture srv
-    ID3D12DescriptorHeap* heaps[] = { srvDescriptorHeap.Get() };
-    commandList->SetDescriptorHeaps(1, heaps);
+    ID3D12DescriptorHeap* heaps[] = { descriptorHeap.Get(), stateManager.GetSamplerDescriptorHeap() };
+    commandList->SetDescriptorHeaps(_countof(heaps), heaps);
 
-    // Set slot 0 of our root signature to point to our descriptor heap with the texture SRV
-    commandList->SetGraphicsRootDescriptorTable(0, srvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+    commandList->SetGraphicsRootDescriptorTable(PipelineStateManager::TextureSRV, descriptorHeap->GetGPUDescriptorHandleForHeapStart());
+
+    commandList->SetGraphicsRootDescriptorTable(PipelineStateManager::TextureSampler, stateManager.GetSamplerDescriptorHeap()->GetGPUDescriptorHandleForHeapStart());
 
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
@@ -103,78 +98,6 @@ void Renderer::RenderImpl()
     commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
 
     pRenderEnv->Synchronize();
-}
-
-void Renderer::CreateRootSignature()
-{
-    CD3DX12_ROOT_PARAMETER parameters[1];
-
-    // Create a descriptor table with one entry in our descriptor heap
-    CD3DX12_DESCRIPTOR_RANGE range{ D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0 };
-    parameters[0].InitAsDescriptorTable(1, &range);
-
-    // We don't use another descriptor heap for the sampler, instead we use a
-    // static sampler
-    CD3DX12_STATIC_SAMPLER_DESC samplers[1];
-    samplers[0].Init(0, D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT);
-
-    // Create the root signature
-    CD3DX12_ROOT_SIGNATURE_DESC descRootSignature = {};
-    descRootSignature.Init(1, parameters, 1, samplers, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-
-    Microsoft::WRL::ComPtr<ID3DBlob> rootBlob;
-    Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
-    ENSURE_RESULT(D3D12SerializeRootSignature(&descRootSignature, D3D_ROOT_SIGNATURE_VERSION_1, &rootBlob, &errorBlob));
-    ENSURE_RESULT( pRenderEnv->GetDevice()->CreateRootSignature(0, rootBlob->GetBufferPointer(), rootBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature)));
-}
-
-void Renderer::CreatePipelineStateObject()
-{
-    std::wstring shaderDir = L"";
-    std::wstring vertexShaderFilename = L"TestVertexShader.cso";
-    std::wstring pixelShaderFilename = L"TestPixelShader.cso";
-
-    std::wstring VSPath = shaderDir + vertexShaderFilename;
-    std::wstring PSPath = shaderDir + pixelShaderFilename;
-
-    ENSURE_RESULT(D3DReadFileToBlob(VSPath.c_str(), vertexShaderBlob.GetAddressOf()));
-    ENSURE_RESULT(D3DReadFileToBlob(PSPath.c_str(), pixelShaderBlob.GetAddressOf()));
-
-    static const D3D12_INPUT_ELEMENT_DESC inputLayout[] =
-    {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
-        D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12,
-        D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
-    };
-
-    D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-    psoDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShaderBlob.Get());
-    psoDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShaderBlob.Get());
-    psoDesc.pRootSignature = rootSignature.Get();
-    psoDesc.NumRenderTargets = 1;
-    psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-    psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-    psoDesc.InputLayout.NumElements = std::extent<decltype(inputLayout)>::value;
-    psoDesc.InputLayout.pInputElementDescs = inputLayout;
-    psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-    psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-    // Simple alpha blending
-    psoDesc.BlendState.RenderTarget[0].BlendEnable = true;
-    psoDesc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
-    psoDesc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
-    psoDesc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
-    psoDesc.BlendState.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
-    psoDesc.BlendState.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
-    psoDesc.BlendState.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
-    psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
-    psoDesc.SampleDesc.Count = 1;
-    psoDesc.DepthStencilState.DepthEnable = false;
-    psoDesc.DepthStencilState.StencilEnable = false;
-    psoDesc.SampleMask = 0xFFFFFFFF;
-    psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-
-    ENSURE_RESULT(pRenderEnv->GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso)));
 }
 
 void Renderer::CreateTestMesh()
@@ -251,7 +174,7 @@ void Renderer::CreateTexture()
     descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
     descriptorHeapDesc.NodeMask = 0;
     descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-    ENSURE_RESULT(pRenderEnv->GetDevice()->CreateDescriptorHeap(&descriptorHeapDesc, IID_PPV_ARGS(&srvDescriptorHeap)));
+    ENSURE_RESULT(pRenderEnv->GetDevice()->CreateDescriptorHeap(&descriptorHeapDesc, IID_PPV_ARGS(&descriptorHeap)));
 
     // Load image binary Data
     int width = 0, height = 0;
@@ -280,8 +203,8 @@ void Renderer::CreateTexture()
 
     auto uploadCommandList = pRenderEnv->GetGraphicsCommandList();
     UpdateSubresources(uploadCommandList.Get(), image.Get(), uploadImage.Get(), 0, 0, 1, &srcData);
-    const auto transition = CD3DX12_RESOURCE_BARRIER::Transition(image.Get(),
-        D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    const auto transition = CD3DX12_RESOURCE_BARRIER::Transition(image.Get(), D3D12_RESOURCE_STATE_COPY_DEST,
+                                                                              D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     uploadCommandList->ResourceBarrier(1, &transition);
 
     D3D12_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc = {};
@@ -292,12 +215,7 @@ void Renderer::CreateTexture()
     shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
     shaderResourceViewDesc.Texture2D.ResourceMinLODClamp = 0.0f;
 
-    pRenderEnv->GetDevice()->CreateShaderResourceView(image.Get(), &shaderResourceViewDesc,
-        srvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
-}
-
-void Renderer::SetPrimitiveTopologyTriangleList()
-{
-    auto commandList = pRenderEnv->GetGraphicsCommandList();
-    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    pRenderEnv->GetDevice()->CreateShaderResourceView(image.Get(),
+                                                      &shaderResourceViewDesc,
+                                                      descriptorHeap->GetCPUDescriptorHandleForHeapStart());
 }
