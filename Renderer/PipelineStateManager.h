@@ -66,6 +66,8 @@ public:
     ID3D12PipelineState* GetPSO();
     ID3D12DescriptorHeap* GetSamplerDescriptorHeap();
 
+    State currentState;
+
 private:
     void CreateSampler();
     void CreateRootSignature();
@@ -80,6 +82,5 @@ private:
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> samplerDescriptorHeap;
     std::map<ShaderType, Microsoft::WRL::ComPtr<ID3DBlob>> shaders;
 
-    State currentState;
 };
 

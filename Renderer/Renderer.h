@@ -21,13 +21,13 @@ public:
 
     bool Init(RenderEnvironment* environment);
     void Release();
-    void RenderImpl();
+
+    PipelineStateManager stateManager;
+    ResourceManager resourceManager;
 
 private:
     RenderEnvironment* pRenderEnv = nullptr;
 
-    PipelineStateManager stateManager;
-    ResourceManager resourceManager;
     bool isInitialized = false;
 
 };

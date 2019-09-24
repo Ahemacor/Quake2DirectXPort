@@ -8,8 +8,6 @@ bool PipelineStateManager::Initialize(Microsoft::WRL::ComPtr<ID3D12Device> paren
     device = parentDevice;
     CreateSampler();
     CreateRootSignature();
-    
-    RebuildState();
 
     return !currentState.isUpdateRequired;
 }
@@ -151,10 +149,8 @@ void PipelineStateManager::CreatePipelineStateObject()
 {
     static const D3D12_INPUT_ELEMENT_DESC inputLayout[] =
     {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
-        D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12,
-        D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
     };
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};

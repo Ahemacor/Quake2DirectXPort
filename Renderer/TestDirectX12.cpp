@@ -2,7 +2,31 @@
 #include "WindowsWindow.h"
 #include "RenderEnvironment.h"
 #include "Renderer.h"
+#include "ImageIO/ImageIO.h"
 #include <cassert>
+
+struct Vertex
+{
+    float position[3];
+    float uv[2];
+};
+
+static const Vertex vertices[4] = {
+    // Upper Left
+    { { -1.0f, 1.0f, 0 }, { 0, 0 } },
+    // Upper Right
+    { { 1.0f, 1.0f, 0 }, { 1, 0 } },
+    // Bottom right
+    { { 1.0f, -1.0f, 0 }, { 1, 1 } },
+    // Bottom left
+    { { -1.0f, -1.0f, 0 }, { 0, 1 } }
+};
+
+static const int indices[6] = {
+    0, 1, 2, 2, 3, 0
+};
+
+const char* imageFilePath = "ruby.jpg";
 
 HINSTANCE hInstance = nullptr;
 WNDPROC winproc = nullptr;
@@ -10,6 +34,46 @@ WNDPROC winproc = nullptr;
 WindowsWindow* g_window = nullptr;
 RenderEnvironment* g_renderEnv = nullptr;
 Renderer* g_renderer = nullptr;
+
+static void TestInit()
+{
+    g_renderer->stateManager.SetVertexShader(PipelineStateManager::VS_Test);
+    g_renderer->stateManager.SetPixelShader(PipelineStateManager::PS_Test);
+
+    g_renderEnv->ResetCommandList();
+
+    g_renderer->resourceManager.CreateVertexBuffer(vertices, sizeof(Vertex), ARRAYSIZE(vertices));
+    g_renderer->resourceManager.CreateIndexBuffer(indices, ARRAYSIZE(indices));
+
+    int width = 0, height = 0;
+    std::vector<std::uint8_t> imageData = LoadImageFromFile(imageFilePath, 1, &width, &height);
+    g_renderer->resourceManager.CreateSRVBuffer(imageData.data(), width, height);
+
+    g_renderEnv->ExecuteCommandList();
+}
+
+static void TestRender()
+{
+    g_renderer->stateManager.RebuildState();
+
+    auto commandList = g_renderEnv->GetGraphicsCommandList();
+    commandList->SetPipelineState(g_renderer->stateManager.GetPSO());
+    commandList->SetGraphicsRootSignature(g_renderer->stateManager.GetRootSignature());
+
+    ID3D12DescriptorHeap* heaps[] = { g_renderer->resourceManager.GetDescriptorHeap(),
+                                      g_renderer->stateManager.GetSamplerDescriptorHeap() };
+
+    commandList->SetDescriptorHeaps(_countof(heaps), heaps);
+    commandList->SetGraphicsRootDescriptorTable(PipelineStateManager::TextureSRV, g_renderer->resourceManager.GetSrvHandle(0));
+    commandList->SetGraphicsRootDescriptorTable(PipelineStateManager::TextureSampler, g_renderer->stateManager.GetSamplerDescriptorHeap()->GetGPUDescriptorHandleForHeapStart());
+
+    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    commandList->IASetVertexBuffers(0, 1, &(g_renderer->resourceManager.GetVertexBufferView(0)));
+    commandList->IASetIndexBuffer(&g_renderer->resourceManager.GetIndexBufferView(0));
+    commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
+
+    g_renderEnv->Synchronize();
+}
 
 void DX12_Init()
 {
@@ -50,7 +114,7 @@ void DX12_Release()
 void DX12_Render_Begin()
 {
     g_renderEnv->ClearScreen();
-    g_renderer->RenderImpl();
+    TestRender();
 }
 
 void DX12_Render_End()
@@ -90,7 +154,7 @@ void DX12_CloseWindow()
 
 void DX12_InitDefaultStates()
 {
-
+    TestInit();
 }
 
 UINT DX12_GetModesNumber()
