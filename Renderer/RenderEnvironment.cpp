@@ -275,7 +275,7 @@ UINT RenderEnvironment::GetCurrentBufferIndex()
     return swapChain3->GetCurrentBackBufferIndex();
 }
 
-Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> RenderEnvironment::CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t numDescriptors)
+Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> RenderEnvironment::CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t numDescriptors, bool isShaderVisible)
 {
     assert(device != nullptr);
 
@@ -284,7 +284,11 @@ Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> RenderEnvironment::CreateDescriptor
     D3D12_DESCRIPTOR_HEAP_DESC desc = {};
     desc.NumDescriptors = numDescriptors;
     desc.Type = type;
-
+    if (isShaderVisible)
+    {
+        desc.NodeMask = 0;
+        desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+    }
     ENSURE_RESULT(device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&descriptorHeap)));
 
     return descriptorHeap;

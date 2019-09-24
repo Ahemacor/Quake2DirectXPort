@@ -43,6 +43,8 @@ public:
     UINT GetVideoModesNumber();
     DXGI_MODE_DESC GetVideoMode(UINT index);
 
+    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t numDescriptors, bool isShaderVisible = false);
+
 private:
     RenderEnvironment(const RenderEnvironment&) = delete;
     RenderEnvironment& operator=(const RenderEnvironment&) = delete;
@@ -58,7 +60,6 @@ private:
     Microsoft::WRL::ComPtr<ID3D12CommandQueue> CreateCommandQueue(D3D12_COMMAND_LIST_TYPE type);
     void InitializeSwapChain();
     UINT GetCurrentBufferIndex();
-    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t numDescriptors);
     void InitializeRenderTargetViews();
     void InitializeAllocatorsAndCommandList();
     void InitializeDepthStencilView();

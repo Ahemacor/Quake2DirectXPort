@@ -29,7 +29,7 @@ static const int indices[6] = {
     0, 1, 2, 2, 3, 0
 };
 
-Renderer::Renderer() : vertexBufferView(), indexBufferView(), imageData() {}
+Renderer::Renderer() {}
 
 Renderer::~Renderer()
 {
@@ -41,24 +41,21 @@ bool Renderer::Init(RenderEnvironment* environment)
     assert(environment != nullptr);
     pRenderEnv = environment;
 
-    pRenderEnv->ResetCommandList();
     stateManager.SetVertexShader(PipelineStateManager::VS_Test);
     stateManager.SetPixelShader(PipelineStateManager::PS_Test);
     stateManager.Initialize(pRenderEnv->GetDevice());
     resourceManager.Initialize(pRenderEnv);
 
-    //CreateTestMesh();
-    CD3DX12_RESOURCE_DESC vertexBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(vertices));
-    Microsoft::WRL::ComPtr<ID3D12Resource> vertexBuffer = resourceManager.CreateResource(&vertexBufferDesc, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
-    vertexBufferView = resourceManager.CreateVertexBufferView(vertexBuffer.Get(), sizeof(vertices), sizeof(Vertex));
-    resourceManager.UpdateVertexBuffer(vertexBuffer.Get(), vertices, sizeof(vertices));
+    pRenderEnv->ResetCommandList();
 
-    CD3DX12_RESOURCE_DESC indexBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(indices));
-    Microsoft::WRL::ComPtr<ID3D12Resource> indexBuffer = resourceManager.CreateResource(&indexBufferDesc, D3D12_RESOURCE_STATE_INDEX_BUFFER);
-    indexBufferView = resourceManager.CreateIndexBufferView(indexBuffer.Get(), sizeof(indices));
-    resourceManager.UpdateIndexBuffer(indexBuffer.Get(), indices, sizeof(indices));
+    resourceManager.CreateVertexBuffer(vertices, sizeof(Vertex), ARRAYSIZE(vertices));
+    resourceManager.CreateIndexBuffer(indices, ARRAYSIZE(indices));
 
-    CreateTexture();
+    //CreateTexture();
+    int width = 0, height = 0;
+    const char* imageFilePath = "ruby.jpg";
+    std::vector<std::uint8_t> imageData = LoadImageFromFile(imageFilePath, 1, &width, &height);
+    resourceManager.CreateSRVBuffer(imageData.data(), width, height);
     
     pRenderEnv->ExecuteCommandList();
             
@@ -73,15 +70,9 @@ void Renderer::Release()
     stateManager.Release();
     resourceManager.Release();
 
-    //vertexBuffer.Reset();
-    vertexBufferView = {};
-
-    //indexBuffer.Reset();
-    indexBufferView = {};
-
-    imageResource.Reset();
+    /*imageResource.Reset();
     imageData = {};
-    descriptorHeap.Reset();
+    descriptorHeap.Reset();*/
 
     isInitialized = false;
 }
@@ -97,84 +88,23 @@ void Renderer::RenderImpl()
     commandList->SetGraphicsRootSignature(stateManager.GetRootSignature());
 
     // Set the descriptor heap containing the texture srv
-    ID3D12DescriptorHeap* heaps[] = { descriptorHeap.Get(), stateManager.GetSamplerDescriptorHeap() };
+    //ID3D12DescriptorHeap* heaps[] = { descriptorHeap.Get(), stateManager.GetSamplerDescriptorHeap() };
+    ID3D12DescriptorHeap* heaps[] = { resourceManager.GetDescriptorHeap(), stateManager.GetSamplerDescriptorHeap() };
     commandList->SetDescriptorHeaps(_countof(heaps), heaps);
 
-    commandList->SetGraphicsRootDescriptorTable(PipelineStateManager::TextureSRV, descriptorHeap->GetGPUDescriptorHandleForHeapStart());
+    commandList->SetGraphicsRootDescriptorTable(PipelineStateManager::TextureSRV, resourceManager.GetDescriptorHeap()->GetGPUDescriptorHandleForHeapStart());
 
     commandList->SetGraphicsRootDescriptorTable(PipelineStateManager::TextureSampler, stateManager.GetSamplerDescriptorHeap()->GetGPUDescriptorHandleForHeapStart());
 
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
-    commandList->IASetIndexBuffer(&indexBufferView);
+    commandList->IASetVertexBuffers(0, 1, &(resourceManager.GetVertexBufferView(0)));
+    commandList->IASetIndexBuffer(&resourceManager.GetIndexBufferView(0));
     commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
 
     pRenderEnv->Synchronize();
 }
 
-/*void Renderer::CreateTestMesh()
-{
-    static const int uploadBufferSize = sizeof(vertices) + sizeof(indices);
-
-    // Create upload buffer on CPU
-    ENSURE_RESULT(pRenderEnv->GetDevice()->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-                                                     D3D12_HEAP_FLAG_NONE,
-                                                     &CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize),
-                                                     D3D12_RESOURCE_STATE_GENERIC_READ,
-                                                     nullptr,
-                                                     IID_PPV_ARGS(&uploadBuffer)));
-
-    // Create vertex & index buffer on the GPU
-    // HEAP_TYPE_DEFAULT is on GPU, we also initialize with COPY_DEST state
-    // so we don't have to transition into this before copying into them
-    ENSURE_RESULT(pRenderEnv->GetDevice()->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-                                                     D3D12_HEAP_FLAG_NONE,
-                                                     &CD3DX12_RESOURCE_DESC::Buffer(sizeof(vertices)),
-                                                     D3D12_RESOURCE_STATE_COPY_DEST,
-                                                     nullptr,
-                                                     IID_PPV_ARGS(&vertexBuffer)));
-
-    ENSURE_RESULT(pRenderEnv->GetDevice()->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-                                                     D3D12_HEAP_FLAG_NONE,
-                                                     &CD3DX12_RESOURCE_DESC::Buffer(sizeof(indices)),
-                                                     D3D12_RESOURCE_STATE_COPY_DEST,
-                                                     nullptr,
-                                                     IID_PPV_ARGS(&indexBuffer)));
-
-    // Create buffer views
-    vertexBufferView.BufferLocation = vertexBuffer->GetGPUVirtualAddress();
-    vertexBufferView.SizeInBytes = sizeof(vertices);
-    vertexBufferView.StrideInBytes = sizeof(Vertex);
-
-    indexBufferView.BufferLocation = indexBuffer->GetGPUVirtualAddress();
-    indexBufferView.SizeInBytes = sizeof(indices);
-    indexBufferView.Format = DXGI_FORMAT_R32_UINT;
-
-    // Copy data on CPU into the upload buffer
-    void* p;
-    uploadBuffer->Map(0, nullptr, &p);
-    ::memcpy(p, vertices, sizeof(vertices));
-    ::memcpy(static_cast<unsigned char*>(p) + sizeof(vertices), indices, sizeof(indices));
-    uploadBuffer->Unmap(0, nullptr);
-
-    auto commandList = pRenderEnv->GetGraphicsCommandList();
-
-    // Copy data from upload buffer on CPU into the index/vertex buffer on 
-    // the GPU
-    commandList->CopyBufferRegion(vertexBuffer.Get(), 0, uploadBuffer.Get(), 0, sizeof(vertices));
-    commandList->CopyBufferRegion(indexBuffer.Get(), 0, uploadBuffer.Get(), sizeof(vertices), sizeof(indices));
-
-    // Barriers, batch them together
-    const CD3DX12_RESOURCE_BARRIER barriers[2] = 
-    {
-        CD3DX12_RESOURCE_BARRIER::Transition(vertexBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER),
-        CD3DX12_RESOURCE_BARRIER::Transition(indexBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_INDEX_BUFFER)
-    };
-
-    commandList->ResourceBarrier(2, barriers);
-}*/
-
-void Renderer::CreateTexture()
+/*void Renderer::CreateTexture()
 {
     // Create Descriptor Heap
     D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc = {};
@@ -226,4 +156,4 @@ void Renderer::CreateTexture()
     pRenderEnv->GetDevice()->CreateShaderResourceView(imageResource.Get(),
                                                       &shaderResourceViewDesc,
                                                       descriptorHeap->GetCPUDescriptorHandleForHeapStart());
-}
+}*/
