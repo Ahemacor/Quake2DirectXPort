@@ -45,7 +45,19 @@ bool Renderer::Init(RenderEnvironment* environment)
     stateManager.SetVertexShader(PipelineStateManager::VS_Test);
     stateManager.SetPixelShader(PipelineStateManager::PS_Test);
     stateManager.Initialize(pRenderEnv->GetDevice());
-    CreateTestMesh();
+    resourceManager.Initialize(pRenderEnv);
+
+    //CreateTestMesh();
+    CD3DX12_RESOURCE_DESC vertexBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(vertices));
+    Microsoft::WRL::ComPtr<ID3D12Resource> vertexBuffer = resourceManager.CreateResource(&vertexBufferDesc, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+    vertexBufferView = resourceManager.CreateVertexBufferView(vertexBuffer.Get(), sizeof(vertices), sizeof(Vertex));
+    resourceManager.UpdateVertexBuffer(vertexBuffer.Get(), vertices, sizeof(vertices));
+
+    CD3DX12_RESOURCE_DESC indexBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(indices));
+    Microsoft::WRL::ComPtr<ID3D12Resource> indexBuffer = resourceManager.CreateResource(&indexBufferDesc, D3D12_RESOURCE_STATE_INDEX_BUFFER);
+    indexBufferView = resourceManager.CreateIndexBufferView(indexBuffer.Get(), sizeof(indices));
+    resourceManager.UpdateIndexBuffer(indexBuffer.Get(), indices, sizeof(indices));
+
     CreateTexture();
     
     pRenderEnv->ExecuteCommandList();
@@ -59,14 +71,15 @@ void Renderer::Release()
     pRenderEnv = nullptr;
 
     stateManager.Release();
+    resourceManager.Release();
 
-    vertexBuffer.Reset();
+    //vertexBuffer.Reset();
     vertexBufferView = {};
 
-    indexBuffer.Reset();
+    //indexBuffer.Reset();
     indexBufferView = {};
 
-    image.Reset();
+    imageResource.Reset();
     imageData = {};
     descriptorHeap.Reset();
 
@@ -82,7 +95,6 @@ void Renderer::RenderImpl()
     stateManager.RebuildState();
     commandList->SetPipelineState(stateManager.GetPSO());
     commandList->SetGraphicsRootSignature(stateManager.GetRootSignature());
-
 
     // Set the descriptor heap containing the texture srv
     ID3D12DescriptorHeap* heaps[] = { descriptorHeap.Get(), stateManager.GetSamplerDescriptorHeap() };
@@ -100,7 +112,7 @@ void Renderer::RenderImpl()
     pRenderEnv->Synchronize();
 }
 
-void Renderer::CreateTestMesh()
+/*void Renderer::CreateTestMesh()
 {
     static const int uploadBufferSize = sizeof(vertices) + sizeof(indices);
 
@@ -142,29 +154,25 @@ void Renderer::CreateTestMesh()
     void* p;
     uploadBuffer->Map(0, nullptr, &p);
     ::memcpy(p, vertices, sizeof(vertices));
-    ::memcpy(static_cast<unsigned char*>(p) + sizeof(vertices),
-        indices, sizeof(indices));
+    ::memcpy(static_cast<unsigned char*>(p) + sizeof(vertices), indices, sizeof(indices));
     uploadBuffer->Unmap(0, nullptr);
 
     auto commandList = pRenderEnv->GetGraphicsCommandList();
 
     // Copy data from upload buffer on CPU into the index/vertex buffer on 
     // the GPU
-    commandList->CopyBufferRegion(vertexBuffer.Get(), 0,
-        uploadBuffer.Get(), 0, sizeof(vertices));
-    commandList->CopyBufferRegion(indexBuffer.Get(), 0,
-        uploadBuffer.Get(), sizeof(vertices), sizeof(indices));
+    commandList->CopyBufferRegion(vertexBuffer.Get(), 0, uploadBuffer.Get(), 0, sizeof(vertices));
+    commandList->CopyBufferRegion(indexBuffer.Get(), 0, uploadBuffer.Get(), sizeof(vertices), sizeof(indices));
 
     // Barriers, batch them together
-    const CD3DX12_RESOURCE_BARRIER barriers[2] = {
-        CD3DX12_RESOURCE_BARRIER::Transition(vertexBuffer.Get(),
-        D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER),
-        CD3DX12_RESOURCE_BARRIER::Transition(indexBuffer.Get(),
-            D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_INDEX_BUFFER)
+    const CD3DX12_RESOURCE_BARRIER barriers[2] = 
+    {
+        CD3DX12_RESOURCE_BARRIER::Transition(vertexBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER),
+        CD3DX12_RESOURCE_BARRIER::Transition(indexBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_INDEX_BUFFER)
     };
 
     commandList->ResourceBarrier(2, barriers);
-}
+}*/
 
 void Renderer::CreateTexture()
 {
@@ -186,9 +194,9 @@ void Renderer::CreateTexture()
                                                     &CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, width, height, 1, 1),
                                                     D3D12_RESOURCE_STATE_COPY_DEST,
                                                     nullptr,
-                                                    IID_PPV_ARGS(&image)));
+                                                    IID_PPV_ARGS(&imageResource)));
 
-    const auto uploadBufferSize = GetRequiredIntermediateSize(image.Get(), 0, 1);
+    const auto uploadBufferSize = GetRequiredIntermediateSize(imageResource.Get(), 0, 1);
     ENSURE_RESULT(pRenderEnv->GetDevice()->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
                                                     D3D12_HEAP_FLAG_NONE,
                                                     &CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize),
@@ -202,8 +210,8 @@ void Renderer::CreateTexture()
     srcData.SlicePitch = width * height * 4;
 
     auto uploadCommandList = pRenderEnv->GetGraphicsCommandList();
-    UpdateSubresources(uploadCommandList.Get(), image.Get(), uploadImage.Get(), 0, 0, 1, &srcData);
-    const auto transition = CD3DX12_RESOURCE_BARRIER::Transition(image.Get(), D3D12_RESOURCE_STATE_COPY_DEST,
+    UpdateSubresources(uploadCommandList.Get(), imageResource.Get(), uploadImage.Get(), 0, 0, 1, &srcData);
+    const auto transition = CD3DX12_RESOURCE_BARRIER::Transition(imageResource.Get(), D3D12_RESOURCE_STATE_COPY_DEST,
                                                                               D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     uploadCommandList->ResourceBarrier(1, &transition);
 
@@ -215,7 +223,7 @@ void Renderer::CreateTexture()
     shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
     shaderResourceViewDesc.Texture2D.ResourceMinLODClamp = 0.0f;
 
-    pRenderEnv->GetDevice()->CreateShaderResourceView(image.Get(),
+    pRenderEnv->GetDevice()->CreateShaderResourceView(imageResource.Get(),
                                                       &shaderResourceViewDesc,
                                                       descriptorHeap->GetCPUDescriptorHandleForHeapStart());
 }

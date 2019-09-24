@@ -93,6 +93,7 @@
     <ClCompile Include="RenderEnvironment.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderWindow.cpp" />
+    <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="r_beam.c" />
     <ClCompile Include="r_draw.c" />
     <ClCompile Include="r_image.c" />
@@ -131,6 +132,7 @@
     <ClInclude Include="RenderEnvironment.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderWindow.h" />
+    <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="r_local.h" />
     <ClInclude Include="r_model.h" />
     <ClInclude Include="ShaderLoader.h" />
