@@ -205,6 +205,14 @@ ResourceManager::ResourceId ResourceManager::CreateSRVBuffer(const void* pImageD
     return srvId;
 }
 
+D3D12_GPU_DESCRIPTOR_HANDLE ResourceManager::GetSrvHandle(ResourceId srvId)
+{
+    const auto descriptorOffset = pRenderEnv->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    CD3DX12_GPU_DESCRIPTOR_HANDLE gpuDescrHandle(descriptorHeap->GetGPUDescriptorHandleForHeapStart(), 0, descriptorOffset);
+    gpuDescrHandle.Offset(srvId, descriptorOffset);
+    return gpuDescrHandle;
+}
+
 ID3D12DescriptorHeap* ResourceManager::GetDescriptorHeap()
 {
     return descriptorHeap.Get();

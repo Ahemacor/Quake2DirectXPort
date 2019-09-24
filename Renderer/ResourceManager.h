@@ -46,6 +46,8 @@ public:
     D3D12_INDEX_BUFFER_VIEW GetIndexBufferView(ResourceId indexId);
 
     ResourceId CreateSRVBuffer(const void* pImageData, const std::size_t width, const std::size_t height);
+    D3D12_GPU_DESCRIPTOR_HANDLE GetSrvHandle(ResourceId srvId);
+
 
     ID3D12DescriptorHeap* GetDescriptorHeap();
 

@@ -23,20 +23,11 @@ public:
     void Release();
     void RenderImpl();
 
-    //void CreateTexture();
-
 private:
     RenderEnvironment* pRenderEnv = nullptr;
-
-    //Microsoft::WRL::ComPtr<ID3D12Resource> imageResource;
-    //std::vector<std::uint8_t> imageData;
-
-    //Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap;
-
-    //Microsoft::WRL::ComPtr<ID3D12Resource> uploadImage;
-    //Microsoft::WRL::ComPtr<ID3D12Resource> uploadBuffer;
 
     PipelineStateManager stateManager;
     ResourceManager resourceManager;
     bool isInitialized = false;
+
 };
