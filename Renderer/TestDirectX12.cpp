@@ -28,6 +28,13 @@ static const int indices[6] = {
 
 const char* imageFilePath = "ruby.jpg";
 
+struct ConstantBuffer { float x, y, z, w; };
+
+static const ConstantBuffer cb = { 0, 0, 0, 0 };
+
+static float shortCb = 0.8;
+int cbId = -1;
+
 HINSTANCE hInstance = nullptr;
 WNDPROC winproc = nullptr;
 
@@ -44,6 +51,7 @@ static void TestInit()
 
     g_renderer->resourceManager.CreateVertexBuffer(vertices, sizeof(Vertex), ARRAYSIZE(vertices));
     g_renderer->resourceManager.CreateIndexBuffer(indices, ARRAYSIZE(indices));
+    cbId = g_renderer->resourceManager.CreateConstantBuffer(&shortCb, sizeof(shortCb));
 
     int width = 0, height = 0;
     std::vector<std::uint8_t> imageData = LoadImageFromFile(imageFilePath, 1, &width, &height);
@@ -66,6 +74,7 @@ static void TestRender()
     commandList->SetDescriptorHeaps(_countof(heaps), heaps);
     commandList->SetGraphicsRootDescriptorTable(PipelineStateManager::TextureSRV, g_renderer->resourceManager.GetSrvHandle(0));
     commandList->SetGraphicsRootDescriptorTable(PipelineStateManager::TextureSampler, g_renderer->stateManager.GetSamplerDescriptorHeap()->GetGPUDescriptorHandleForHeapStart());
+    commandList->SetGraphicsRootConstantBufferView(PipelineStateManager::ConstantBuffer, g_renderer->resourceManager.GetCBHandle(cbId));
 
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     commandList->IASetVertexBuffers(0, 1, &(g_renderer->resourceManager.GetVertexBufferView(0)));

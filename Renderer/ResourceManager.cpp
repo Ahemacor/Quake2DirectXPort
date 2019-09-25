@@ -19,7 +19,7 @@ void ResourceManager::Release()
     numDescr = 0;
 }
 
-Microsoft::WRL::ComPtr<ID3D12Resource> ResourceManager::CreateResource(const CD3DX12_RESOURCE_DESC* desc, const D3D12_RESOURCE_STATES origState, const D3D12_HEAP_TYPE heapType)
+ResourceManager::ResourceId ResourceManager::CreateResource(const CD3DX12_RESOURCE_DESC* desc, const D3D12_RESOURCE_STATES origState, const D3D12_HEAP_TYPE heapType)
 {
     Microsoft::WRL::ComPtr<ID3D12Resource> resource;
     ENSURE_RESULT(pRenderEnv->GetDevice()->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(heapType),
@@ -29,7 +29,12 @@ Microsoft::WRL::ComPtr<ID3D12Resource> ResourceManager::CreateResource(const CD3
         nullptr,
         IID_PPV_ARGS(&resource)));
     resources.push_back(resource);
-    return resource;
+    return (resources.size() - 1);
+}
+
+Microsoft::WRL::ComPtr<ID3D12Resource> ResourceManager::GetResource(ResourceId resourceId)
+{
+    return resources[resourceId];
 }
 
 D3D12_VERTEX_BUFFER_VIEW ResourceManager::CreateVertexBufferView(ID3D12Resource* vertexBuffer, const std::size_t bufferSize, const std::size_t elementSize)
@@ -53,7 +58,8 @@ D3D12_INDEX_BUFFER_VIEW ResourceManager::CreateIndexBufferView(ID3D12Resource* i
 Microsoft::WRL::ComPtr<ID3D12Resource> ResourceManager::CreateShaderResourceView(ResourceId& outSrvId, const std::size_t width, const std::size_t height)
 {
     CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, width, height, 1, 1);
-    Microsoft::WRL::ComPtr<ID3D12Resource> imageBuffer = CreateResource(&resourceDesc);
+    const ResourceId resId = CreateResource(&resourceDesc);
+    Microsoft::WRL::ComPtr<ID3D12Resource> imageBuffer = GetResource(resId);
 
     D3D12_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc = {};
     shaderResourceViewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
@@ -87,7 +93,8 @@ void ResourceManager::UpdateVertexBuffer(ID3D12Resource* vertexBuffer, const voi
     UpdateResourceState(vertexBuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_COPY_DEST);
 
     CD3DX12_RESOURCE_DESC uploadBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(dataSize);
-    Microsoft::WRL::ComPtr<ID3D12Resource> uploadBuffer = CreateResource(&uploadBufferDesc, D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_HEAP_TYPE_UPLOAD);
+    const ResourceId resId = CreateResource(&uploadBufferDesc, D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_HEAP_TYPE_UPLOAD);
+    Microsoft::WRL::ComPtr<ID3D12Resource> uploadBuffer = GetResource(resId);
     uploadBuffers.push_back(uploadBuffer);
 
     void* p;
@@ -106,7 +113,8 @@ void ResourceManager::UpdateIndexBuffer(ID3D12Resource* indexBuffer, const void*
     UpdateResourceState(indexBuffer, D3D12_RESOURCE_STATE_INDEX_BUFFER, D3D12_RESOURCE_STATE_COPY_DEST);
 
     CD3DX12_RESOURCE_DESC uploadBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(dataSize);
-    Microsoft::WRL::ComPtr<ID3D12Resource> uploadBuffer = CreateResource(&uploadBufferDesc, D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_HEAP_TYPE_UPLOAD);
+    const ResourceId resId = CreateResource(&uploadBufferDesc, D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_HEAP_TYPE_UPLOAD);
+    Microsoft::WRL::ComPtr<ID3D12Resource> uploadBuffer = GetResource(resId);
     uploadBuffers.push_back(uploadBuffer);
 
     void* p;
@@ -127,7 +135,8 @@ void ResourceManager::UpdateSRVBuffer(ID3D12Resource* imageResource, const void*
 
     const auto uploadBufferSize = GetRequiredIntermediateSize(imageResource, 0, 1);
     CD3DX12_RESOURCE_DESC uploadBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
-    Microsoft::WRL::ComPtr<ID3D12Resource> uploadBuffer = CreateResource(&uploadBufferDesc, D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_HEAP_TYPE_UPLOAD);
+    const ResourceId resId = CreateResource(&uploadBufferDesc, D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_HEAP_TYPE_UPLOAD);
+    Microsoft::WRL::ComPtr<ID3D12Resource> uploadBuffer = GetResource(resId);
 
     D3D12_SUBRESOURCE_DATA srcData;
     srcData.pData = pImageData;
@@ -147,7 +156,8 @@ void ResourceManager::UpdateBufferData(ID3D12Resource* resourceBuffer, const voi
         UpdateResourceState(resourceBuffer, origState, D3D12_RESOURCE_STATE_COPY_DEST);
 
     CD3DX12_RESOURCE_DESC uploadBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(dataSize);
-    Microsoft::WRL::ComPtr<ID3D12Resource> uploadBuffer = CreateResource(&uploadBufferDesc, D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_HEAP_TYPE_UPLOAD);
+    const ResourceId resId = CreateResource(&uploadBufferDesc, D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_HEAP_TYPE_UPLOAD);
+    Microsoft::WRL::ComPtr<ID3D12Resource> uploadBuffer = GetResource(resId);
     uploadBuffers.push_back(uploadBuffer);
 
     void* p;
@@ -166,7 +176,8 @@ ResourceManager::ResourceId ResourceManager::CreateVertexBuffer(const void* pVer
 {
     const std::size_t dataSize = vertexSize * numOfVertices;
     CD3DX12_RESOURCE_DESC vertexBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(dataSize);
-    Microsoft::WRL::ComPtr<ID3D12Resource> vertexBuffer = CreateResource(&vertexBufferDesc, D3D12_RESOURCE_STATE_COPY_DEST);
+    const ResourceId resId = CreateResource(&vertexBufferDesc);
+    Microsoft::WRL::ComPtr<ID3D12Resource> vertexBuffer = GetResource(resId);
     D3D12_VERTEX_BUFFER_VIEW vertexBufferView = CreateVertexBufferView(vertexBuffer.Get(), dataSize, vertexSize);
     UpdateBufferData(vertexBuffer.Get(), pVertexData, dataSize, D3D12_RESOURCE_STATE_COPY_DEST);
     UpdateResourceState(vertexBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
@@ -183,7 +194,8 @@ ResourceManager::ResourceId ResourceManager::CreateIndexBuffer(const void* pInde
 {
     const std::size_t dataSize = numOfIndices * indexSize;
     CD3DX12_RESOURCE_DESC indexBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(dataSize);
-    Microsoft::WRL::ComPtr<ID3D12Resource> indexBuffer = CreateResource(&indexBufferDesc, D3D12_RESOURCE_STATE_COPY_DEST);
+    const ResourceId resId = CreateResource(&indexBufferDesc);
+    Microsoft::WRL::ComPtr<ID3D12Resource> indexBuffer = GetResource(resId);
     D3D12_INDEX_BUFFER_VIEW indexBufferView = CreateIndexBufferView(indexBuffer.Get(), dataSize);
     UpdateBufferData(indexBuffer.Get(), pIndexData, dataSize, D3D12_RESOURCE_STATE_COPY_DEST);
     UpdateResourceState(indexBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_INDEX_BUFFER);
@@ -211,6 +223,21 @@ D3D12_GPU_DESCRIPTOR_HANDLE ResourceManager::GetSrvHandle(ResourceId srvId)
     CD3DX12_GPU_DESCRIPTOR_HANDLE gpuDescrHandle(descriptorHeap->GetGPUDescriptorHandleForHeapStart(), 0, descriptorOffset);
     gpuDescrHandle.Offset(srvId, descriptorOffset);
     return gpuDescrHandle;
+}
+
+ResourceManager::ResourceId ResourceManager::CreateConstantBuffer(const void* pSrcData, const std::size_t bufferSize)
+{
+    const CD3DX12_RESOURCE_DESC descr = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
+    const ResourceId resId = CreateResource(&descr);
+    Microsoft::WRL::ComPtr<ID3D12Resource> constantBuffer = GetResource(resId);
+    UpdateBufferData(constantBuffer.Get(), pSrcData, bufferSize, D3D12_RESOURCE_STATE_COPY_DEST);
+    UpdateResourceState(constantBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+    return resId;
+}
+
+D3D12_GPU_VIRTUAL_ADDRESS ResourceManager::GetCBHandle(ResourceId cbId)
+{
+    return GetResource(cbId)->GetGPUVirtualAddress();
 }
 
 ID3D12DescriptorHeap* ResourceManager::GetDescriptorHeap()

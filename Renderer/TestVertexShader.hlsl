@@ -1,3 +1,8 @@
+cbuffer PerFrameConstants : register (b0)
+{
+    float scale;
+}
+
 struct VertexShaderOutput
 {
     float4 position : SV_POSITION;
@@ -9,6 +14,7 @@ VertexShaderOutput VertexShaderEntryPoint(float4 position : POSITION, float2 uv 
     VertexShaderOutput output;
 
     output.position = position;
+    output.position.xy *= scale;
     output.uv = uv;
 
     return output;

@@ -294,6 +294,10 @@ void GLimp_BeginFrame (viddef_t *vd, int scrflags)
     SLBindConstantBuffers();
 #else // !DX11_IMPL
     RWRenderBegin();
+    //Draw_UpdateConstants(scrflags);
+    //RWSetPrimitiveTopologyTriangleList();
+    //SMBindSamplers();
+    //SLBindConstantBuffers();
 #endif // DX11_IMPL
 }
 
