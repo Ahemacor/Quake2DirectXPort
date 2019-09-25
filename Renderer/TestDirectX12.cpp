@@ -44,6 +44,9 @@ Renderer* g_renderer = nullptr;
 
 static void TestInit()
 {
+    int width = 0, height = 0;
+    std::vector<std::uint8_t> imageData = LoadImageFromFile(imageFilePath, 1, &width, &height);
+
     g_renderer->stateManager.SetVertexShader(PipelineStateManager::VS_Test);
     g_renderer->stateManager.SetPixelShader(PipelineStateManager::PS_Test);
 
@@ -52,9 +55,6 @@ static void TestInit()
     g_renderer->resourceManager.CreateVertexBuffer(vertices, sizeof(Vertex), ARRAYSIZE(vertices));
     g_renderer->resourceManager.CreateIndexBuffer(indices, ARRAYSIZE(indices));
     cbId = g_renderer->resourceManager.CreateConstantBuffer(&shortCb, sizeof(shortCb));
-
-    int width = 0, height = 0;
-    std::vector<std::uint8_t> imageData = LoadImageFromFile(imageFilePath, 1, &width, &height);
     g_renderer->resourceManager.CreateSRVBuffer(imageData.data(), width, height);
 
     g_renderEnv->ExecuteCommandList();

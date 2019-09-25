@@ -24,7 +24,9 @@ public:
     ResourceId CreateResource(const CD3DX12_RESOURCE_DESC* desc,
                               const D3D12_RESOURCE_STATES origState = D3D12_RESOURCE_STATE_COPY_DEST,
                               const D3D12_HEAP_TYPE heapType = D3D12_HEAP_TYPE_DEFAULT);
+
     Microsoft::WRL::ComPtr<ID3D12Resource> GetResource(ResourceId resourceId);
+
     // RESOURCE state transition.
     void UpdateResourceState(ID3D12Resource* resource, const D3D12_RESOURCE_STATES prev, const D3D12_RESOURCE_STATES next);
 
