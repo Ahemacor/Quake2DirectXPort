@@ -61,6 +61,11 @@ static void TestInit()
     g_renderer->BindIndexBuffer(ibId);
 }
 
+static void TestRender()
+{
+    g_renderer->DrawIndexed(6, 0, 0);
+}
+
 void DX12_Init()
 {
     assert(g_window == nullptr);
@@ -100,7 +105,7 @@ void DX12_Release()
 void DX12_Render_Begin()
 {
     g_renderEnv->ClearScreen();
-    g_renderer->DrawIndexed(6, 0, 0);
+    // TestRender();
 }
 
 void DX12_Render_End()
@@ -140,7 +145,7 @@ void DX12_CloseWindow()
 
 void DX12_InitDefaultStates()
 {
-    TestInit();
+    // TestInit();
 }
 
 UINT DX12_GetModesNumber()
@@ -160,5 +165,5 @@ HWND DX12_GetOsWindowHandle()
 
 void DX12_SetPrimitiveTopologyTriangleList()
 {
-    //g_renderer->SetPrimitiveTopologyTriangleList();
+    g_renderer->SetPrimitiveTopologyTriangleList();
 }

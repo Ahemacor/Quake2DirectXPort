@@ -36,36 +36,6 @@ public:
         } variant;
 
         Microsoft::WRL::ComPtr<ID3D12Resource>  d12resource;
-
-        /*Resource() = default;
-
-        Resource& operator=(const Resource& rhs)
-        {
-            type = rhs.type;
-
-            switch (type)
-            {
-            case ResourceManager::Resource::CB:
-                variant.cbHandle = rhs.variant.cbHandle;
-                break;
-            case ResourceManager::Resource::SRV:
-                variant.srvHandle = rhs.variant.srvHandle;
-                break;
-            case ResourceManager::Resource::VB:
-                variant.vbView = rhs.variant.vbView;
-                break;
-            case ResourceManager::Resource::IB:
-                variant.ibView = rhs.variant.ibView;
-                break;
-            }
-
-            d12resource = rhs.d12resource;
-
-            return *this;
-        }
-
-        Resource(const Resource& other) { *this = other; }*/
-
     };
 
     std::unordered_map<Resource::Id, Resource> resourceMap;

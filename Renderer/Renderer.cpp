@@ -233,3 +233,8 @@ void Renderer::UnbindTextureResource(std::size_t slot)
         srvArguments.erase(it);
     }
 }
+
+void Renderer::SetPrimitiveTopologyTriangleList()
+{
+    stateManager.SetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
+}

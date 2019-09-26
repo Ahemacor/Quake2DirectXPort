@@ -52,7 +52,7 @@ public:
 
     void RebuildState();
 
-    void SetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY_TYPE topology);
+    void SetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY_TYPE topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE::D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
     void SetVertexShader(ShaderType shaderType);
     void SetPixelShader(ShaderType shaderType);
     void SetSampler(SamplerState samplerType);

@@ -77,6 +77,7 @@ public:
 
     ScopedStateManager GetStateManager() { return ScopedStateManager(stateManager, *pRenderEnv); }
 
+    void SetPrimitiveTopologyTriangleList();
 private:
     RenderEnvironment* pRenderEnv = nullptr;
     PipelineStateManager stateManager;
