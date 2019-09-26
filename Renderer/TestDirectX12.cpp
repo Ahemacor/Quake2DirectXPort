@@ -46,42 +46,19 @@ static void TestInit()
 {
     int width = 0, height = 0;
     std::vector<std::uint8_t> imageData = LoadImageFromFile(imageFilePath, 1, &width, &height);
+    
+    ScopedStateManager SM = g_renderer->GetStateManager();
+    SM->SetVertexShader(PipelineStateManager::VS_Test);
+    SM->SetPixelShader(PipelineStateManager::PS_Test);
+    ResourceManager::Resource::Id cbId = g_renderer->CreateConstantBuffer(sizeof(shortCb), &shortCb);
+    ResourceManager::Resource::Id srvId = g_renderer->CreateTextureResource(width, height, imageData.data());
+    ResourceManager::Resource::Id vbId = g_renderer->CreateVertexBuffer(ARRAYSIZE(vertices), sizeof(Vertex), vertices);
+    ResourceManager::Resource::Id ibId = g_renderer->CreateIndexBuffer(ARRAYSIZE(indices), indices);
 
-    g_renderer->stateManager.SetVertexShader(PipelineStateManager::VS_Test);
-    g_renderer->stateManager.SetPixelShader(PipelineStateManager::PS_Test);
-
-    g_renderEnv->ResetCommandList();
-
-    g_renderer->resourceManager.CreateVertexBuffer(vertices, sizeof(Vertex), ARRAYSIZE(vertices));
-    g_renderer->resourceManager.CreateIndexBuffer(indices, ARRAYSIZE(indices));
-    cbId = g_renderer->resourceManager.CreateConstantBuffer(&shortCb, sizeof(shortCb));
-    g_renderer->resourceManager.CreateSRVBuffer(imageData.data(), width, height);
-
-    g_renderEnv->ExecuteCommandList();
-}
-
-static void TestRender()
-{
-    g_renderer->stateManager.RebuildState();
-
-    auto commandList = g_renderEnv->GetGraphicsCommandList();
-    commandList->SetPipelineState(g_renderer->stateManager.GetPSO());
-    commandList->SetGraphicsRootSignature(g_renderer->stateManager.GetRootSignature());
-
-    ID3D12DescriptorHeap* heaps[] = { g_renderer->resourceManager.GetDescriptorHeap(),
-                                      g_renderer->stateManager.GetSamplerDescriptorHeap() };
-
-    commandList->SetDescriptorHeaps(_countof(heaps), heaps);
-    commandList->SetGraphicsRootDescriptorTable(PipelineStateManager::TextureSRV, g_renderer->resourceManager.GetSrvHandle(0));
-    commandList->SetGraphicsRootDescriptorTable(PipelineStateManager::TextureSampler, g_renderer->stateManager.GetSamplerDescriptorHeap()->GetGPUDescriptorHandleForHeapStart());
-    commandList->SetGraphicsRootConstantBufferView(PipelineStateManager::ConstantBuffer, g_renderer->resourceManager.GetCBHandle(cbId));
-
-    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    commandList->IASetVertexBuffers(0, 1, &(g_renderer->resourceManager.GetVertexBufferView(0)));
-    commandList->IASetIndexBuffer(&g_renderer->resourceManager.GetIndexBufferView(0));
-    commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
-
-    g_renderEnv->Synchronize();
+    g_renderer->BindConstantBuffer(cbId, 0);
+    g_renderer->BindTextureResource(srvId, 0);
+    g_renderer->BindVertexBuffer(vbId);
+    g_renderer->BindIndexBuffer(ibId);
 }
 
 void DX12_Init()
@@ -123,7 +100,7 @@ void DX12_Release()
 void DX12_Render_Begin()
 {
     g_renderEnv->ClearScreen();
-    TestRender();
+    g_renderer->DrawIndexed(6, 0, 0);
 }
 
 void DX12_Render_End()

@@ -32,28 +32,40 @@ void PipelineStateManager::RebuildState()
     }
 }
 
-void PipelineStateManager::SetPrimitiveTopology(PrimitiveTopologyType topology)
+void PipelineStateManager::SetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY_TYPE topology)
 {
-    currentState.topology = topology;
-    currentState.isUpdateRequired = true;
+    if (currentState.topology != topology)
+    {
+        currentState.topology = topology;
+        currentState.isUpdateRequired = true;
+    }
 }
 
 void PipelineStateManager::SetVertexShader(ShaderType shaderType)
 {
-    currentState.VS = shaderType;
-    currentState.isUpdateRequired = true;
+    if (currentState.VS != shaderType)
+    {
+        currentState.VS = shaderType;
+        currentState.isUpdateRequired = true;
+    }
 }
 
 void PipelineStateManager::SetPixelShader(ShaderType shaderType)
 {
-    currentState.PS = shaderType;
-    currentState.isUpdateRequired = true;
+    if (currentState.PS != shaderType)
+    {
+        currentState.PS = shaderType;
+        currentState.isUpdateRequired = true;
+    }
 }
 
 void PipelineStateManager::SetSampler(SamplerState samplerType)
 {
-    currentState.sampler = samplerType;
-    currentState.isUpdateRequired = true;
+    if (currentState.sampler != samplerType)
+    {
+        currentState.sampler = samplerType;
+        currentState.isUpdateRequired = true;
+    }
 }
 
 ID3D12RootSignature* PipelineStateManager::GetRootSignature()
@@ -177,7 +189,7 @@ void PipelineStateManager::CreatePipelineStateObject()
     psoDesc.DepthStencilState.DepthEnable = false;
     psoDesc.DepthStencilState.StencilEnable = false;
     psoDesc.SampleMask = 0xFFFFFFFF;
-    psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    psoDesc.PrimitiveTopologyType = currentState.topology;
 
     ENSURE_RESULT(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso)));
 }

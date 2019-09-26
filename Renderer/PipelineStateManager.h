@@ -32,11 +32,6 @@ public:
         ShaderTypeCount
     };
 
-    enum PrimitiveTopologyType
-    {
-        TriangleList
-    };
-
     enum SamplerState
     {
         DefaultSampler
@@ -46,7 +41,7 @@ public:
     {
         ShaderType VS = ShaderType::Undefined;
         ShaderType PS = ShaderType::Undefined;
-        PrimitiveTopologyType topology = PrimitiveTopologyType::TriangleList;
+        D3D12_PRIMITIVE_TOPOLOGY_TYPE topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         SamplerState sampler = SamplerState::DefaultSampler;
 
         bool isUpdateRequired = true;
@@ -57,7 +52,7 @@ public:
 
     void RebuildState();
 
-    void SetPrimitiveTopology(PrimitiveTopologyType topology);
+    void SetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY_TYPE topology);
     void SetVertexShader(ShaderType shaderType);
     void SetPixelShader(ShaderType shaderType);
     void SetSampler(SamplerState samplerType);

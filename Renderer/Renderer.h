@@ -13,6 +13,32 @@
 #include <map>
 #include <string>
 
+class ScopedStateManager
+{
+public:
+    ScopedStateManager(PipelineStateManager& sm, RenderEnvironment& re)
+        : stateManager(sm)
+        , renderEnv(re)
+    {
+        renderEnv.ResetCommandList();
+    }
+
+    ~ScopedStateManager()
+    {
+        renderEnv.ExecuteCommandList();
+    }
+
+    PipelineStateManager* operator->()
+    {
+        return &stateManager;
+    }
+
+private:
+    PipelineStateManager& stateManager;
+    RenderEnvironment& renderEnv;
+};
+
+
 class Renderer
 {
 public:
@@ -25,37 +51,31 @@ public:
     void Release();
 
     void Draw(UINT numOfVertices, UINT firstVertexToDraw = 0);
-    void Draw(UINT indexCount, UINT firstIndex, UINT baseVertexLocation);
-
-    // REGISTER METHODS:
-    ResourceManager::ResourceId RegisterConstantBuffer(const std::size_t bufferSize);
-    //ResourceManager::ResourceId RegisterTextureResource(const std::size_t width, const std::size_t height);
-    ResourceManager::ResourceId RegisterVertexBuffer(const std::size_t numOfVertices, const std::size_t vertexSize);
-    ResourceManager::ResourceId RegisterIndexBuffer(const std::size_t numOfIndices, const std::size_t indexSize = sizeof(DWORD));
+    void DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLocation);
 
     // CREATE METHODS:
-    ResourceManager::ResourceId CreateConstantBuffer(const void* pSrcData, const std::size_t bufferSize);
-    ResourceManager::ResourceId CreateTextureResource(const void* pImageData, const std::size_t width, const std::size_t height);
-    ResourceManager::ResourceId CreateVertexBuffer(const void* pVertexData, const std::size_t numOfVertices, const std::size_t vertexSize);
-    ResourceManager::ResourceId CreateIndexBuffer(const void* pIndexData, const std::size_t numOfIndices, const std::size_t indexSize = sizeof(DWORD));
+    ResourceManager::Resource::Id CreateConstantBuffer(const std::size_t bufferSize, const void* pSrcData = nullptr);
+    ResourceManager::Resource::Id CreateTextureResource(const std::size_t width, const std::size_t height, const void* pImageData = nullptr);
+    ResourceManager::Resource::Id CreateVertexBuffer(const std::size_t numOfVertices, const std::size_t vertexSize, const void* pVertexData = nullptr);
+    ResourceManager::Resource::Id CreateIndexBuffer(const std::size_t numOfIndices, const void* pIndexData = nullptr, const std::size_t indexSize = sizeof(DWORD));
 
     // UPDATE METHODS:
-    void UpdateConstantBuffer(ResourceManager::ResourceId resourceId, const void* pSrcData, const std::size_t bufferSize);
-    //void UpdateTextureResource(ResourceManager::ResourceId resourceId, const void* pImageData, const std::size_t width, const std::size_t height);
-    void UpdateVertexBuffer(ResourceManager::ResourceId resourceId, const void* pVertexData, const std::size_t numOfVertices, const std::size_t vertexSize);
-    void UpdateIndexBuffer(ResourceManager::ResourceId resourceId, const void* pIndexData, const std::size_t numOfIndices, const std::size_t indexSize = sizeof(DWORD));
+    void UpdateConstantBuffer(ResourceManager::Resource::Id resourceId, const void* pSrcData, const std::size_t bufferSize);
+    void UpdateTextureResource(ResourceManager::Resource::Id resourceId, const void* pImageData, const std::size_t width, const std::size_t height);
+    void UpdateVertexBuffer(ResourceManager::Resource::Id resourceId, const void* pVertexData, const std::size_t numOfVertices, const std::size_t vertexSize);
+    void UpdateIndexBuffer(ResourceManager::Resource::Id resourceId, const void* pIndexData, const std::size_t numOfIndices, const std::size_t indexSize = sizeof(DWORD));
 
     // BIND METHODS:
-    void BindConstantBuffer(ResourceManager::ResourceId resourceId, std::size_t slot);
-    void BindTextureResource(ResourceManager::ResourceId resourceId, std::size_t slot);
-    void BindVertexBuffer(ResourceManager::ResourceId resourceId);
-    void BindIndexBuffer(ResourceManager::ResourceId resourceId);
+    void BindConstantBuffer(ResourceManager::Resource::Id resourceId, std::size_t slot);
+    void BindTextureResource(ResourceManager::Resource::Id resourceId, std::size_t slot);
+    void BindVertexBuffer(ResourceManager::Resource::Id resourceId);
+    void BindIndexBuffer(ResourceManager::Resource::Id resourceId);
 
     // UNBIND METHODS:
     void UnbindConstantBuffer(std::size_t slot);
     void UnbindTextureResource(std::size_t slot);
 
-    void SetPrimitiveTopology(PipelineStateManager::PrimitiveTopologyType topology = PipelineStateManager::PrimitiveTopologyType::TriangleList);
+    ScopedStateManager GetStateManager() { return ScopedStateManager(stateManager, *pRenderEnv); }
 
 private:
     RenderEnvironment* pRenderEnv = nullptr;
