@@ -53,7 +53,7 @@ void CPPInit()
     g_pShaderLoader = new ShaderLoader();
     assert(g_pShaderLoader != nullptr);
 #else // !DX11_IMPL
-    DX12_Init();
+    NOT_IMPL_FAIL();
 #endif // DX11_IMPL
 }
 
@@ -81,7 +81,7 @@ void CPPRease()
     }
     assert(g_pStateManager == nullptr);
 #else // !DX11_IMPL
-    DX12_Release();
+    NOT_IMPL_FAIL();
 #endif // DX11_IMPL
 }
 
@@ -93,7 +93,7 @@ void RWSetAppProps(HINSTANCE hInstance, WNDPROC wndproc)
     assert(g_pRenderWindow != nullptr);
     g_pRenderWindow->SetAppProps(hInstance, wndproc);
 #else
-    DX12_SetAppProps(hInstance, wndproc);
+    NOT_IMPL_FAIL();
 #endif // DX11_IMPL
 }
 
@@ -103,7 +103,8 @@ qboolean RWInitWindow(int width, int height, int mode, qboolean fullscreen)
     assert(g_pRenderWindow != nullptr);
     return g_pRenderWindow->InitWindow(width, height, mode, fullscreen);
 #else // !DX11_IMPL
-    return DX12_InitWindow(width, height, mode, fullscreen);
+    NOT_IMPL_FAIL();
+    return 0;
 #endif // DX11_IMPL
 }
 
@@ -123,7 +124,8 @@ void* RWGetHandle()
     assert(g_pRenderWindow != nullptr);
     return (void*)g_pRenderWindow->GetWindowHandle();
 #else // !DX11_IMPL
-    return DX12_GetOsWindowHandle();
+    NOT_IMPL_FAIL();
+    return nullptr;
 #endif // DX11_IMPL
 }
 
@@ -235,31 +237,14 @@ void RWSetPrimitiveTopologyTriangleList()
 #endif // DX11_IMPL
 }
 
-void RWRenderBegin()
-{
-#if DX11_IMPL
-    NOT_IMPL_FAIL();
-#else // !DX11_IMPL
-    DX12_Render_Begin();
-#endif // DX11_IMPL
-}
-
-void RWRenderEnd()
-{
-#if DX11_IMPL
-    NOT_IMPL_FAIL();
-#else // !DX11_IMPL
-    DX12_Render_End();
-#endif // DX11_IMPL
-}
-
 UINT RWGetModesNumber()
 {
 #if DX11_IMPL
     assert(g_pRenderWindow != nullptr);
     return g_pRenderWindow->GetModesNumber();
 #else // !DX11_IMPL
-    return DX12_GetModesNumber();
+    NOT_IMPL_FAIL();
+    return 0;
 #endif // DX11_IMPL
 }
 
@@ -269,7 +254,8 @@ DXGI_MODE_DESC RWGetMode(UINT index)
     assert(g_pRenderWindow != nullptr);
     return g_pRenderWindow->GetMode(index);
 #else // !DX11_IMPL
-    return DX12_GetVideoMode(index);
+    NOT_IMPL_FAIL();
+    return {};
 #endif // DX11_IMPL
 }
 
@@ -291,7 +277,7 @@ void SMInitDefaultStates()
     assert(g_pStateManager != nullptr);
     g_pStateManager->SetDefaultState();
 #else // !DX11_IMPL
-    DX12_InitDefaultStates();
+    NOT_IMPL_FAIL();
 #endif // DX11_IMPL
 }
 

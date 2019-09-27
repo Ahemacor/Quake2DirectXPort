@@ -123,7 +123,7 @@ void DX12_SetAppProps(HINSTANCE hInstance, WNDPROC winproc)
     g_window->SetWindowProcedure(winproc);
 }
 
-bool DX12_InitWindow(int width, int height, int mode, bool fullscreen)
+int DX12_InitWindow(int width, int height, int mode, int fullscreen)
 {
     RECT winrect = {};
     winrect.left = 0;

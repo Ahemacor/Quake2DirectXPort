@@ -16,7 +16,7 @@ extern "C" {
     void DX12_Render_Begin();
     void DX12_Render_End();
     void DX12_SetAppProps(HINSTANCE hInstance, WNDPROC winproc);
-    bool DX12_InitWindow(int width, int height, int mode, bool fullscreen);
+    int DX12_InitWindow(int width, int height, int mode, int isFullscreen);
     void DX12_CloseWindow();
     void DX12_InitDefaultStates();
     UINT DX12_GetModesNumber();
