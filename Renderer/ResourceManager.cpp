@@ -19,7 +19,6 @@ void ResourceManager::Release()
     pRenderEnv = nullptr;
     resourceMap.clear();
     descriptorHeap.Reset();
-    lastDescriptorIndex = 0;
     ClearUploadBuffers();
 }
 
@@ -79,7 +78,7 @@ D3D12_INDEX_BUFFER_VIEW ResourceManager::CreateIndexBufferView(ID3D12Resource* i
     return indexBufferView;
 }
 
-D3D12_GPU_DESCRIPTOR_HANDLE ResourceManager::CreateShaderResourceView(ID3D12Resource* imageBuffer, const std::size_t width, const std::size_t height)
+D3D12_GPU_DESCRIPTOR_HANDLE ResourceManager::CreateShaderResourceView(ID3D12Resource* imageBuffer, const std::size_t width, const std::size_t height, const std::size_t slot)
 {
     D3D12_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc = {};
     shaderResourceViewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
@@ -90,13 +89,12 @@ D3D12_GPU_DESCRIPTOR_HANDLE ResourceManager::CreateShaderResourceView(ID3D12Reso
     shaderResourceViewDesc.Texture2D.ResourceMinLODClamp = 0.0f;
 
     const UINT descrHandleSize = pRenderEnv->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    CD3DX12_CPU_DESCRIPTOR_HANDLE cpuHandle(descriptorHeap->GetCPUDescriptorHandleForHeapStart(), lastDescriptorIndex, descrHandleSize);
+    CD3DX12_CPU_DESCRIPTOR_HANDLE cpuHandle(descriptorHeap->GetCPUDescriptorHandleForHeapStart(), slot, descrHandleSize);
 
     pRenderEnv->GetDevice()->CreateShaderResourceView(imageBuffer, &shaderResourceViewDesc, cpuHandle);
 
-    CD3DX12_GPU_DESCRIPTOR_HANDLE gpuDescrHandle(descriptorHeap->GetGPUDescriptorHandleForHeapStart(), lastDescriptorIndex, descrHandleSize);
+    CD3DX12_GPU_DESCRIPTOR_HANDLE gpuDescrHandle(descriptorHeap->GetGPUDescriptorHandleForHeapStart(), slot, descrHandleSize);
 
-    lastDescriptorIndex++;
     return gpuDescrHandle;
 }
 
@@ -148,12 +146,16 @@ void ResourceManager::UpdateBufferData(ID3D12Resource* resourceBuffer, const voi
 void ResourceManager::RebuildDescriptorHeap()
 {
     descriptorHeap = pRenderEnv->CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, DESCR_HEAP_MAX, true);
-    lastDescriptorIndex = 0;
 }
 
 ID3D12DescriptorHeap* ResourceManager::GetDescriptorHeap()
 {
     return descriptorHeap.Get();
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE ResourceManager::GetSrvHandle()
+{
+    return descriptorHeap.Get()->GetGPUDescriptorHandleForHeapStart();
 }
 
 ID3D12Resource* ResourceManager::CreateUploadBuffer(const std::size_t bufferSize)

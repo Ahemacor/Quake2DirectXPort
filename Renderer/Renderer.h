@@ -71,10 +71,6 @@ public:
     void BindVertexBuffer(ResourceManager::Resource::Id resourceId);
     void BindIndexBuffer(ResourceManager::Resource::Id resourceId);
 
-    // UNBIND METHODS:
-    void UnbindConstantBuffer(std::size_t slot);
-    void UnbindTextureResource(std::size_t slot);
-
     ScopedStateManager GetStateManager() { return ScopedStateManager(stateManager, *pRenderEnv); }
 
     void SetPrimitiveTopologyTriangleList();
@@ -84,7 +80,6 @@ private:
     ResourceManager resourceManager;
 
     std::map<Slot, D3D12_GPU_VIRTUAL_ADDRESS> cbArguments;
-    std::map<Slot, D3D12_GPU_DESCRIPTOR_HANDLE> srvArguments;
     D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
     D3D12_INDEX_BUFFER_VIEW indexBufferView;
 

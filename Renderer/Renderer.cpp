@@ -43,7 +43,6 @@ void Renderer::Release()
     stateManager.Release();
     resourceManager.Release();
     cbArguments.clear();
-    srvArguments.clear();
     vertexBufferView = {};
     indexBufferView = {};
     isInitialized = false;
@@ -67,18 +66,14 @@ void Renderer::DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLoca
                                       stateManager.GetSamplerDescriptorHeap() };
     commandList->SetDescriptorHeaps(_countof(heaps), heaps);
 
-    D3D12_GPU_DESCRIPTOR_HANDLE samplerHandle = stateManager.GetSamplerDescriptorHeap()->GetGPUDescriptorHandleForHeapStart();
-    commandList->SetGraphicsRootDescriptorTable(PipelineStateManager::TextureSampler, samplerHandle);
+    commandList->SetGraphicsRootDescriptorTable(PipelineStateManager::ParameterIdx::SAMPLERS_TABLE_IDX, stateManager.GetSamplerHandle());
 
-    for (auto pair : cbArguments)
+    for (const auto& pair : cbArguments)
     {
-        commandList->SetGraphicsRootConstantBufferView(PipelineStateManager::ConstantBuffer, pair.second);
+        commandList->SetGraphicsRootConstantBufferView(PipelineStateManager::ParameterIdx::CB0_IDX, pair.second);
     }
-
-    for (auto pair : srvArguments)
-    {
-        commandList->SetGraphicsRootDescriptorTable(PipelineStateManager::TextureSRV, pair.second);
-    }
+    
+    commandList->SetGraphicsRootDescriptorTable(PipelineStateManager::ParameterIdx::SRV_TABLE_IDX, resourceManager.GetSrvHandle());
 
     commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
     commandList->IASetIndexBuffer(&indexBufferView);
@@ -115,7 +110,9 @@ ResourceManager::Resource::Id Renderer::CreateTextureResource(const std::size_t 
     {
         resourceManager.UpdateSRVBuffer(resource.d12resource.Get(), pImageData, width, height);
     }
-    resource.variant.srvHandle = resourceManager.CreateShaderResourceView(resource.d12resource.Get(), width, height);
+    resource.variant.imageSize.width = width;
+    resource.variant.imageSize.height = height;
+    //resource.variant.srvHandle = resourceManager.CreateShaderResourceView(resource.d12resource.Get(), width, height);
     resourceManager.UpdateResourceState(resource.d12resource.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     return resourceManager.AddResource(resource);
 }
@@ -165,7 +162,9 @@ void Renderer::UpdateTextureResource(ResourceManager::Resource::Id resourceId, c
 {
     ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
     resourceManager.UpdateSRVBuffer(resource.d12resource.Get(), pImageData, width, height, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-    resource.variant.srvHandle = resourceManager.CreateShaderResourceView(resource.d12resource.Get(), width, height);
+    //resource.variant.srvHandle = resourceManager.CreateShaderResourceView(resource.d12resource.Get(), width, height);
+    resource.variant.imageSize.width = width;
+    resource.variant.imageSize.height = height;
 }
 
 void Renderer::UpdateVertexBuffer(ResourceManager::Resource::Id resourceId, const void* pVertexData, const std::size_t numOfVertices, const std::size_t vertexSize)
@@ -188,6 +187,7 @@ void Renderer::UpdateIndexBuffer(ResourceManager::Resource::Id resourceId, const
 
 void Renderer::BindConstantBuffer(ResourceManager::Resource::Id resourceId, std::size_t slot)
 {
+    ASSERT(slot >= 0 && slot < 10);
     ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
     ASSERT(resource.type == ResourceManager::Resource::Type::CB);
     cbArguments[slot] = resource.variant.cbHandle;
@@ -195,9 +195,11 @@ void Renderer::BindConstantBuffer(ResourceManager::Resource::Id resourceId, std:
 
 void Renderer::BindTextureResource(ResourceManager::Resource::Id resourceId, std::size_t slot)
 {
+    ASSERT(slot >= 0 && slot < ResourceManager::DESCR_HEAP_MAX);
     ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
     ASSERT(resource.type == ResourceManager::Resource::Type::SRV);
-    srvArguments[slot] = resource.variant.srvHandle;
+    //srvArguments[slot] = resource.variant.srvHandle;
+    resourceManager.CreateShaderResourceView(resource.d12resource.Get(), resource.variant.imageSize.width, resource.variant.imageSize.height, slot);
 }
 
 void Renderer::BindVertexBuffer(ResourceManager::Resource::Id resourceId)
@@ -212,26 +214,6 @@ void Renderer::BindIndexBuffer(ResourceManager::Resource::Id resourceId)
     ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
     ASSERT(resource.type == ResourceManager::Resource::Type::IB);
     indexBufferView = resource.variant.ibView;
-}
-
-// UNBIND METHODS:
-
-void Renderer::UnbindConstantBuffer(std::size_t slot)
-{
-    auto it = cbArguments.find(slot);
-    if (it != cbArguments.cend())
-    {
-        cbArguments.erase(it);
-    }
-}
-
-void Renderer::UnbindTextureResource(std::size_t slot)
-{
-    auto it = srvArguments.find(slot);
-    if (it != srvArguments.cend())
-    {
-        srvArguments.erase(it);
-    }
 }
 
 void Renderer::SetPrimitiveTopologyTriangleList()

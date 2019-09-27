@@ -105,7 +105,7 @@ void DX12_Release()
 void DX12_Render_Begin()
 {
     g_renderEnv->ClearScreen();
-    // TestRender();
+    TestRender();
 }
 
 void DX12_Render_End()
@@ -145,7 +145,7 @@ void DX12_CloseWindow()
 
 void DX12_InitDefaultStates()
 {
-    // TestInit();
+    TestInit();
 }
 
 UINT DX12_GetModesNumber()
