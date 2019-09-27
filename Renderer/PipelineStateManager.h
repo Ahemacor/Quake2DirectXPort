@@ -29,7 +29,7 @@ public:
         CB6_IDX,
         CB7_IDX,
         CB8_IDX,
-        CB9_IDX,
+        CB9_IDX_MAX,
 
         ROOT_PARAMS_COUNT
     };

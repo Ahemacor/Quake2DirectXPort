@@ -3,6 +3,7 @@ cbuffer PerFrameConstants : register (b0)
     float scale;
 }
 
+
 struct VertexShaderOutput
 {
     float4 position : SV_POSITION;

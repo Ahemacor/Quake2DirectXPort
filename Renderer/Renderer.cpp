@@ -70,7 +70,7 @@ void Renderer::DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLoca
 
     for (const auto& pair : cbArguments)
     {
-        commandList->SetGraphicsRootConstantBufferView(PipelineStateManager::ParameterIdx::CB0_IDX, pair.second);
+        commandList->SetGraphicsRootConstantBufferView(PipelineStateManager::ParameterIdx::CB0_IDX + pair.first, pair.second);
     }
     
     commandList->SetGraphicsRootDescriptorTable(PipelineStateManager::ParameterIdx::SRV_TABLE_IDX, resourceManager.GetSrvHandle());
@@ -187,7 +187,8 @@ void Renderer::UpdateIndexBuffer(ResourceManager::Resource::Id resourceId, const
 
 void Renderer::BindConstantBuffer(ResourceManager::Resource::Id resourceId, std::size_t slot)
 {
-    ASSERT(slot >= 0 && slot < 10);
+    const std::size_t CB_SLOT_MAX = PipelineStateManager::ParameterIdx::CB9_IDX_MAX - PipelineStateManager::ParameterIdx::CB0_IDX;
+    ASSERT(slot <= CB_SLOT_MAX);
     ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
     ASSERT(resource.type == ResourceManager::Resource::Type::CB);
     cbArguments[slot] = resource.variant.cbHandle;
@@ -195,7 +196,7 @@ void Renderer::BindConstantBuffer(ResourceManager::Resource::Id resourceId, std:
 
 void Renderer::BindTextureResource(ResourceManager::Resource::Id resourceId, std::size_t slot)
 {
-    ASSERT(slot >= 0 && slot < ResourceManager::DESCR_HEAP_MAX);
+    ASSERT(slot < ResourceManager::DESCR_HEAP_MAX);
     ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
     ASSERT(resource.type == ResourceManager::Resource::Type::SRV);
     //srvArguments[slot] = resource.variant.srvHandle;

@@ -32,7 +32,7 @@ struct ConstantBuffer { float x, y, z, w; };
 
 static const ConstantBuffer cb = { 0, 0, 0, 0 };
 
-static float shortCb = 0.8;
+static float shortCb = 0.9f;
 int cbId = -1;
 
 HINSTANCE hInstance = nullptr;
@@ -50,14 +50,17 @@ static void TestInit()
     ScopedStateManager SM = g_renderer->GetStateManager();
     SM->SetVertexShader(PipelineStateManager::VS_Test);
     SM->SetPixelShader(PipelineStateManager::PS_Test);
+    
     ResourceManager::Resource::Id cbId = g_renderer->CreateConstantBuffer(sizeof(shortCb), &shortCb);
-    ResourceManager::Resource::Id srvId = g_renderer->CreateTextureResource(width, height, imageData.data());
-    ResourceManager::Resource::Id vbId = g_renderer->CreateVertexBuffer(ARRAYSIZE(vertices), sizeof(Vertex), vertices);
-    ResourceManager::Resource::Id ibId = g_renderer->CreateIndexBuffer(ARRAYSIZE(indices), indices);
-
     g_renderer->BindConstantBuffer(cbId, 0);
+
+    ResourceManager::Resource::Id srvId = g_renderer->CreateTextureResource(width, height, imageData.data());
     g_renderer->BindTextureResource(srvId, 0);
+
+    ResourceManager::Resource::Id vbId = g_renderer->CreateVertexBuffer(ARRAYSIZE(vertices), sizeof(Vertex), vertices);
     g_renderer->BindVertexBuffer(vbId);
+
+    ResourceManager::Resource::Id ibId = g_renderer->CreateIndexBuffer(ARRAYSIZE(indices), indices);
     g_renderer->BindIndexBuffer(ibId);
 }
 

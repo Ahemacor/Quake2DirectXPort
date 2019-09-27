@@ -187,7 +187,7 @@ void PipelineStateManager::CreateRootSignature()
     rootParameters[ParameterIdx::CB6_IDX].InitAsConstantBufferView(6, 0, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[ParameterIdx::CB7_IDX].InitAsConstantBufferView(7, 0, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[ParameterIdx::CB8_IDX].InitAsConstantBufferView(8, 0, D3D12_SHADER_VISIBILITY_ALL);
-    rootParameters[ParameterIdx::CB9_IDX].InitAsConstantBufferView(9, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[ParameterIdx::CB9_IDX_MAX].InitAsConstantBufferView(9, 0, D3D12_SHADER_VISIBILITY_ALL);
     // Description.
     D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
         D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
