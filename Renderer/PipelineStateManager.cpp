@@ -8,6 +8,9 @@ bool PipelineStateManager::Initialize(Microsoft::WRL::ComPtr<ID3D12Device> paren
 {
     device = parentDevice;
     InitInputLayouts();
+    InitBlendStates();
+    InitDepthStates();
+    InitRasterizerStates();
     InitSamplers();
     CreateRootSignature();
 
@@ -78,6 +81,15 @@ void PipelineStateManager::SetInputLayout(InputLayout inputLayout)
     }
 }
 
+void PipelineStateManager::SetBlendState(BlendState blendState)
+{
+    if (currentState.BS != blendState)
+    {
+        currentState.BS = blendState;
+        isUpdateRequired = true;
+    }
+}
+
 ID3D12RootSignature* PipelineStateManager::GetRootSignature()
 {
     return rootSignature.Get();
@@ -117,6 +129,26 @@ void PipelineStateManager::InitInputLayouts()
     inputLayouts[INPUT_LAYOUT_TEST] = inputLayoutDescr;
 
     // ...
+}
+
+void PipelineStateManager::InitBlendStates()
+{
+    blendStates[BlendState::BSNone] = CreateBlendState(FALSE, D3D12_BLEND_SRC_ALPHA, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_OP_ADD);
+    blendStates[BlendState::BSAlphaBlend] = CreateBlendState(TRUE, D3D12_BLEND_SRC_ALPHA, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_OP_ADD);
+    blendStates[BlendState::BSAlphaReverse] = CreateBlendState(TRUE, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_SRC_ALPHA, D3D12_BLEND_OP_ADD);
+    blendStates[BlendState::BSAlphaPreMult] = CreateBlendState(TRUE, D3D12_BLEND_ONE, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_OP_ADD);
+    blendStates[BlendState::BSAdditive] = CreateBlendState(TRUE, D3D12_BLEND_ONE, D3D12_BLEND_ONE, D3D12_BLEND_OP_ADD);
+    blendStates[BlendState::BSRevSubtract] = CreateBlendState(TRUE, D3D12_BLEND_ONE, D3D12_BLEND_ONE, D3D12_BLEND_OP_REV_SUBTRACT);
+}
+
+void PipelineStateManager::InitDepthStates()
+{
+
+}
+
+void PipelineStateManager::InitRasterizerStates()
+{
+
 }
 
 std::wstring PipelineStateManager::GetShaderFilepath(ShaderType shaderType)
@@ -210,22 +242,19 @@ void PipelineStateManager::CreatePipelineStateObject()
     psoDesc.NumRenderTargets = 1;
     psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
     psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
+
     psoDesc.InputLayout = inputLayouts[currentState.inputLayout];
-    psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-    // Simple alpha blending
-    psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-    psoDesc.BlendState.RenderTarget[0].BlendEnable = true;
-    psoDesc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
-    psoDesc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
-    psoDesc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
-    psoDesc.BlendState.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
-    psoDesc.BlendState.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
-    psoDesc.BlendState.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
-    psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
-    psoDesc.SampleDesc.Count = 1;
+
+    psoDesc.BlendState = blendStates[currentState.BS];
+
     psoDesc.DepthStencilState.DepthEnable = false;
     psoDesc.DepthStencilState.StencilEnable = false;
+
+    psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+
+    psoDesc.SampleDesc.Count = 1;
     psoDesc.SampleMask = 0xFFFFFFFF;
+
     psoDesc.PrimitiveTopologyType = currentState.topology;
     ENSURE_RESULT(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso)));
 }
@@ -245,4 +274,20 @@ ID3DBlob* PipelineStateManager::GetShader(ShaderType shaderType)
     }
 
     return shaders[shaderType].Get();
+}
+
+D3D12_BLEND_DESC PipelineStateManager::CreateBlendState(BOOL blendon, D3D12_BLEND src, D3D12_BLEND dst, D3D12_BLEND_OP op)
+{
+    D3D12_BLEND_DESC desc = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+    desc.AlphaToCoverageEnable = FALSE;
+    desc.IndependentBlendEnable = FALSE;
+    desc.RenderTarget[0].BlendEnable = blendon;
+    desc.RenderTarget[0].SrcBlend = src;
+    desc.RenderTarget[0].DestBlend = dst;
+    desc.RenderTarget[0].BlendOp = op;
+    desc.RenderTarget[0].SrcBlendAlpha = src;
+    desc.RenderTarget[0].DestBlendAlpha = dst;
+    desc.RenderTarget[0].BlendOpAlpha = op;
+    desc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+    return desc;
 }

@@ -60,6 +60,7 @@ static void TestInit()
     SM->SetVertexShader(ShaderType::SHADER_TEST_VS);
     SM->SetPixelShader(ShaderType::SHADER_TEST_PS);
     SM->SetSampler(SamplerState::SAMPLER_DEFAULT);
+    SM->SetBlendState(BlendState::BSNone);
     SM->SetPrimitiveTopology();
 
     ResourceManager::Resource::Id srvId = g_renderer->CreateTextureResource(width, height, imageData.data());

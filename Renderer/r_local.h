@@ -394,7 +394,9 @@ typedef enum BSEnum
     BSAlphaReverse,
     BSAlphaPreMult,
     BSAdditive,
-    BSRevSubtract
+    BSRevSubtract,
+
+    BS_COUNT
 } BlendState;
 
 typedef enum DSEnum
@@ -402,14 +404,18 @@ typedef enum DSEnum
     DSFullDepth,
     DSDepthNoWrite,
     DSNoDepth,
-    DSEqualDepthNoWrite
+    DSEqualDepthNoWrite,
+
+    DS_COUNT
 } DepthStencilState;
 
 typedef enum RSEnum
 {
     RSFullCull,
     RSReverseCull,
-    RSNoCull
+    RSNoCull,
+
+    RS_COUNT
 } RasterizerState;
 
 typedef enum ParameterIdxEnum
@@ -461,6 +467,10 @@ typedef struct State
 
     ShaderType VS;
     ShaderType PS;
+
+    BlendState BS;
+    DepthStencilState DS;
+    RasterizerState RS;
 
     D3D12_PRIMITIVE_TOPOLOGY_TYPE topology;
 
