@@ -16,16 +16,17 @@
 class ScopedStateManager
 {
 public:
-    ScopedStateManager(PipelineStateManager& sm, RenderEnvironment& re)
-        : stateManager(sm)
+    ScopedStateManager(bool isScoped, PipelineStateManager& sm, RenderEnvironment& re)
+        : isScoped(isScoped)
+        , stateManager(sm)
         , renderEnv(re)
     {
-        renderEnv.ResetCommandList();
+        if(isScoped) renderEnv.ResetCommandList();
     }
 
     ~ScopedStateManager()
     {
-        renderEnv.ExecuteCommandList();
+        if (isScoped) renderEnv.ExecuteCommandList();
     }
 
     PipelineStateManager* operator->()
@@ -34,6 +35,7 @@ public:
     }
 
 private:
+    const bool isScoped;
     PipelineStateManager& stateManager;
     RenderEnvironment& renderEnv;
 };
@@ -71,9 +73,13 @@ public:
     void BindVertexBuffer(UINT Slot, ResourceManager::Resource::Id resourceId);
     void BindIndexBuffer(ResourceManager::Resource::Id resourceId);
 
-    ScopedStateManager GetStateManager() { return ScopedStateManager(stateManager, *pRenderEnv); }
+    ScopedStateManager GetStateManager(bool isScoped = false) { return ScopedStateManager(isScoped, stateManager, *pRenderEnv); }
 
     void SetPrimitiveTopologyTriangleList();
+
+    const State& GetRenderState();
+    void SetRenderState(const State& state);
+
 private:
     struct VertexBufferToBind
     {

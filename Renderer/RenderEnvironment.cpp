@@ -294,6 +294,11 @@ Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> RenderEnvironment::CreateDescriptor
     return descriptorHeap;
 }
 
+void RenderEnvironment::SetViewport(const D3D12_VIEWPORT& viewPort)
+{
+    screenViewport = viewPort;
+}
+
 void RenderEnvironment::InitializeRenderTargetViews()
 {
     assert(device != nullptr);

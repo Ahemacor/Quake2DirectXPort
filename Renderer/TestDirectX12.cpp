@@ -55,7 +55,7 @@ static void TestInit()
     DX12_UpdateConstantBuffer(cbId, &shortCb, sizeof(shortCb));
     DX12_BindConstantBuffer(cbId, 0);
 
-    ScopedStateManager SM = g_renderer->GetStateManager();
+    ScopedStateManager SM = g_renderer->GetStateManager(true);
     SM->SetInputLayout(InputLayout::INPUT_LAYOUT_TEXARRAY);
     SM->SetVertexShader(ShaderType::SHADER_TEST_VS);
     SM->SetPixelShader(ShaderType::SHADER_TEST_PS);
@@ -76,7 +76,7 @@ static void TestInit()
 
 static void TestRender()
 {
-    g_renderer->DrawIndexed(6, 0, 0);
+    DX12_DrawIndexed(6, 0, 0);
 }
 
 void DX12_Init()
@@ -183,13 +183,13 @@ void DX12_SetPrimitiveTopologyTriangleList()
 
 int DX12_CreateConstantBuffer(const void* pSrcData, int bufferSize)
 {
-    ScopedStateManager SM = g_renderer->GetStateManager();
+    ScopedStateManager SM = g_renderer->GetStateManager(true);
     return g_renderer->CreateConstantBuffer(bufferSize, pSrcData);
 }
 
 void DX12_UpdateConstantBuffer(int resourceId, const void* pSrcData, int bufferSize)
 {
-    ScopedStateManager SM = g_renderer->GetStateManager();
+    ScopedStateManager SM = g_renderer->GetStateManager(true);
     g_renderer->UpdateConstantBuffer(resourceId, pSrcData, bufferSize);
 }
 
@@ -201,4 +201,65 @@ void DX12_BindConstantBuffer(int resourceId, int slot)
 void DX12_BindVertexBuffer(UINT Slot, int resourceId)
 {
     g_renderer->BindVertexBuffer(Slot, resourceId);
+}
+
+void DX12_SetViewport(const D3D12_VIEWPORT* pViewport)
+{
+    g_renderEnv->SetViewport(*pViewport);
+}
+
+void DX12_Draw(UINT numOfVertices, UINT firstVertexToDraw)
+{
+    g_renderer->Draw(numOfVertices, firstVertexToDraw);
+}
+
+void DX12_DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLocation)
+{
+    g_renderer->DrawIndexed(indexCount, firstIndex, baseVertexLocation);
+}
+
+const State* Dx12_GetRenderState()
+{
+    return &g_renderer->GetRenderState();
+}
+
+void Dx12_SetRenderState(const State* state)
+{
+    g_renderer->SetRenderState(*state);
+}
+
+void DX12_SetVertexShader(ShaderType shaderType)
+{
+    ScopedStateManager SM = g_renderer->GetStateManager(false);
+    SM->SetVertexShader(shaderType);
+}
+
+void DX12_SetPixelShader(ShaderType shaderType)
+{
+    ScopedStateManager SM = g_renderer->GetStateManager(false);
+    SM->SetPixelShader(shaderType);
+}
+
+void DX12_SetInputLayout(InputLayout inputLayout)
+{
+    ScopedStateManager SM = g_renderer->GetStateManager(false);
+    SM->SetInputLayout(inputLayout);
+}
+
+void DX12_SetBlendState(BlendState blendState)
+{
+    ScopedStateManager SM = g_renderer->GetStateManager(false);
+    SM->SetBlendState(blendState);
+}
+
+void DX12_SetDepthState(DepthStencilState depthState)
+{
+    ScopedStateManager SM = g_renderer->GetStateManager(false);
+    SM->SetDepthState(depthState);
+}
+
+void DX12_SetRasterizerState(RasterizerState rasterizerState)
+{
+    ScopedStateManager SM = g_renderer->GetStateManager(false);
+    SM->SetRasterizerState(rasterizerState);
 }

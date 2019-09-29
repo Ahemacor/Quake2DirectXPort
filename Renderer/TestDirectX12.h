@@ -4,7 +4,9 @@
 #undef CINTERFACE
 #endif
 
+#include "r_local.h"
 #include <Windows.h>
+#include <d3d12.h>
 #include <dxgi.h>
 
 #ifdef __cplusplus
@@ -29,6 +31,18 @@ extern "C" {
     void DX12_BindConstantBuffer(int resourceId, int slot);
 
     void DX12_BindVertexBuffer(UINT Slot, int resourceId);
+    void DX12_SetViewport(const D3D12_VIEWPORT* pViewport);
+    void DX12_Draw(UINT numOfVertices, UINT firstVertexToDraw);
+    void DX12_DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLocation);
+    const State* Dx12_GetRenderState();
+
+    void DX12_SetVertexShader(ShaderType shaderType);
+    void DX12_SetPixelShader(ShaderType shaderType);
+    void DX12_SetInputLayout(InputLayout inputLayout);
+    void DX12_SetBlendState(BlendState blendState);
+    void DX12_SetDepthState(DepthStencilState depthState);
+    void DX12_SetRasterizerState(RasterizerState rasterizerState);
+
 #ifdef __cplusplus
 }
 #endif

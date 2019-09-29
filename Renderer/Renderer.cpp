@@ -50,7 +50,31 @@ void Renderer::Release()
 
 void Renderer::Draw(UINT numOfVertices, UINT firstVertexToDraw)
 {
-    NOT_IMPL_FAIL();
+    stateManager.RebuildState();
+
+    auto commandList = pRenderEnv->GetGraphicsCommandList();
+
+    commandList->SetPipelineState(stateManager.GetPSO());
+    commandList->SetGraphicsRootSignature(stateManager.GetRootSignature());
+
+    ID3D12DescriptorHeap* heaps[] = { resourceManager.GetDescriptorHeap(),
+                                      stateManager.GetSamplerDescriptorHeap() };
+    commandList->SetDescriptorHeaps(_countof(heaps), heaps);
+
+    commandList->SetGraphicsRootDescriptorTable(ParameterIdx::SAMPLERS_TABLE_IDX, stateManager.GetSamplerHandle());
+
+    for (const auto& pair : cbArguments)
+    {
+        commandList->SetGraphicsRootConstantBufferView(ParameterIdx::CB0_IDX + pair.first, pair.second);
+    }
+
+    commandList->SetGraphicsRootDescriptorTable(ParameterIdx::SRV_TABLE_IDX, resourceManager.GetSrvHandle());
+
+    commandList->IASetVertexBuffers(vertexBufferToBind.slot, 1, &vertexBufferToBind.view);
+
+    commandList->DrawInstanced(numOfVertices, 1, firstVertexToDraw, 0);
+
+    pRenderEnv->Synchronize();
 }
 
 void Renderer::DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLocation)
@@ -75,7 +99,6 @@ void Renderer::DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLoca
     
     commandList->SetGraphicsRootDescriptorTable(ParameterIdx::SRV_TABLE_IDX, resourceManager.GetSrvHandle());
 
-    //commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
     commandList->IASetVertexBuffers(vertexBufferToBind.slot, 1, &vertexBufferToBind.view);
     commandList->IASetIndexBuffer(&indexBufferView);
 
@@ -222,4 +245,14 @@ void Renderer::BindIndexBuffer(ResourceManager::Resource::Id resourceId)
 void Renderer::SetPrimitiveTopologyTriangleList()
 {
     stateManager.SetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
+}
+
+const State& Renderer::GetRenderState()
+{
+    return stateManager.currentState;
+}
+
+void Renderer::SetRenderState(const State& state)
+{
+    stateManager.currentState = state;
 }

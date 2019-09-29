@@ -45,6 +45,8 @@ public:
 
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t numDescriptors, bool isShaderVisible = false);
 
+    void SetViewport(const D3D12_VIEWPORT& viewPort);
+
 private:
     RenderEnvironment(const RenderEnvironment&) = delete;
     RenderEnvironment& operator=(const RenderEnvironment&) = delete;
