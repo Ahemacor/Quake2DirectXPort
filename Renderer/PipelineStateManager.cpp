@@ -4,6 +4,8 @@
 #pragma comment(lib, "D3DCompiler.lib")
 #include <d3dcompiler.h>
 
+#define DECL_VERTEX(name, fmt, slot) { name, 0, fmt, slot, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+
 bool PipelineStateManager::Initialize(Microsoft::WRL::ComPtr<ID3D12Device> parentDevice)
 {
     device = parentDevice;
@@ -128,19 +130,76 @@ ID3D12DescriptorHeap* PipelineStateManager::GetSamplerDescriptorHeap()
 
 void PipelineStateManager::InitInputLayouts()
 {
-    D3D12_INPUT_LAYOUT_DESC inputLayoutDescr;
-
-    // TestInputLayout
-    static const D3D12_INPUT_ELEMENT_DESC testInputLayout[] =
+    static const D3D12_INPUT_ELEMENT_DESC ilBeam[] =
     {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+        DECL_VERTEX("POSITION", DXGI_FORMAT_R32G32B32_FLOAT, 7)
     };
-    inputLayoutDescr.NumElements = ARRAYSIZE(testInputLayout);
-    inputLayoutDescr.pInputElementDescs = testInputLayout;
-    inputLayouts[INPUT_LAYOUT_TEST] = inputLayoutDescr;
+    inputLayouts[INPUT_LAYOUT_BEAM].NumElements = std::size(ilBeam);
+    inputLayouts[INPUT_LAYOUT_BEAM].pInputElementDescs = ilBeam;
 
-    // ...
+    static const D3D12_INPUT_ELEMENT_DESC ilStandart[] =
+    {
+        DECL_VERTEX("POSITION", DXGI_FORMAT_R32G32_FLOAT, 0),
+        DECL_VERTEX("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT, 0),
+        DECL_VERTEX("COLOUR", DXGI_FORMAT_R8G8B8A8_UNORM, 0)
+    };
+    inputLayouts[INPUT_LAYOUT_STANDART].NumElements = std::size(ilStandart);
+    inputLayouts[INPUT_LAYOUT_STANDART].pInputElementDescs = ilStandart;
+
+    static const D3D12_INPUT_ELEMENT_DESC ilTexarray[] =
+    {
+        DECL_VERTEX("POSITION", DXGI_FORMAT_R32G32_FLOAT, 0),
+        DECL_VERTEX("TEXCOORD", DXGI_FORMAT_R32G32B32_FLOAT, 0)
+    };
+    inputLayouts[INPUT_LAYOUT_TEXARRAY].NumElements = std::size(ilTexarray);
+    inputLayouts[INPUT_LAYOUT_TEXARRAY].pInputElementDescs = ilTexarray;
+
+    static const D3D12_INPUT_ELEMENT_DESC ilMesh[] =
+    {
+        DECL_VERTEX("PREVTRIVERTX", DXGI_FORMAT_R8G8B8A8_UINT, 1),
+        DECL_VERTEX("CURRTRIVERTX", DXGI_FORMAT_R8G8B8A8_UINT, 2),
+        DECL_VERTEX("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT, 3)
+    };
+    inputLayouts[INPUT_LAYOUT_MESH].NumElements = std::size(ilMesh);
+    inputLayouts[INPUT_LAYOUT_MESH].pInputElementDescs = ilMesh;
+
+    static const D3D12_INPUT_ELEMENT_DESC ilParticles[] =
+    {
+        DECL_VERTEX("ORIGIN", DXGI_FORMAT_R32G32B32_FLOAT, 6),
+        DECL_VERTEX("VELOCITY", DXGI_FORMAT_R32G32B32_FLOAT, 6),
+        DECL_VERTEX("ACCELERATION", DXGI_FORMAT_R32G32B32_FLOAT, 6),
+        DECL_VERTEX("TIME", DXGI_FORMAT_R32_FLOAT, 6),
+        DECL_VERTEX("COLOR", DXGI_FORMAT_R32_SINT, 6),
+        DECL_VERTEX("ALPHA", DXGI_FORMAT_R32_FLOAT, 6)
+    };
+    inputLayouts[INPUT_LAYOUT_PARTICLES].NumElements = std::size(ilParticles);
+    inputLayouts[INPUT_LAYOUT_PARTICLES].pInputElementDescs = ilParticles;
+
+    static const D3D12_INPUT_ELEMENT_DESC ilSky[] =
+    {
+        DECL_VERTEX("POSITION", DXGI_FORMAT_R32G32B32_FLOAT, 4)
+    };
+    inputLayouts[INPUT_LAYOUT_SKY].NumElements = std::size(ilSky);
+    inputLayouts[INPUT_LAYOUT_SKY].pInputElementDescs = ilSky;
+
+    static const D3D12_INPUT_ELEMENT_DESC ilSprites[] =
+    {
+        DECL_VERTEX("XYOFFSET", DXGI_FORMAT_R32G32_FLOAT, 5)
+    };
+    inputLayouts[INPUT_LAYOUT_SPRITES].NumElements = std::size(ilSprites);
+    inputLayouts[INPUT_LAYOUT_SPRITES].pInputElementDescs = ilSprites;
+
+    static const D3D12_INPUT_ELEMENT_DESC ilSurface[] =
+    {
+        DECL_VERTEX("POSITION", DXGI_FORMAT_R32G32B32_FLOAT, 4),
+        DECL_VERTEX("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT, 4),
+        DECL_VERTEX("LIGHTMAP", DXGI_FORMAT_R16G16_UNORM, 4),
+        DECL_VERTEX("STYLES", DXGI_FORMAT_R8G8B8A8_UINT, 4),
+        DECL_VERTEX("MAPNUM", DXGI_FORMAT_R16_UINT, 4),
+        DECL_VERTEX("SCROLL", DXGI_FORMAT_R16_UNORM, 4)
+    };
+    inputLayouts[INPUT_LAYOUT_SURFACES].NumElements = std::size(ilSurface);
+    inputLayouts[INPUT_LAYOUT_SURFACES].pInputElementDescs = ilSurface;
 }
 
 void PipelineStateManager::InitBlendStates()

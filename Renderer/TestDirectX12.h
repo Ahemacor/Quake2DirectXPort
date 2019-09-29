@@ -28,6 +28,7 @@ extern "C" {
     void DX12_UpdateConstantBuffer(int resourceId, const void* pSrcData, int bufferSize);
     void DX12_BindConstantBuffer(int resourceId, int slot);
 
+    void DX12_BindVertexBuffer(UINT Slot, int resourceId);
 #ifdef __cplusplus
 }
 #endif

@@ -460,7 +460,14 @@ typedef enum SamplerStateEnum
 
 typedef enum InputLayoutEnum
 {
-    INPUT_LAYOUT_TEST = 0,
+    INPUT_LAYOUT_BEAM = 0,
+    INPUT_LAYOUT_STANDART,
+    INPUT_LAYOUT_TEXARRAY,
+    INPUT_LAYOUT_MESH,
+    INPUT_LAYOUT_PARTICLES,
+    INPUT_LAYOUT_SKY,
+    INPUT_LAYOUT_SPRITES,
+    INPUT_LAYOUT_SURFACES,
 
     INPUT_LAYOUT_COUNT
 } InputLayout;
@@ -477,8 +484,6 @@ typedef struct State
     RasterizerState RS;
 
     D3D12_PRIMITIVE_TOPOLOGY_TYPE topology;
-
-    SamplerState sampler;
 } State;
 
 #ifndef __cplusplus

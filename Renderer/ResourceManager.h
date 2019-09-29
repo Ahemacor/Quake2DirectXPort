@@ -38,8 +38,6 @@ public:
         Microsoft::WRL::ComPtr<ID3D12Resource>  d12resource;
     };
 
-    std::unordered_map<Resource::Id, Resource> resourceMap;
-
     static const std::size_t DESCR_HEAP_MAX = 256;
 
     void Initialize(RenderEnvironment* pEnv);
@@ -86,6 +84,7 @@ public:
     void ClearUploadBuffers();
 
 private:
+    std::unordered_map<Resource::Id, Resource> resourceMap;
     RenderEnvironment* pRenderEnv = nullptr;
 
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap;

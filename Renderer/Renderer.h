@@ -68,19 +68,24 @@ public:
     // BIND METHODS:
     void BindConstantBuffer(ResourceManager::Resource::Id resourceId, std::size_t slot);
     void BindTextureResource(ResourceManager::Resource::Id resourceId, std::size_t slot);
-    void BindVertexBuffer(ResourceManager::Resource::Id resourceId);
+    void BindVertexBuffer(UINT Slot, ResourceManager::Resource::Id resourceId);
     void BindIndexBuffer(ResourceManager::Resource::Id resourceId);
 
     ScopedStateManager GetStateManager() { return ScopedStateManager(stateManager, *pRenderEnv); }
 
     void SetPrimitiveTopologyTriangleList();
 private:
+    struct VertexBufferToBind
+    {
+        UINT slot;
+        D3D12_VERTEX_BUFFER_VIEW view = {};
+    } vertexBufferToBind;
+
     RenderEnvironment* pRenderEnv = nullptr;
     PipelineStateManager stateManager;
     ResourceManager resourceManager;
 
     std::map<Slot, D3D12_GPU_VIRTUAL_ADDRESS> cbArguments;
-    D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
     D3D12_INDEX_BUFFER_VIEW indexBufferView;
 
     bool isInitialized = false;

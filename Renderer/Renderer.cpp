@@ -29,7 +29,7 @@ bool Renderer::Init(RenderEnvironment* environment)
     stateManager.Initialize(pRenderEnv->GetDevice());
     resourceManager.Initialize(pRenderEnv);
 
-    vertexBufferView = {};
+    vertexBufferToBind = {};
     indexBufferView = {};
 
     isInitialized = true;
@@ -43,7 +43,7 @@ void Renderer::Release()
     stateManager.Release();
     resourceManager.Release();
     cbArguments.clear();
-    vertexBufferView = {};
+    vertexBufferToBind = {};
     indexBufferView = {};
     isInitialized = false;
 }
@@ -75,7 +75,8 @@ void Renderer::DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLoca
     
     commandList->SetGraphicsRootDescriptorTable(ParameterIdx::SRV_TABLE_IDX, resourceManager.GetSrvHandle());
 
-    commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+    //commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+    commandList->IASetVertexBuffers(vertexBufferToBind.slot, 1, &vertexBufferToBind.view);
     commandList->IASetIndexBuffer(&indexBufferView);
 
     commandList->DrawIndexedInstanced(indexCount, 1, firstIndex, baseVertexLocation, 0);
@@ -203,11 +204,12 @@ void Renderer::BindTextureResource(ResourceManager::Resource::Id resourceId, std
     resourceManager.CreateShaderResourceView(resource.d12resource.Get(), resource.variant.imageSize.width, resource.variant.imageSize.height, slot);
 }
 
-void Renderer::BindVertexBuffer(ResourceManager::Resource::Id resourceId)
+void Renderer::BindVertexBuffer(UINT Slot, ResourceManager::Resource::Id resourceId)
 {
     ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
     ASSERT(resource.type == ResourceManager::Resource::Type::VB);
-    vertexBufferView = resource.variant.vbView;
+    vertexBufferToBind.slot = Slot;
+    vertexBufferToBind.view = resource.variant.vbView;
 }
 
 void Renderer::BindIndexBuffer(ResourceManager::Resource::Id resourceId)

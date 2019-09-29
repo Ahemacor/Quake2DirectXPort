@@ -7,19 +7,19 @@
 
 struct Vertex
 {
-    float position[3];
-    float uv[2];
+    float position[2];
+    float uv[3];
 };
 
 static const Vertex vertices[4] = {
     // Upper Left
-    { { -1.0f, 1.0f, 0 }, { 0, 0 } },
+    { { -1.0f, 1.0f }, { 0, 0, 0 } },
     // Upper Right
-    { { 1.0f, 1.0f, 0 }, { 1, 0 } },
+    { { 1.0f, 1.0f }, { 1, 0, 0 } },
     // Bottom right
-    { { 1.0f, -1.0f, 0 }, { 1, 1 } },
+    { { 1.0f, -1.0f }, { 1, 1, 0 } },
     // Bottom left
-    { { -1.0f, -1.0f, 0 }, { 0, 1 } }
+    { { -1.0f, -1.0f }, { 0, 1, 0 } }
 };
 
 static const int indices[6] = {
@@ -56,7 +56,7 @@ static void TestInit()
     DX12_BindConstantBuffer(cbId, 0);
 
     ScopedStateManager SM = g_renderer->GetStateManager();
-    SM->SetInputLayout(InputLayout::INPUT_LAYOUT_TEST);
+    SM->SetInputLayout(InputLayout::INPUT_LAYOUT_TEXARRAY);
     SM->SetVertexShader(ShaderType::SHADER_TEST_VS);
     SM->SetPixelShader(ShaderType::SHADER_TEST_PS);
     SM->SetBlendState(BlendState::BSNone);
@@ -68,7 +68,7 @@ static void TestInit()
     g_renderer->BindTextureResource(srvId, 0);
 
     ResourceManager::Resource::Id vbId = g_renderer->CreateVertexBuffer(ARRAYSIZE(vertices), sizeof(Vertex), vertices);
-    g_renderer->BindVertexBuffer(vbId);
+    DX12_BindVertexBuffer(0, vbId);
 
     ResourceManager::Resource::Id ibId = g_renderer->CreateIndexBuffer(ARRAYSIZE(indices), indices);
     g_renderer->BindIndexBuffer(ibId);
@@ -196,4 +196,9 @@ void DX12_UpdateConstantBuffer(int resourceId, const void* pSrcData, int bufferS
 void DX12_BindConstantBuffer(int resourceId, int slot)
 {
     g_renderer->BindConstantBuffer(resourceId, slot);
+}
+
+void DX12_BindVertexBuffer(UINT Slot, int resourceId)
+{
+    g_renderer->BindVertexBuffer(Slot, resourceId);
 }

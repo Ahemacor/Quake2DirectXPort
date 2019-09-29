@@ -37,6 +37,7 @@ Microsoft::WRL::ComPtr<ID3D12Resource> ResourceManager::CreateDx12Resource(const
 ResourceManager::Resource::Id ResourceManager::AddResource(const Resource& newResource)
 {
     ResourceManager::Resource::Id resourceId = NewId();
+    ASSERT(resourceMap.find(resourceId) == resourceMap.cend());
     resourceMap[resourceId] = newResource;
     return resourceId;
 }
