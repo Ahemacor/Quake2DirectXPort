@@ -23,6 +23,11 @@ extern "C" {
     DXGI_MODE_DESC DX12_GetVideoMode(UINT index);
     HWND DX12_GetOsWindowHandle();
     void DX12_SetPrimitiveTopologyTriangleList();
+
+    int DX12_CreateConstantBuffer(const void* pSrcData, int bufferSize);
+    void DX12_UpdateConstantBuffer(int resourceId, const void* pSrcData, int bufferSize);
+    void DX12_BindConstantBuffer(int resourceId, int slot);
+
 #ifdef __cplusplus
 }
 #endif

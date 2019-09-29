@@ -42,17 +42,22 @@ WindowsWindow* g_window = nullptr;
 RenderEnvironment* g_renderEnv = nullptr;
 Renderer* g_renderer = nullptr;
 
+int DX12_CreateConstantBuffer(const void* pSrcData, int bufferSize);
+void DX12_UpdateConstantBuffer(int resourceId, const void* pSrcData, int bufferSize);
+void DX12_BindConstantBuffer(int resourceId, int slot);
+
 static void TestInit()
 {
     int width = 0, height = 0;
     std::vector<std::uint8_t> imageData = LoadImageFromFile(imageFilePath, 1, &width, &height);
     
+    int cbId = DX12_CreateConstantBuffer(nullptr, sizeof(shortCb));
+    DX12_UpdateConstantBuffer(cbId, &shortCb, sizeof(shortCb));
+    DX12_BindConstantBuffer(cbId, 0);
+
     ScopedStateManager SM = g_renderer->GetStateManager();
     SM->SetVertexShader(PipelineStateManager::VS_Test);
     SM->SetPixelShader(PipelineStateManager::PS_Test);
-    
-    ResourceManager::Resource::Id cbId = g_renderer->CreateConstantBuffer(sizeof(shortCb), &shortCb);
-    g_renderer->BindConstantBuffer(cbId, 0);
 
     ResourceManager::Resource::Id srvId = g_renderer->CreateTextureResource(width, height, imageData.data());
     g_renderer->BindTextureResource(srvId, 0);
@@ -169,4 +174,21 @@ HWND DX12_GetOsWindowHandle()
 void DX12_SetPrimitiveTopologyTriangleList()
 {
     g_renderer->SetPrimitiveTopologyTriangleList();
+}
+
+int DX12_CreateConstantBuffer(const void* pSrcData, int bufferSize)
+{
+    ScopedStateManager SM = g_renderer->GetStateManager();
+    return g_renderer->CreateConstantBuffer(bufferSize, pSrcData);
+}
+
+void DX12_UpdateConstantBuffer(int resourceId, const void* pSrcData, int bufferSize)
+{
+    ScopedStateManager SM = g_renderer->GetStateManager();
+    g_renderer->UpdateConstantBuffer(resourceId, pSrcData, bufferSize);
+}
+
+void DX12_BindConstantBuffer(int resourceId, int slot)
+{
+    g_renderer->BindConstantBuffer(resourceId, slot);
 }
