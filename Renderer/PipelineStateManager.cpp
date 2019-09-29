@@ -12,6 +12,7 @@ bool PipelineStateManager::Initialize(Microsoft::WRL::ComPtr<ID3D12Device> paren
     InitDepthStates();
     InitRasterizerStates();
     InitSamplers();
+
     CreateRootSignature();
 
     return !isUpdateRequired;
@@ -64,14 +65,6 @@ void PipelineStateManager::SetPixelShader(ShaderType shaderType)
     }
 }
 
-void PipelineStateManager::SetSampler(SamplerState samplerType)
-{
-    if (currentState.sampler != samplerType)
-    {
-        currentState.sampler = samplerType;
-    }
-}
-
 void PipelineStateManager::SetInputLayout(InputLayout inputLayout)
 {
     if (currentState.inputLayout != inputLayout)
@@ -120,11 +113,12 @@ ID3D12PipelineState* PipelineStateManager::GetPSO()
 
 D3D12_GPU_DESCRIPTOR_HANDLE PipelineStateManager::GetSamplerHandle()
 {
-    const UINT descrHandleSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+    /*const UINT descrHandleSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
     CD3DX12_GPU_DESCRIPTOR_HANDLE samplerHandle(samplerDescriptorHeap->GetGPUDescriptorHandleForHeapStart(),
                                                 currentState.sampler,
                                                 descrHandleSize);
-    return samplerHandle;
+    return samplerHandle;*/
+    return samplerDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
 }
 
 ID3D12DescriptorHeap* PipelineStateManager::GetSamplerDescriptorHeap()
@@ -200,6 +194,13 @@ std::wstring PipelineStateManager::GetShaderFilepath(ShaderType shaderType)
 
 void PipelineStateManager::InitSamplers()
 {
+    // Create sampler state descriptions.
+    samplerDesriptions[SamplerState::SAMPLER_MAIN] = CreateSamplerStateDescr(D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_WRAP, D3D12_FLOAT32_MAX, 16);
+    samplerDesriptions[SamplerState::SAMPLER_L_MAP] = CreateSamplerStateDescr(D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, 0, 1);
+    samplerDesriptions[SamplerState::SAMPLER_WARP] = CreateSamplerStateDescr(D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_WRAP, 0, 1);
+    samplerDesriptions[SamplerState::SAMPLER_DRAW] = CreateSamplerStateDescr(D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, 0, 1);
+    samplerDesriptions[SamplerState::SAMPLER_CINE] = CreateSamplerStateDescr(D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_BORDER, 0, 1);
+
     // Create sampler descriptor heap.
     D3D12_DESCRIPTOR_HEAP_DESC samplerHeapDesc = {};
     samplerHeapDesc.NumDescriptors = SAMPLER_COUNT;
@@ -210,19 +211,12 @@ void PipelineStateManager::InitSamplers()
     const UINT descrHandleSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
     CD3DX12_CPU_DESCRIPTOR_HANDLE cpuHandle(samplerDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 
-    // DefaultSampler
-    cpuHandle.Offset(SAMPLER_DEFAULT, descrHandleSize);
-    D3D12_SAMPLER_DESC samplerDesc = {};
-    samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-    samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-    samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-    samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-    samplerDesc.MinLOD = 0;
-    samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
-    samplerDesc.MipLODBias = 0.0f;
-    samplerDesc.MaxAnisotropy = 1;
-    samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
-    device->CreateSampler(&samplerDesc, cpuHandle);
+    for (const auto& samplerStateDescr : samplerDesriptions)
+    {
+        device->CreateSampler(&samplerStateDescr, cpuHandle);
+        cpuHandle.Offset(descrHandleSize);
+    }
+
 }
 
 void PipelineStateManager::CreateRootSignature()
@@ -356,6 +350,37 @@ D3D12_RASTERIZER_DESC PipelineStateManager::CreateRasterizerState(D3D12_FILL_MOD
     desc.DepthClipEnable = clip;
     desc.MultisampleEnable = false;
     desc.AntialiasedLineEnable = false;
+
+    return desc;
+}
+
+D3D12_SAMPLER_DESC PipelineStateManager::CreateSamplerStateDescr(D3D12_FILTER Filter, D3D12_TEXTURE_ADDRESS_MODE AddressMode, float MaxLOD, UINT MaxAnisotropy)
+{
+    D3D12_SAMPLER_DESC desc = {};
+    desc.AddressU = AddressMode;
+    desc.AddressV = AddressMode;
+    desc.AddressW = AddressMode;
+
+    // border colour is always black because that's what our clamp-to-border code elsewhere in the engine expects
+    desc.BorderColor[0] = desc.BorderColor[1] = desc.BorderColor[2] = desc.BorderColor[3] = 0;
+
+    // nope, not doing this
+    desc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+
+    if (MaxAnisotropy > 1)
+    {
+        desc.Filter = D3D12_FILTER_ANISOTROPIC;
+        desc.MaxAnisotropy = MaxAnisotropy;
+    }
+    else
+    {
+        desc.Filter = Filter;
+        desc.MaxAnisotropy = 1;
+    }
+
+    desc.MaxLOD = MaxLOD;
+    desc.MinLOD = 0;
+    desc.MipLODBias = 0;
 
     return desc;
 }

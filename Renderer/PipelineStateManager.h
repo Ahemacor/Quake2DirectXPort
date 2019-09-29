@@ -23,7 +23,6 @@ public:
     void SetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY_TYPE topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE::D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
     void SetVertexShader(ShaderType shaderType);
     void SetPixelShader(ShaderType shaderType);
-    void SetSampler(SamplerState samplerType);
     void SetInputLayout(InputLayout inputLayout);
     void SetBlendState(BlendState blendState);
     void SetDepthState(DepthStencilState depthState);
@@ -52,6 +51,7 @@ private:
     D3D12_BLEND_DESC CreateBlendState(bool blendon, D3D12_BLEND src, D3D12_BLEND dst, D3D12_BLEND_OP op);
     D3D12_DEPTH_STENCIL_DESC CreateDepthState(bool test, bool mask, D3D12_COMPARISON_FUNC func);
     D3D12_RASTERIZER_DESC CreateRasterizerState(D3D12_FILL_MODE fill, D3D12_CULL_MODE cull, bool clip, bool scissor);
+    D3D12_SAMPLER_DESC CreateSamplerStateDescr(D3D12_FILTER Filter, D3D12_TEXTURE_ADDRESS_MODE AddressMode, float MaxLOD, UINT MaxAnisotropy);
 
     Microsoft::WRL::ComPtr<ID3D12Device> device;
     Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature;
@@ -62,6 +62,7 @@ private:
     D3D12_BLEND_DESC blendStates[BlendState::BS_COUNT] = {};
     D3D12_DEPTH_STENCIL_DESC depthStancilStates[DepthStencilState::DS_COUNT] = {};
     D3D12_RASTERIZER_DESC rasterizerStates[RasterizerState::RS_COUNT] = {};
+    D3D12_SAMPLER_DESC samplerDesriptions[SamplerState::SAMPLER_COUNT] = {};
 
 };
 

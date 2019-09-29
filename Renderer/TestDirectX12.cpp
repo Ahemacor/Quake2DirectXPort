@@ -59,7 +59,6 @@ static void TestInit()
     SM->SetInputLayout(InputLayout::INPUT_LAYOUT_TEST);
     SM->SetVertexShader(ShaderType::SHADER_TEST_VS);
     SM->SetPixelShader(ShaderType::SHADER_TEST_PS);
-    SM->SetSampler(SamplerState::SAMPLER_DEFAULT);
     SM->SetBlendState(BlendState::BSNone);
     SM->SetDepthState(DepthStencilState::DSDepthNoWrite);
     SM->SetRasterizerState(RasterizerState::RSNoCull);

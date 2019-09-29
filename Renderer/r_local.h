@@ -449,7 +449,11 @@ typedef enum ShaderTypeEnum
 
 typedef enum SamplerStateEnum
 {
-    SAMPLER_DEFAULT = 0,
+    SAMPLER_MAIN,
+    SAMPLER_L_MAP,
+    SAMPLER_WARP,
+    SAMPLER_DRAW,
+    SAMPLER_CINE,
 
     SAMPLER_COUNT
 } SamplerState;
