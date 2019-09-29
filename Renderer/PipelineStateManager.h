@@ -26,6 +26,7 @@ public:
     void SetSampler(SamplerState samplerType);
     void SetInputLayout(InputLayout inputLayout);
     void SetBlendState(BlendState blendState);
+    void SetDepthState(DepthStencilState depthState);
 
     ID3D12RootSignature* GetRootSignature();
     ID3D12PipelineState* GetPSO();
@@ -47,8 +48,8 @@ private:
     std::wstring GetShaderFilepath(ShaderType shaderType);
     void LoadShader(ShaderType shaderType, const std::wstring& csoFilepath);
     ID3DBlob* GetShader(ShaderType shaderType);
-    D3D12_BLEND_DESC CreateBlendState(BOOL blendon, D3D12_BLEND src, D3D12_BLEND dst, D3D12_BLEND_OP op);
-
+    D3D12_BLEND_DESC CreateBlendState(bool blendon, D3D12_BLEND src, D3D12_BLEND dst, D3D12_BLEND_OP op);
+    D3D12_DEPTH_STENCIL_DESC CreateDepthState(bool test, bool mask, D3D12_COMPARISON_FUNC func);
 
     Microsoft::WRL::ComPtr<ID3D12Device> device;
     Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature;
@@ -57,6 +58,7 @@ private:
     std::map<ShaderType, Microsoft::WRL::ComPtr<ID3DBlob>> shaders;
     D3D12_INPUT_LAYOUT_DESC inputLayouts[INPUT_LAYOUT_COUNT] = {};
     D3D12_BLEND_DESC blendStates[BlendState::BS_COUNT] = {};
+    D3D12_DEPTH_STENCIL_DESC depthStancilStates[DepthStencilState::DS_COUNT] = {};
 
 };
 

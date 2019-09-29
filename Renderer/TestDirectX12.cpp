@@ -61,6 +61,7 @@ static void TestInit()
     SM->SetPixelShader(ShaderType::SHADER_TEST_PS);
     SM->SetSampler(SamplerState::SAMPLER_DEFAULT);
     SM->SetBlendState(BlendState::BSNone);
+    SM->SetDepthState(DepthStencilState::DSDepthNoWrite);
     SM->SetPrimitiveTopology();
 
     ResourceManager::Resource::Id srvId = g_renderer->CreateTextureResource(width, height, imageData.data());

@@ -90,6 +90,15 @@ void PipelineStateManager::SetBlendState(BlendState blendState)
     }
 }
 
+void PipelineStateManager::SetDepthState(DepthStencilState depthState)
+{
+    if (currentState.DS != depthState)
+    {
+        currentState.DS = depthState;
+        isUpdateRequired = true;
+    }
+}
+
 ID3D12RootSignature* PipelineStateManager::GetRootSignature()
 {
     return rootSignature.Get();
@@ -133,17 +142,20 @@ void PipelineStateManager::InitInputLayouts()
 
 void PipelineStateManager::InitBlendStates()
 {
-    blendStates[BlendState::BSNone] = CreateBlendState(FALSE, D3D12_BLEND_SRC_ALPHA, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_OP_ADD);
-    blendStates[BlendState::BSAlphaBlend] = CreateBlendState(TRUE, D3D12_BLEND_SRC_ALPHA, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_OP_ADD);
-    blendStates[BlendState::BSAlphaReverse] = CreateBlendState(TRUE, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_SRC_ALPHA, D3D12_BLEND_OP_ADD);
-    blendStates[BlendState::BSAlphaPreMult] = CreateBlendState(TRUE, D3D12_BLEND_ONE, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_OP_ADD);
-    blendStates[BlendState::BSAdditive] = CreateBlendState(TRUE, D3D12_BLEND_ONE, D3D12_BLEND_ONE, D3D12_BLEND_OP_ADD);
-    blendStates[BlendState::BSRevSubtract] = CreateBlendState(TRUE, D3D12_BLEND_ONE, D3D12_BLEND_ONE, D3D12_BLEND_OP_REV_SUBTRACT);
+    blendStates[BlendState::BSNone] = CreateBlendState(false, D3D12_BLEND_SRC_ALPHA, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_OP_ADD);
+    blendStates[BlendState::BSAlphaBlend] = CreateBlendState(true, D3D12_BLEND_SRC_ALPHA, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_OP_ADD);
+    blendStates[BlendState::BSAlphaReverse] = CreateBlendState(true, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_SRC_ALPHA, D3D12_BLEND_OP_ADD);
+    blendStates[BlendState::BSAlphaPreMult] = CreateBlendState(true, D3D12_BLEND_ONE, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_OP_ADD);
+    blendStates[BlendState::BSAdditive] = CreateBlendState(true, D3D12_BLEND_ONE, D3D12_BLEND_ONE, D3D12_BLEND_OP_ADD);
+    blendStates[BlendState::BSRevSubtract] = CreateBlendState(true, D3D12_BLEND_ONE, D3D12_BLEND_ONE, D3D12_BLEND_OP_REV_SUBTRACT);
 }
 
 void PipelineStateManager::InitDepthStates()
 {
-
+    depthStancilStates[DepthStencilState::DSFullDepth] = CreateDepthState(true, true, D3D12_COMPARISON_FUNC_LESS_EQUAL);
+    depthStancilStates[DepthStencilState::DSDepthNoWrite] = CreateDepthState(true, false, D3D12_COMPARISON_FUNC_LESS_EQUAL);
+    depthStancilStates[DepthStencilState::DSNoDepth] = CreateDepthState(false, false, D3D12_COMPARISON_FUNC_ALWAYS);
+    depthStancilStates[DepthStencilState::DSEqualDepthNoWrite] = CreateDepthState(true, false, D3D12_COMPARISON_FUNC_EQUAL);
 }
 
 void PipelineStateManager::InitRasterizerStates()
@@ -206,6 +218,7 @@ void PipelineStateManager::CreateRootSignature()
 {
     CD3DX12_DESCRIPTOR_RANGE srvRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, ResourceManager::DESCR_HEAP_MAX, 0);
     CD3DX12_DESCRIPTOR_RANGE samplerRange(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, SAMPLER_COUNT, 0);
+
     // Create root parameters and initialize.
     CD3DX12_ROOT_PARAMETER rootParameters[ParameterIdx::ROOT_PARAMS_COUNT] = {};
     rootParameters[ParameterIdx::SRV_TABLE_IDX].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
@@ -220,14 +233,16 @@ void PipelineStateManager::CreateRootSignature()
     rootParameters[ParameterIdx::CB7_IDX].InitAsConstantBufferView(7, 0, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[ParameterIdx::CB8_IDX].InitAsConstantBufferView(8, 0, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[ParameterIdx::CB9_IDX_MAX].InitAsConstantBufferView(9, 0, D3D12_SHADER_VISIBILITY_ALL);
+
     // Description.
     D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
         D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
         D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
         D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS;
+
+    // Serialize and create.
     CD3DX12_ROOT_SIGNATURE_DESC rsigDesc = {};
     rsigDesc.Init(_countof(rootParameters), rootParameters, 0, nullptr, rootSignatureFlags);
-    // Serialize and create.
     Microsoft::WRL::ComPtr<ID3DBlob> rootBlob, errorBlob;
     ENSURE_RESULT(D3D12SerializeRootSignature(&rsigDesc, D3D_ROOT_SIGNATURE_VERSION_1, &rootBlob, &errorBlob));
     ENSURE_RESULT(device->CreateRootSignature(0, rootBlob->GetBufferPointer(), rootBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature)));
@@ -247,8 +262,7 @@ void PipelineStateManager::CreatePipelineStateObject()
 
     psoDesc.BlendState = blendStates[currentState.BS];
 
-    psoDesc.DepthStencilState.DepthEnable = false;
-    psoDesc.DepthStencilState.StencilEnable = false;
+    psoDesc.DepthStencilState = depthStancilStates[currentState.DS];
 
     psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 
@@ -276,11 +290,11 @@ ID3DBlob* PipelineStateManager::GetShader(ShaderType shaderType)
     return shaders[shaderType].Get();
 }
 
-D3D12_BLEND_DESC PipelineStateManager::CreateBlendState(BOOL blendon, D3D12_BLEND src, D3D12_BLEND dst, D3D12_BLEND_OP op)
+D3D12_BLEND_DESC PipelineStateManager::CreateBlendState(bool blendon, D3D12_BLEND src, D3D12_BLEND dst, D3D12_BLEND_OP op)
 {
     D3D12_BLEND_DESC desc = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-    desc.AlphaToCoverageEnable = FALSE;
-    desc.IndependentBlendEnable = FALSE;
+    desc.AlphaToCoverageEnable = false;
+    desc.IndependentBlendEnable = false;
     desc.RenderTarget[0].BlendEnable = blendon;
     desc.RenderTarget[0].SrcBlend = src;
     desc.RenderTarget[0].DestBlend = dst;
@@ -289,5 +303,35 @@ D3D12_BLEND_DESC PipelineStateManager::CreateBlendState(BOOL blendon, D3D12_BLEN
     desc.RenderTarget[0].DestBlendAlpha = dst;
     desc.RenderTarget[0].BlendOpAlpha = op;
     desc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+    return desc;
+}
+
+D3D12_DEPTH_STENCIL_DESC PipelineStateManager::CreateDepthState(bool test, bool mask, D3D12_COMPARISON_FUNC func)
+{
+    D3D12_DEPTH_STENCIL_DESC desc = {};
+
+    if (test)
+    {
+        desc.DepthWriteMask = mask ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
+    }
+    else
+    {
+        desc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
+    }
+
+    desc.DepthEnable = test;
+    desc.DepthFunc = func;
+    desc.StencilEnable = false;
+    desc.StencilReadMask = D3D12_DEFAULT_STENCIL_READ_MASK;
+    desc.StencilWriteMask = D3D12_DEFAULT_STENCIL_WRITE_MASK;
+    desc.FrontFace.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+    desc.FrontFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
+    desc.FrontFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
+    desc.FrontFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
+    desc.BackFace.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+    desc.BackFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
+    desc.BackFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
+    desc.BackFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
+
     return desc;
 }
