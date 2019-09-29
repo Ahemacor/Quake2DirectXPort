@@ -11,7 +11,7 @@ bool PipelineStateManager::Initialize(Microsoft::WRL::ComPtr<ID3D12Device> paren
     InitSamplers();
     CreateRootSignature();
 
-    return !currentState.isUpdateRequired;
+    return !isUpdateRequired;
 }
 
 void PipelineStateManager::Release()
@@ -26,11 +26,11 @@ void PipelineStateManager::Release()
 
 void PipelineStateManager::RebuildState()
 {
-    if (currentState.isUpdateRequired)
+    if (isUpdateRequired)
     {
         CreatePipelineStateObject();
 
-        currentState.isUpdateRequired = false;
+        isUpdateRequired = false;
     }
 }
 
@@ -39,7 +39,7 @@ void PipelineStateManager::SetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY_TYPE to
     if (currentState.topology != topology)
     {
         currentState.topology = topology;
-        currentState.isUpdateRequired = true;
+        isUpdateRequired = true;
     }
 }
 
@@ -48,7 +48,7 @@ void PipelineStateManager::SetVertexShader(ShaderType shaderType)
     if (currentState.VS != shaderType)
     {
         currentState.VS = shaderType;
-        currentState.isUpdateRequired = true;
+        isUpdateRequired = true;
     }
 }
 
@@ -57,7 +57,7 @@ void PipelineStateManager::SetPixelShader(ShaderType shaderType)
     if (currentState.PS != shaderType)
     {
         currentState.PS = shaderType;
-        currentState.isUpdateRequired = true;
+        isUpdateRequired = true;
     }
 }
 
@@ -74,7 +74,7 @@ void PipelineStateManager::SetInputLayout(InputLayout inputLayout)
     if (currentState.inputLayout != inputLayout)
     {
         currentState.inputLayout = inputLayout;
-        currentState.isUpdateRequired = true;
+        isUpdateRequired = true;
     }
 }
 
@@ -114,7 +114,7 @@ void PipelineStateManager::InitInputLayouts()
     };
     inputLayoutDescr.NumElements = ARRAYSIZE(testInputLayout);
     inputLayoutDescr.pInputElementDescs = testInputLayout;
-    inputLayouts[TestInputLayout] = inputLayoutDescr;
+    inputLayouts[INPUT_LAYOUT_TEST] = inputLayoutDescr;
 
     // ...
 }
@@ -126,11 +126,11 @@ std::wstring PipelineStateManager::GetShaderFilepath(ShaderType shaderType)
     std::wstring shaderFilename;
     switch (shaderType)
     {
-    case ShaderType::VS_Test:
+    case ShaderType::SHADER_TEST_VS:
         shaderFilename = L"TestVertexShader.cso";
         break;
 
-    case ShaderType::PS_Test:
+    case ShaderType::SHADER_TEST_PS:
         shaderFilename = L"TestPixelShader.cso";
         break;
 
@@ -156,7 +156,7 @@ void PipelineStateManager::InitSamplers()
     CD3DX12_CPU_DESCRIPTOR_HANDLE cpuHandle(samplerDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 
     // DefaultSampler
-    cpuHandle.Offset(DefaultSampler, descrHandleSize);
+    cpuHandle.Offset(SAMPLER_DEFAULT, descrHandleSize);
     D3D12_SAMPLER_DESC samplerDesc = {};
     samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
     samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;

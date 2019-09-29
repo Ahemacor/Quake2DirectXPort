@@ -45,6 +45,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <math.h>
 
 #include <d3d11.h>
+#include <d3d12.h>
 
 #define RENDERER
 #include "../DirectQII/ref.h"
@@ -411,6 +412,60 @@ typedef enum RSEnum
     RSNoCull
 } RasterizerState;
 
+typedef enum ParameterIdxEnum
+{
+    SRV_TABLE_IDX = 0,
+
+    SAMPLERS_TABLE_IDX,
+
+    CB0_IDX,
+    CB1_IDX,
+    CB2_IDX,
+    CB3_IDX,
+    CB4_IDX,
+    CB5_IDX,
+    CB6_IDX,
+    CB7_IDX,
+    CB8_IDX,
+    CB9_IDX_MAX,
+
+    ROOT_PARAMS_COUNT
+} ParameterIdx;
+
+typedef enum ShaderTypeEnum
+{
+    SHADER_UNDEFINED = 0,
+    SHADER_TEST_VS,
+    SHADER_TEST_PS,
+
+    SHADER_TYPE_COUNT
+} ShaderType;
+
+typedef enum SamplerStateEnum
+{
+    SAMPLER_DEFAULT = 0,
+
+    SAMPLER_COUNT
+} SamplerState;
+
+typedef enum InputLayoutEnum
+{
+    INPUT_LAYOUT_TEST = 0,
+
+    INPUT_LAYOUT_COUNT
+} InputLayout;
+
+typedef struct State
+{
+    InputLayout inputLayout;
+
+    ShaderType VS;
+    ShaderType PS;
+
+    D3D12_PRIMITIVE_TOPOLOGY_TYPE topology;
+
+    SamplerState sampler;
+} State;
 
 #ifndef __cplusplus
 #define SELECT_RASTERIZER( FLAGS ) ((((FLAGS) & RF_WEAPONMODEL) && r_lefthand->value) ? RSReverseCull : RSFullCull )

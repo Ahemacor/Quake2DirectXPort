@@ -66,14 +66,14 @@ void Renderer::DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLoca
                                       stateManager.GetSamplerDescriptorHeap() };
     commandList->SetDescriptorHeaps(_countof(heaps), heaps);
 
-    commandList->SetGraphicsRootDescriptorTable(PipelineStateManager::ParameterIdx::SAMPLERS_TABLE_IDX, stateManager.GetSamplerHandle());
+    commandList->SetGraphicsRootDescriptorTable(ParameterIdx::SAMPLERS_TABLE_IDX, stateManager.GetSamplerHandle());
 
     for (const auto& pair : cbArguments)
     {
-        commandList->SetGraphicsRootConstantBufferView(PipelineStateManager::ParameterIdx::CB0_IDX + pair.first, pair.second);
+        commandList->SetGraphicsRootConstantBufferView(ParameterIdx::CB0_IDX + pair.first, pair.second);
     }
     
-    commandList->SetGraphicsRootDescriptorTable(PipelineStateManager::ParameterIdx::SRV_TABLE_IDX, resourceManager.GetSrvHandle());
+    commandList->SetGraphicsRootDescriptorTable(ParameterIdx::SRV_TABLE_IDX, resourceManager.GetSrvHandle());
 
     commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
     commandList->IASetIndexBuffer(&indexBufferView);
@@ -187,7 +187,7 @@ void Renderer::UpdateIndexBuffer(ResourceManager::Resource::Id resourceId, const
 
 void Renderer::BindConstantBuffer(ResourceManager::Resource::Id resourceId, std::size_t slot)
 {
-    const std::size_t CB_SLOT_MAX = PipelineStateManager::ParameterIdx::CB9_IDX_MAX - PipelineStateManager::ParameterIdx::CB0_IDX;
+    const std::size_t CB_SLOT_MAX = ParameterIdx::CB9_IDX_MAX - ParameterIdx::CB0_IDX;
     ASSERT(slot <= CB_SLOT_MAX);
     ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
     ASSERT(resource.type == ResourceManager::Resource::Type::CB);

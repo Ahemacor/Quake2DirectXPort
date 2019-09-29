@@ -56,8 +56,11 @@ static void TestInit()
     DX12_BindConstantBuffer(cbId, 0);
 
     ScopedStateManager SM = g_renderer->GetStateManager();
-    SM->SetVertexShader(PipelineStateManager::VS_Test);
-    SM->SetPixelShader(PipelineStateManager::PS_Test);
+    SM->SetInputLayout(InputLayout::INPUT_LAYOUT_TEST);
+    SM->SetVertexShader(ShaderType::SHADER_TEST_VS);
+    SM->SetPixelShader(ShaderType::SHADER_TEST_PS);
+    SM->SetSampler(SamplerState::SAMPLER_DEFAULT);
+    SM->SetPrimitiveTopology();
 
     ResourceManager::Resource::Id srvId = g_renderer->CreateTextureResource(width, height, imageData.data());
     g_renderer->BindTextureResource(srvId, 0);
