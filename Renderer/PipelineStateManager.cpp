@@ -99,6 +99,15 @@ void PipelineStateManager::SetDepthState(DepthStencilState depthState)
     }
 }
 
+void PipelineStateManager::SetRasterizerState(RasterizerState rasterizerState)
+{
+    if (currentState.RS != rasterizerState)
+    {
+        currentState.RS = rasterizerState;
+        isUpdateRequired = true;
+    }
+}
+
 ID3D12RootSignature* PipelineStateManager::GetRootSignature()
 {
     return rootSignature.Get();
@@ -160,7 +169,9 @@ void PipelineStateManager::InitDepthStates()
 
 void PipelineStateManager::InitRasterizerStates()
 {
-
+    rasterizerStates[RasterizerState::RSFullCull] = CreateRasterizerState(D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_FRONT, true, false);
+    rasterizerStates[RasterizerState::RSReverseCull] = CreateRasterizerState(D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_BACK, true, false);
+    rasterizerStates[RasterizerState::RSNoCull] = CreateRasterizerState(D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_NONE, true, false);
 }
 
 std::wstring PipelineStateManager::GetShaderFilepath(ShaderType shaderType)
@@ -259,12 +270,9 @@ void PipelineStateManager::CreatePipelineStateObject()
     psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
 
     psoDesc.InputLayout = inputLayouts[currentState.inputLayout];
-
     psoDesc.BlendState = blendStates[currentState.BS];
-
     psoDesc.DepthStencilState = depthStancilStates[currentState.DS];
-
-    psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+    psoDesc.RasterizerState = rasterizerStates[currentState.RS];
 
     psoDesc.SampleDesc.Count = 1;
     psoDesc.SampleMask = 0xFFFFFFFF;
@@ -308,7 +316,7 @@ D3D12_BLEND_DESC PipelineStateManager::CreateBlendState(bool blendon, D3D12_BLEN
 
 D3D12_DEPTH_STENCIL_DESC PipelineStateManager::CreateDepthState(bool test, bool mask, D3D12_COMPARISON_FUNC func)
 {
-    D3D12_DEPTH_STENCIL_DESC desc = {};
+    D3D12_DEPTH_STENCIL_DESC desc = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 
     if (test)
     {
@@ -332,6 +340,22 @@ D3D12_DEPTH_STENCIL_DESC PipelineStateManager::CreateDepthState(bool test, bool 
     desc.BackFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
     desc.BackFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
     desc.BackFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
+
+    return desc;
+}
+
+D3D12_RASTERIZER_DESC PipelineStateManager::CreateRasterizerState(D3D12_FILL_MODE fill, D3D12_CULL_MODE cull, bool clip, bool scissor)
+{
+    D3D12_RASTERIZER_DESC desc = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+    desc.FillMode = fill;
+    desc.CullMode = cull;
+    desc.FrontCounterClockwise = true;
+    desc.DepthBias = 0;
+    desc.DepthBiasClamp = 0;
+    desc.SlopeScaledDepthBias = 0;
+    desc.DepthClipEnable = clip;
+    desc.MultisampleEnable = false;
+    desc.AntialiasedLineEnable = false;
 
     return desc;
 }
