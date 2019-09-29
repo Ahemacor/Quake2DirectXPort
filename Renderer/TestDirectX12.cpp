@@ -117,13 +117,13 @@ void DX12_Release()
 
 void DX12_Render_Begin()
 {
-    g_renderEnv->ClearScreen();
-    TestRender();
+    //g_renderEnv->ClearScreen();
+    //TestRender();
 }
 
 void DX12_Render_End()
 {
-    g_renderEnv->Present();
+    //g_renderEnv->Present();
 }
 
 void DX12_SetAppProps(HINSTANCE hInstance, WNDPROC winproc)
@@ -158,7 +158,7 @@ void DX12_CloseWindow()
 
 void DX12_InitDefaultStates()
 {
-    TestInit();
+    //TestInit();
 }
 
 UINT DX12_GetModesNumber()
@@ -262,4 +262,14 @@ void DX12_SetRasterizerState(RasterizerState rasterizerState)
 {
     ScopedStateManager SM = g_renderer->GetStateManager(false);
     SM->SetRasterizerState(rasterizerState);
+}
+
+void DX12_ClearRTVandDSV()
+{
+    g_renderEnv->ClearScreen();
+}
+
+void DX12_Present()
+{
+    g_renderEnv->Present();
 }

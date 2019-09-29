@@ -117,6 +117,7 @@ void R_ShutdownWarp (void)
 }
 
 #else
+#if DX11_IMPL
 qboolean D_BeginWaterWarp(void) 
 {
     R_Clear(RWGetRTV(), RWGetDSV());
@@ -125,6 +126,17 @@ qboolean D_BeginWaterWarp(void)
 void D_DoWaterWarp(void) {}
 void R_InitWarp(void) {}
 void R_ShutdownWarp(void) {}
+#else // DX12
+#include "TestDirectX12.h"
+qboolean D_BeginWaterWarp(void)
+{
+    DX12_ClearRTVandDSV();
+    return false;
+}
+void D_DoWaterWarp(void) {}
+void R_InitWarp(void) {}
+void R_ShutdownWarp(void) {}
+#endif // DX11_IMPL
 #endif // FEATURE_WATER_WARP
 
 

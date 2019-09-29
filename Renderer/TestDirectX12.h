@@ -34,6 +34,7 @@ extern "C" {
     void DX12_SetViewport(const D3D12_VIEWPORT* pViewport);
     void DX12_Draw(UINT numOfVertices, UINT firstVertexToDraw);
     void DX12_DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLocation);
+    void Dx12_SetRenderState(const State* newState);
     const State* Dx12_GetRenderState();
 
     void DX12_SetVertexShader(ShaderType shaderType);
@@ -42,6 +43,9 @@ extern "C" {
     void DX12_SetBlendState(BlendState blendState);
     void DX12_SetDepthState(DepthStencilState depthState);
     void DX12_SetRasterizerState(RasterizerState rasterizerState);
+
+    void DX12_ClearRTVandDSV();
+    void DX12_Present();
 
 #ifdef __cplusplus
 }

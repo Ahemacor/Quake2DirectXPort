@@ -21,6 +21,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "r_local.h"
 #if DX11_IMPL
 #include "CppWrapper.h"
+#else // DX12
+#include "TestDirectX12.h"
+#endif // DX11_IMPL
 
 void R_DrawParticles (void);
 void R_SetupSky (QMATRIX *SkyMatrix);
@@ -58,13 +61,21 @@ __declspec(align(16)) typedef struct entityconstants_s {
 } entityconstants_t;
 
 
+#if DX11_IMPL
 ID3D11Buffer *d3d_MainConstants = NULL;
 ID3D11Buffer *d3d_EntityConstants = NULL;
 
 int d3d_PolyblendShader = 0;
+#else // DX12
+int d3d_MainConstants;
+int d3d_EntityConstants;
+
+State d3d_PolyblendShader;
+#endif // DX11_IMPL
 
 void R_InitMain (void)
 {
+#if DX11_IMPL
 	D3D11_BUFFER_DESC cbMainDesc = {
 		sizeof (mainconstants_t),
 		D3D11_USAGE_DEFAULT,
@@ -90,6 +101,17 @@ void R_InitMain (void)
     SLRegisterConstantBuffer(d3d_EntityConstants, 2);
 
 	d3d_PolyblendShader = SLCreateShaderBundle(IDR_DRAWSHADER, "DrawPolyblendVS", NULL, "DrawPolyblendPS", NULL, 0);
+#else // DX12
+    d3d_MainConstants = DX12_CreateConstantBuffer(NULL, sizeof(mainconstants_t));
+    d3d_EntityConstants = DX12_CreateConstantBuffer(NULL, sizeof(entityconstants_t));
+
+    DX12_BindConstantBuffer(d3d_MainConstants, 1);
+    DX12_BindConstantBuffer(d3d_EntityConstants, 2);
+
+    d3d_PolyblendShader = *Dx12_GetRenderState();
+    d3d_PolyblendShader.VS = SHADER_TEST_VS;
+    d3d_PolyblendShader.PS = SHADER_TEST_PS;
+#endif // DX11_IMPL
 }
 
 
@@ -199,14 +221,31 @@ void R_PrepareEntityForRendering (QMATRIX *localMatrix, float *color, float alph
 		consts.alphaval = alpha;
 	else consts.alphaval = 1.0f;
 
+#if DX11_IMPL
 	// and update to the cbuffer
-	//d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_EntityConstants, 0, NULL, &consts, 0, 0);
     RWGetDeviceContext()->lpVtbl->UpdateSubresource(RWGetDeviceContext(), (ID3D11Resource*)d3d_EntityConstants, 0, NULL, &consts, 0, 0);
 
 	// and set the correct states
 	if (rflags & RF_TRANSLUCENT)
 		SMSetRenderStates(BSAlphaBlend, DSDepthNoWrite, SELECT_RASTERIZER(rflags));
 	else SMSetRenderStates(BSNone, DSFullDepth, SELECT_RASTERIZER(rflags));
+#else // DX12
+    // and update to the cbuffer
+    DX12_UpdateConstantBuffer(d3d_EntityConstants, &consts, sizeof(entityconstants_t));
+
+    // and set the correct states
+    if (rflags & RF_TRANSLUCENT)
+    {
+        DX12_SetBlendState(BSAlphaBlend);
+        DX12_SetDepthState(DSDepthNoWrite);
+    }
+    else
+    {
+        DX12_SetBlendState(BSNone);
+        DX12_SetDepthState(DSFullDepth);
+    }
+    DX12_SetRasterizerState(SELECT_RASTERIZER(rflags));
+#endif // DX11_IMPL
 }
 
 
@@ -463,8 +502,11 @@ void R_SetupGL (void)
 
 	// set up the viewport that we'll use for the entire refresh
 	D3D11_VIEWPORT vp = {r_newrefdef.x, r_newrefdef.y, r_newrefdef.width, r_newrefdef.height, 0, 1};
-	//d3d_Context->lpVtbl->RSSetViewports (d3d_Context, 1, &vp);
+#if DX11_IMPL
     RWGetDeviceContext()->lpVtbl->RSSetViewports(RWGetDeviceContext(), 1, &vp);
+#else // DX12
+    DX12_SetViewport(&vp);
+#endif // DX11_IMPL
 
 	// the projection matrix may be only updated when the refdef changes but we do it every frame so that we can do waterwarp
 	R_MatrixIdentity (&r_proj_matrix);
@@ -528,8 +570,8 @@ void R_SetupGL (void)
 		consts.desaturation = 1;
 	else consts.desaturation = r_desaturatelighting->value;
 
+#if DX11_IMPL
 	// and update to the cbuffer
-	//d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_MainConstants, 0, NULL, &consts, 0, 0);
     RWGetDeviceContext()->lpVtbl->UpdateSubresource(RWGetDeviceContext(), (ID3D11Resource*)d3d_MainConstants, 0, NULL, &consts, 0, 0);
 
 	// clear out the portion of the screen that the NOWORLDMODEL defines
@@ -539,6 +581,16 @@ void R_SetupGL (void)
 		//d3d_Context->lpVtbl->ClearDepthStencilView (d3d_Context, d3d_DepthBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 1);
         RWGetDeviceContext()->lpVtbl->ClearDepthStencilView(RWGetDeviceContext(), RWGetDSV(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 1);
 	}
+#else // DX12
+    // and update to the cbuffer
+    DX12_UpdateConstantBuffer(d3d_MainConstants, &consts, sizeof(mainconstants_t));
+
+    // clear out the portion of the screen that the NOWORLDMODEL defines
+    if (r_newrefdef.rdflags & RDF_NOWORLDMODEL)
+    {
+        DX12_ClearRTVandDSV();
+    }
+#endif // DX11_IMPL
 }
 
 
@@ -549,6 +601,7 @@ R_Clear
 */
 void R_Clear (ID3D11RenderTargetView *RTV, ID3D11DepthStencilView *DSV)
 {
+#if DX11_IMPL
 #if FEATURE_BRUSH_MODEL
 	mleaf_t *leaf = Mod_PointInLeaf (r_newrefdef.vieworg, r_worldmodel);
 
@@ -570,6 +623,9 @@ void R_Clear (ID3D11RenderTargetView *RTV, ID3D11DepthStencilView *DSV)
 	// standard depth clear
 	//d3d_Context->lpVtbl->ClearDepthStencilView (d3d_Context, DSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 1);
     RWGetDeviceContext()->lpVtbl->ClearDepthStencilView(RWGetDeviceContext(), DSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 1);
+#else // DX12
+    DX12_ClearRTVandDSV();
+#endif // DX11_IMPL
 }
 
 /*
@@ -581,11 +637,22 @@ void R_PolyBlend (void)
 {
 	if (v_blend[3] > 0)
 	{
+#if DX11_IMPL
         SMSetRenderStates(BSAlphaBlend, DSDepthNoWrite, RSNoCull);
         SLBindShaderBundle(d3d_PolyblendShader);
 
 		// full-screen triangle
         RWGetDeviceContext()->lpVtbl->Draw(RWGetDeviceContext(), 3, 0);
+#else // DX12
+        //SMSetRenderStates(BSAlphaBlend, DSDepthNoWrite, RSNoCull);
+        //SLBindShaderBundle(d3d_PolyblendShader);
+        State newState = d3d_PolyblendShader;
+        newState.BS = BSAlphaBlend;
+        newState.DS = DSDepthNoWrite;
+        newState.RS = RSNoCull;
+        Dx12_SetRenderState(&newState);
+        DX12_Draw(3, 0);
+#endif // DX11_IMPL
 	}
 }
 
@@ -704,79 +771,3 @@ void R_RenderFrame (refdef_t *fd)
 
 	R_SetLightLevel ();
 }
-
-#else
-viddef_t	vid;
-
-refimport_t	ri;
-
-model_t* r_worldmodel;
-
-glconfig_t gl_config;
-glstate_t  gl_state;
-
-image_t* r_notexture;		// use for bad textures
-image_t* r_blacktexture;	// use for bad textures
-image_t* r_greytexture;		// use for bad textures
-image_t* r_whitetexture;	// use for bad textures
-
-cplane_t	frustum[4];
-
-mleaf_t* r_viewleaf, * r_oldviewleaf;
-
-int			r_visframecount;	// bumped when going to a new PVS
-int			r_framecount;		// used for dlight push checking
-
-int			c_brush_polys, c_alias_polys;
-
-float		v_blend[4];			// final blending color
-
-// world transforms
-QMATRIX	r_view_matrix;
-QMATRIX	r_proj_matrix;
-QMATRIX	r_gun_matrix;
-QMATRIX	r_mvp_matrix;
-QMATRIX r_local_matrix[MAX_ENTITIES];
-
-// view origin
-vec3_t	vup;
-vec3_t	vpn;
-vec3_t	vright;
-
-// screen size info
-refdef_t	r_newrefdef;
-
-cvar_t* scr_viewsize;
-cvar_t* r_testnullmodels;
-cvar_t* r_lightmap;
-cvar_t* r_testnotexture;
-cvar_t* r_lightmodel;
-cvar_t* r_fullbright;
-cvar_t* r_beamdetail;
-cvar_t* r_drawentities;
-cvar_t* r_drawworld;
-cvar_t* r_novis;
-cvar_t* r_lefthand;
-
-cvar_t* r_lightlevel;	// FIXME: This is a HACK to get the client's light level
-cvar_t* r_desaturatelighting;
-
-cvar_t* vid_mode;
-cvar_t* gl_finish;
-cvar_t* gl_clear;
-cvar_t* gl_polyblend;
-cvar_t* gl_lockpvs;
-
-cvar_t* vid_fullscreen;
-cvar_t* vid_gamma;
-cvar_t* vid_brightness;
-
-cvar_t* vid_width;
-cvar_t* vid_height;
-cvar_t* vid_vsync;
-
-void R_RenderFrame(refdef_t* fd) {}
-void R_InitMain(void) {}
-void R_Clear(ID3D11RenderTargetView* RTV, ID3D11DepthStencilView* DSV) {}
-
-#endif // DX11_IMPL

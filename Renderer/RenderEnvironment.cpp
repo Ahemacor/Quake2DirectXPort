@@ -463,7 +463,6 @@ void RenderEnvironment::ClearScreen()
 
     // Record commands.
     float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-    //clearColor[currentBufferIndex] = 1.0f; // just for testing.
 
     commandList->ClearRenderTargetView(renderTargetHandle, clearColor, 0, nullptr);
     commandList->ClearDepthStencilView(dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);

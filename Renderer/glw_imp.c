@@ -305,11 +305,11 @@ void GLimp_BeginFrame (viddef_t *vd, int scrflags)
     SMBindSamplers();
     SLBindConstantBuffers();
 #else // !DX11_IMPL
-    DX12_Render_Begin();
     //Draw_UpdateConstants(scrflags);
     //RWSetPrimitiveTopologyTriangleList();
     //SMBindSamplers();
     //SLBindConstantBuffers();
+    DX12_SetPrimitiveTopologyTriangleList();
 #endif // DX11_IMPL
 }
 
@@ -340,7 +340,7 @@ void GLimp_EndFrame (int scrflags)
 	else //d3d_SwapChain->lpVtbl->Present (d3d_SwapChain, 0, 0);
         RWGetSwapchain()->lpVtbl->Present(RWGetSwapchain(), 0, 0);
 #else // !DX11_IMPL
-    DX12_Render_End();
+    DX12_Present();
 #endif // DX11_IMPL
 }
 
