@@ -242,6 +242,14 @@ std::wstring PipelineStateManager::GetShaderFilepath(ShaderType shaderType)
         shaderFilename = L"TestPixelShader.cso";
         break;
 
+    case ShaderType::SHADER_DRAW_POLYBLEND_VS:
+        shaderFilename = L"DrawPolyblendVS.cso";
+        break;
+
+    case ShaderType::SHADER_DRAW_POLYBLEND_PS:
+        shaderFilename = L"DrawPolyblendPS.cso";
+        break;
+
     default:
         shaderFilename = L"";
         break;

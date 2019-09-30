@@ -109,8 +109,8 @@ void R_InitMain (void)
     DX12_BindConstantBuffer(d3d_EntityConstants, 2);
 
     d3d_PolyblendShader = *Dx12_GetRenderState();
-    d3d_PolyblendShader.VS = SHADER_TEST_VS;
-    d3d_PolyblendShader.PS = SHADER_TEST_PS;
+    d3d_PolyblendShader.VS = SHADER_DRAW_POLYBLEND_VS;
+    d3d_PolyblendShader.PS = SHADER_DRAW_POLYBLEND_PS;
 #endif // DX11_IMPL
 }
 

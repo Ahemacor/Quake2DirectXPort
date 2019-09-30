@@ -5,6 +5,7 @@
 #endif
 #include <d3d11.h>
 #include "r_local.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
