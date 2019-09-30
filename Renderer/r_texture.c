@@ -752,5 +752,8 @@ struct image_s* R_RegisterSkin(char* name) {}
 void R_InitImages(void) {}
 void R_ShutdownImages(void) {}
 void R_FreeUnusedImages(void) {}
+image_t* GL_FindImage(char* name, imagetype_t type) { return NULL; }
+image_t* R_LoadTexArray(char* base) { return NULL; }
+
 #endif // DX11_IMPL
 

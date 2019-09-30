@@ -644,12 +644,12 @@ void R_PolyBlend (void)
 		// full-screen triangle
         RWGetDeviceContext()->lpVtbl->Draw(RWGetDeviceContext(), 3, 0);
 #else // DX12
-        //SMSetRenderStates(BSAlphaBlend, DSDepthNoWrite, RSNoCull);
-        //SLBindShaderBundle(d3d_PolyblendShader);
         State newState = d3d_PolyblendShader;
+        newState.inputLayout = INPUT_LAYOUT_STANDART;
         newState.BS = BSAlphaBlend;
         newState.DS = DSDepthNoWrite;
         newState.RS = RSNoCull;
+        newState.topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         Dx12_SetRenderState(&newState);
         DX12_Draw(3, 0);
 #endif // DX11_IMPL

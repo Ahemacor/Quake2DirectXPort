@@ -146,6 +146,20 @@ int DX12_InitWindow(int width, int height, int mode, int fullscreen)
     initSuccess = initSuccess && g_renderEnv->Initialize(g_window->GetHandle(), width, height);
     initSuccess = initSuccess && g_renderer->Init(g_renderEnv);
 
+    // load all of our initial objects
+    // each subsystem creates it's objects then registers it's handlers, following which the reset handler runs to complete object creation
+    // SLInitShaders(); // must be done first before any other shaders are created
+    R_InitMain();
+    R_InitSurfaces();
+    R_InitParticles();
+    R_InitSprites();
+    R_InitLight();
+    R_InitWarp();
+    R_InitSky();
+    R_InitMesh();
+    R_InitBeam();
+    R_InitNull();
+
     return initSuccess;
 }
 
@@ -154,6 +168,16 @@ void DX12_CloseWindow()
     g_renderer->Release();
     g_renderEnv->Release();
     g_window->Hide();
+
+    // handle special objects
+    //SLShutdownShaders();
+    R_ShutdownSurfaces();
+    R_ShutdownLight();
+    R_ShutdownWarp();
+    R_ShutdownSky();
+    R_ShutdownMesh();
+    R_ShutdownBeam();
+    R_ShutdownSprites();
 }
 
 void DX12_InitDefaultStates()
@@ -198,9 +222,34 @@ void DX12_BindConstantBuffer(int resourceId, int slot)
     g_renderer->BindConstantBuffer(resourceId, slot);
 }
 
+int DX12_CreateVertexBuffer(int numOfVertices, int vertexSize, const void* pVertexData)
+{
+    return g_renderer->CreateVertexBuffer(numOfVertices, vertexSize, pVertexData);
+}
+
+void DX12_UpdateVertexBuffer(int resourceId, const void* pVertexData, int numOfVertices, int vertexSize)
+{
+    g_renderer->UpdateVertexBuffer(resourceId, pVertexData, numOfVertices, vertexSize);
+}
+
 void DX12_BindVertexBuffer(UINT Slot, int resourceId)
 {
     g_renderer->BindVertexBuffer(Slot, resourceId);
+}
+
+int DX12_CreateIndexBuffer(int numOfIndices, const void* pIndexData, int indexSize)
+{
+    return g_renderer->CreateIndexBuffer(numOfIndices, pIndexData, indexSize);
+}
+
+void DX12_UpdateIndexBuffer(int resourceId, const void* pIndexData, int numOfIndices, int indexSize)
+{
+    g_renderer->UpdateIndexBuffer(resourceId, pIndexData, numOfIndices, indexSize);
+}
+
+void DX12_BindIndexBuffer(int resourceId)
+{
+    g_renderer->BindIndexBuffer(resourceId);
 }
 
 void DX12_SetViewport(const D3D12_VIEWPORT* pViewport)

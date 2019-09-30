@@ -292,10 +292,11 @@ void GLimp_BeginFrame (viddef_t *vd, int scrflags)
 	vd->conwidth = vid.conwidth;
 	vd->conheight = vid.conheight;
 
-#if DX11_IMPL
+
 	// set up the 2D ortho view, brightness and contrast
 	Draw_UpdateConstants (scrflags);
 
+#if DX11_IMPL
 	// everything in all draws is drawn as an indexed triangle list, even if it's ultimately a strip or a single tri, so this can be set-and-forget once per frame
 	//d3d_Context->lpVtbl->IASetPrimitiveTopology (d3d_Context, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     RWSetPrimitiveTopologyTriangleList();
@@ -304,11 +305,7 @@ void GLimp_BeginFrame (viddef_t *vd, int scrflags)
 	//D_BindSamplers ();
     SMBindSamplers();
     SLBindConstantBuffers();
-#else // !DX11_IMPL
-    //Draw_UpdateConstants(scrflags);
-    //RWSetPrimitiveTopologyTriangleList();
-    //SMBindSamplers();
-    //SLBindConstantBuffers();
+#else // DX12
     DX12_SetPrimitiveTopologyTriangleList();
 #endif // DX11_IMPL
 }

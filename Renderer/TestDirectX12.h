@@ -30,7 +30,14 @@ extern "C" {
     void DX12_UpdateConstantBuffer(int resourceId, const void* pSrcData, int bufferSize);
     void DX12_BindConstantBuffer(int resourceId, int slot);
 
+    int DX12_CreateVertexBuffer(int numOfVertices, int vertexSize, const void* pVertexData);
+    void DX12_UpdateVertexBuffer(int resourceId, const void* pVertexData, int numOfVertices, int vertexSize);
     void DX12_BindVertexBuffer(UINT Slot, int resourceId);
+
+    int DX12_CreateIndexBuffer(int numOfIndices, const void* pIndexData, int indexSize);
+    void DX12_UpdateIndexBuffer(int resourceId, const void* pIndexData, int numOfIndices, int indexSize);
+    void DX12_BindIndexBuffer(int resourceId);
+
     void DX12_SetViewport(const D3D12_VIEWPORT* pViewport);
     void DX12_Draw(UINT numOfVertices, UINT firstVertexToDraw);
     void DX12_DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLocation);

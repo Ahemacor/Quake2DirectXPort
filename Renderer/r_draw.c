@@ -23,6 +23,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "r_local.h"
 #if DX11_IMPL
 #include "CppWrapper.h"
+#else // DX12
+#include "TestDirectX12.h"
+#endif // DX11_IMPL
+
 
 typedef struct drawpolyvert_s {
 	float position[2];
@@ -43,14 +47,18 @@ typedef struct drawpolyvert_s {
 #error (MAX_DRAW_VERTS / 4) * 6 != MAX_DRAW_INDEXES
 #endif
 
-
-static drawpolyvert_t *d_drawverts = NULL;
-static int d_firstdrawvert = 0;
-static int d_numdrawverts = 0;
-
+#if DX11_IMPL
+static drawpolyvert_t* d_drawverts = NULL;
 static ID3D11Buffer *d3d_DrawVertexes = NULL;
 static ID3D11Buffer *d3d_DrawIndexes = NULL;
+#else // DX12
+static drawpolyvert_t d_drawverts[MAX_DRAW_VERTS];
+static int d3d_DrawVertexes = -1;
+static int d3d_DrawIndexes = -1;
+#endif // DX11_IMPL
 
+static int d_firstdrawvert = 0;
+static int d_numdrawverts = 0;
 
 #define STAT_MINUS		10	// num frame for '-' stats digit
 
@@ -77,9 +85,11 @@ static int d3d_DrawTexArrayShader;
 static int d3d_DrawFadescreenShader;
 #endif // FEATURE_FADE_SCREEN
 
-
+#if DX11_IMPL
 static ID3D11Buffer *d3d_DrawConstants = NULL;
-
+#else // DX12
+static int d3d_DrawConstants = -1;
+#endif // DX11_IMPL
 
 __declspec(align(16)) typedef struct drawconstants_s {
 	QMATRIX OrthoMatrix;
@@ -91,6 +101,7 @@ __declspec(align(16)) typedef struct drawconstants_s {
 
 void Draw_CreateBuffers (void)
 {
+#if DX11_IMPL
 	D3D11_BUFFER_DESC vbDesc = {
 		sizeof (drawpolyvert_t) * MAX_DRAW_VERTS,
 		D3D11_USAGE_DYNAMIC,
@@ -126,7 +137,24 @@ void Draw_CreateBuffers (void)
 
     RWCreateBuffer(&vbDesc, NULL, &d3d_DrawVertexes);
     RWCreateBuffer(&ibDesc, ndx, &d3d_DrawIndexes);
+#else // DX12
+    unsigned short* ndx = ri.Load_AllocMemory(sizeof(unsigned short) * MAX_DRAW_INDEXES);
+    unsigned short* ndxCurrent = ndx;
 
+    for (int i = 0; i < MAX_DRAW_VERTS; i += 4, ndxCurrent += 6)
+    {
+        ndxCurrent[0] = i + 0;
+        ndxCurrent[1] = i + 1;
+        ndxCurrent[2] = i + 2;
+
+        ndxCurrent[3] = i + 0;
+        ndxCurrent[4] = i + 2;
+        ndxCurrent[5] = i + 3;
+    }
+    d3d_DrawVertexes = DX12_CreateVertexBuffer(MAX_DRAW_VERTS, sizeof(drawpolyvert_t), NULL);
+    d3d_DrawIndexes = DX12_CreateIndexBuffer(MAX_DRAW_INDEXES, ndx, sizeof(unsigned short));
+
+#endif // DX11_IMPL
 	ri.Load_FreeMemory ();
 }
 
@@ -138,6 +166,7 @@ Draw_InitLocal
 */
 void Draw_InitLocal (void)
 {
+
 	D3D11_BUFFER_DESC cbDrawDesc = {
 		sizeof (drawconstants_t),
 		D3D11_USAGE_DEFAULT,
@@ -167,9 +196,14 @@ void Draw_InitLocal (void)
 		VDECL ("TEXCOORD", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0)
 	};
 
+#if DX11_IMPL
 	// cbuffers
     RWCreateBuffer(&cbDrawDesc, NULL, &d3d_DrawConstants);
     SLRegisterConstantBuffer(d3d_DrawConstants, 0);
+#else // DX12
+    d3d_DrawConstants = DX12_CreateConstantBuffer(NULL, sizeof(drawconstants_t));
+    DX12_BindConstantBuffer(d3d_DrawConstants, 0);
+#endif // DX11_IMPL
 
 	// shaders
 #if FEATURE_DRAW_PICTURES
@@ -221,13 +255,17 @@ void Draw_UpdateConstants (int scrflags)
 	consts.ConScale[0] = (float) vid.conwidth / (float) vid.width;
 	consts.ConScale[1] = (float) vid.conheight / (float) vid.height;
 
-	//d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_DrawConstants, 0, NULL, &consts, 0, 0);
+#if DX11_IMPL
     RWGetDeviceContext()->lpVtbl->UpdateSubresource(RWGetDeviceContext(), (ID3D11Resource*)d3d_DrawConstants, 0, NULL, &consts, 0, 0);
+#else // DX12
+    DX12_UpdateConstantBuffer(d3d_DrawConstants, &consts, sizeof(drawconstants_t));
+#endif // DX11_IMPL
 }
 
 
 void Draw_Flush (void)
 {
+#if DX11_IMPL
 	if (d_drawverts)
 	{
         RWGetDeviceContext()->lpVtbl->Unmap(RWGetDeviceContext(), (ID3D11Resource*)d3d_DrawVertexes, 0);
@@ -245,6 +283,20 @@ void Draw_Flush (void)
 		SMBindIndexBuffer (d3d_DrawIndexes, DXGI_FORMAT_R16_UINT);
         RWGetDeviceContext()->lpVtbl->DrawIndexed(RWGetDeviceContext(), (d_numdrawverts >> 2) * 6, 0, d_firstdrawvert);
 	}
+#else // DX12
+    DX12_UpdateVertexBuffer(d3d_DrawVertexes, d_drawverts, MAX_DRAW_VERTS, sizeof(drawpolyvert_t));
+    DX12_BindVertexBuffer(0, d3d_DrawVertexes);
+
+    if (d_numdrawverts == 3)
+    {
+        DX12_Draw(d_numdrawverts, d_firstdrawvert);
+    }
+    else if (d_numdrawverts > 3)
+    {
+        DX12_BindIndexBuffer(d3d_DrawIndexes);
+        DX12_DrawIndexed((d_numdrawverts >> 2) * 6, 0, d_firstdrawvert);
+    }
+#endif // DX11_IMPL
 
 	d_firstdrawvert += d_numdrawverts;
 	d_numdrawverts = 0;
@@ -260,17 +312,18 @@ qboolean Draw_EnsureBufferSpace (void)
 		d_firstdrawvert = 0;
 	}
 
+#if DX11_IMPL
 	if (!d_drawverts)
 	{
 		// first index is only reset to 0 if the buffer must wrap so this is valid to do
 		D3D11_MAP mode = (d_firstdrawvert > 0) ? D3D11_MAP_WRITE_NO_OVERWRITE : D3D11_MAP_WRITE_DISCARD;
 		D3D11_MAPPED_SUBRESOURCE msr;
 
-		//if (FAILED (d3d_Context->lpVtbl->Map (d3d_Context, (ID3D11Resource *) d3d_DrawVertexes, 0, mode, 0, &msr)))
         if (FAILED(RWGetDeviceContext()->lpVtbl->Map(RWGetDeviceContext(), (ID3D11Resource*)d3d_DrawVertexes, 0, mode, 0, &msr)))
 			return false;
 		else d_drawverts = (drawpolyvert_t *) msr.pData + d_firstdrawvert;
 	}
+#endif // DX11_IMPL
 
 	// all OK!
 	return true;
@@ -638,26 +691,14 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame, const unsigned 
 #endif // #if FEATURE_CINEMATIC
 }
 
-
 void R_Set2D (void)
 {
 	// switch to our 2d viewport
 	D3D11_VIEWPORT vp = {0, 0, vid.width, vid.height, 0, 0};
+#if DX11_IMPL
     RWGetDeviceContext()->lpVtbl->RSSetViewports(RWGetDeviceContext(), 1, &vp);
+#else // DX12
+    DX12_SetViewport(&vp);
+#endif // DX11_IMPL
 }
 
-#else // !DX11_IMPL
-void R_Set2D(void) {}
-void Draw_InitLocal(void) {}
-qboolean Draw_GetPicSize(int* w, int* h, char* pic) { return false; }
-void Draw_StretchPic(int x, int y, int w, int h, char* pic) {}
-void Draw_Pic(int x, int y, char* pic) {}
-void Draw_ConsoleBackground(int x, int y, int w, int h, char* pic, int alpha) {}
-void Draw_Fill(int x, int y, int w, int h, int c) {}
-void Draw_FadeScreen(void) {}
-void Draw_StretchRaw(int cols, int rows, byte* data, int frame, const unsigned char* palette) {}
-void Draw_Char(int x, int y, int num) {}
-void Draw_Field(int x, int y, int color, int width, int value) {}
-void Draw_Flush(void) {}
-image_t* Draw_FindPic(char* name) { return NULL; }
-#endif // DX11_IMPL
