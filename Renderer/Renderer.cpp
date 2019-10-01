@@ -50,11 +50,9 @@ void Renderer::Release()
 
 void Renderer::Draw(UINT numOfVertices, UINT firstVertexToDraw)
 {
-    stateManager.RebuildState();
+    auto commandList = pRenderEnv->GetRenderCommandList();
 
-    auto commandList = pRenderEnv->GetGraphicsCommandList();
-
-    commandList->SetPipelineState(stateManager.GetPSO());
+    commandList->SetPipelineState(stateManager.GetPSO(psoId));
     commandList->SetGraphicsRootSignature(stateManager.GetRootSignature());
 
     ID3D12DescriptorHeap* heaps[] = { resourceManager.GetDescriptorHeap(),
@@ -73,17 +71,20 @@ void Renderer::Draw(UINT numOfVertices, UINT firstVertexToDraw)
     commandList->IASetVertexBuffers(vertexBufferToBind.slot, 1, &vertexBufferToBind.view);
 
     commandList->DrawInstanced(numOfVertices, 1, firstVertexToDraw, 0);
-
-    pRenderEnv->Synchronize();
 }
+
+/*
+Microsoft::WRL::ComPtr<ID3D12Resource> testIndexBuffer;
+Microsoft::WRL::ComPtr<ID3D12Resource> testUploadBuffer;
+D3D12_INDEX_BUFFER_VIEW testIndexBufferVies = {};
+static const int indices[6] = { 0, 1, 2, 3, 4, 5 };
+*/
 
 void Renderer::DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLocation)
 {
-    stateManager.RebuildState();
+    auto commandList = pRenderEnv->GetRenderCommandList();
 
-    auto commandList = pRenderEnv->GetGraphicsCommandList();
-
-    commandList->SetPipelineState(stateManager.GetPSO());
+    commandList->SetPipelineState(stateManager.GetPSO(psoId));
     commandList->SetGraphicsRootSignature(stateManager.GetRootSignature());
 
     ID3D12DescriptorHeap* heaps[] = { resourceManager.GetDescriptorHeap(),
@@ -99,12 +100,46 @@ void Renderer::DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLoca
     
     commandList->SetGraphicsRootDescriptorTable(ParameterIdx::SRV_TABLE_IDX, resourceManager.GetSrvHandle());
 
+/*
+    static const auto defaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+
+    static const auto indexBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(indices));
+    pRenderEnv->GetDevice()->CreateCommittedResource(&defaultHeapProperties,
+        D3D12_HEAP_FLAG_NONE,
+        &indexBufferDesc,
+        D3D12_RESOURCE_STATE_COPY_DEST,
+        nullptr,
+        IID_PPV_ARGS(&testIndexBuffer));
+
+    testIndexBufferVies.BufferLocation = testIndexBuffer->GetGPUVirtualAddress();
+    testIndexBufferVies.SizeInBytes = sizeof(indices);
+    testIndexBufferVies.Format = DXGI_FORMAT_R32_UINT;
+
+    pRenderEnv->GetDevice()->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+        D3D12_HEAP_FLAG_NONE,
+        &CD3DX12_RESOURCE_DESC::Buffer(sizeof(indices)),
+        D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr,
+        IID_PPV_ARGS(&testUploadBuffer));
+
+    void* p;
+    testUploadBuffer->Map(0, nullptr, &p);
+    ::memcpy(p, indices, sizeof(indices));
+    testUploadBuffer->Unmap(0, nullptr);
+
+    commandList->CopyBufferRegion(testIndexBuffer.Get(), 0, testUploadBuffer.Get(), 0, sizeof(indices));
+
+    const CD3DX12_RESOURCE_BARRIER barriers[1] = { CD3DX12_RESOURCE_BARRIER::Transition(testIndexBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_INDEX_BUFFER) };
+    commandList->ResourceBarrier(1, barriers);
+
+    commandList->IASetIndexBuffer(&testIndexBufferVies);
+
+*/
+    // commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     commandList->IASetVertexBuffers(vertexBufferToBind.slot, 1, &vertexBufferToBind.view);
     commandList->IASetIndexBuffer(&indexBufferView);
 
     commandList->DrawIndexedInstanced(indexCount, 1, firstIndex, baseVertexLocation, 0);
-
-    pRenderEnv->Synchronize();
 }
 
 // CREATE METHODS:
@@ -124,19 +159,17 @@ ResourceManager::Resource::Id Renderer::CreateConstantBuffer(const std::size_t b
     return resourceManager.AddResource(resource);
 }
 
-ResourceManager::Resource::Id Renderer::CreateTextureResource(const std::size_t width, const std::size_t height, const void* pImageData)
+ResourceManager::Resource::Id Renderer::CreateTextureResource(const CD3DX12_RESOURCE_DESC& descr, D3D12_SUBRESOURCE_DATA* pSrcData)
 {
     ResourceManager::Resource resource;
     resource.type = ResourceManager::Resource::Type::SRV;
-    CD3DX12_RESOURCE_DESC descr = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, width, height, 1, 1);
+    resource.variant.texDescr = descr;
+    //CD3DX12_RESOURCE_DESC descr = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, width, height, 1, 1);
     resource.d12resource = resourceManager.CreateDx12Resource(&descr);
-    if (pImageData != nullptr)
+    if (pSrcData != nullptr)
     {
-        resourceManager.UpdateSRVBuffer(resource.d12resource.Get(), pImageData, width, height);
+        resourceManager.UpdateSRVBuffer(resource.d12resource.Get(), pSrcData);
     }
-    resource.variant.imageSize.width = width;
-    resource.variant.imageSize.height = height;
-    //resource.variant.srvHandle = resourceManager.CreateShaderResourceView(resource.d12resource.Get(), width, height);
     resourceManager.UpdateResourceState(resource.d12resource.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     return resourceManager.AddResource(resource);
 }
@@ -182,13 +215,12 @@ void Renderer::UpdateConstantBuffer(ResourceManager::Resource::Id resourceId, co
     resource.variant.cbHandle = resource.d12resource.Get()->GetGPUVirtualAddress();
 }
 
-void Renderer::UpdateTextureResource(ResourceManager::Resource::Id resourceId, const void* pImageData, const std::size_t width, const std::size_t height)
+void Renderer::UpdateTextureResource(ResourceManager::Resource::Id resourceId, D3D12_SUBRESOURCE_DATA* pSrcData)
 {
+    ASSERT(resourceId != 0);
+    ASSERT(pSrcData != nullptr);
     ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
-    resourceManager.UpdateSRVBuffer(resource.d12resource.Get(), pImageData, width, height, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-    //resource.variant.srvHandle = resourceManager.CreateShaderResourceView(resource.d12resource.Get(), width, height);
-    resource.variant.imageSize.width = width;
-    resource.variant.imageSize.height = height;
+    resourceManager.UpdateSRVBuffer(resource.d12resource.Get(), pSrcData, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 }
 
 void Renderer::UpdateVertexBuffer(ResourceManager::Resource::Id resourceId, const void* pVertexData, const std::size_t numOfVertices, const std::size_t vertexSize)
@@ -224,7 +256,7 @@ void Renderer::BindTextureResource(ResourceManager::Resource::Id resourceId, std
     ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
     ASSERT(resource.type == ResourceManager::Resource::Type::SRV);
     //srvArguments[slot] = resource.variant.srvHandle;
-    resourceManager.CreateShaderResourceView(resource.d12resource.Get(), resource.variant.imageSize.width, resource.variant.imageSize.height, slot);
+    resourceManager.CreateShaderResourceView(resourceId, slot);
 }
 
 void Renderer::BindVertexBuffer(UINT Slot, ResourceManager::Resource::Id resourceId)
@@ -242,17 +274,12 @@ void Renderer::BindIndexBuffer(ResourceManager::Resource::Id resourceId)
     indexBufferView = resource.variant.ibView;
 }
 
-void Renderer::SetPrimitiveTopologyTriangleList()
+UINT Renderer::CreatePSO(const State* psoState)
 {
-    stateManager.SetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
+    return stateManager.CreatePipelineStateObject(*psoState);
 }
 
-const State& Renderer::GetRenderState()
+void Renderer::SetPSO(UINT PSOid)
 {
-    return stateManager.currentState;
-}
-
-void Renderer::SetRenderState(const State& state)
-{
-    stateManager.currentState = state;
+    psoId = PSOid;
 }

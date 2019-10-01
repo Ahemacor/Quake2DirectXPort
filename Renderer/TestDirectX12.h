@@ -8,6 +8,7 @@
 #include <Windows.h>
 #include <d3d12.h>
 #include <dxgi.h>
+#include "d3dx12.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,7 +25,6 @@ extern "C" {
     UINT DX12_GetModesNumber();
     DXGI_MODE_DESC DX12_GetVideoMode(UINT index);
     HWND DX12_GetOsWindowHandle();
-    void DX12_SetPrimitiveTopologyTriangleList();
 
     int DX12_CreateConstantBuffer(const void* pSrcData, int bufferSize);
     void DX12_UpdateConstantBuffer(int resourceId, const void* pSrcData, int bufferSize);
@@ -38,18 +38,15 @@ extern "C" {
     void DX12_UpdateIndexBuffer(int resourceId, const void* pIndexData, int numOfIndices, int indexSize);
     void DX12_BindIndexBuffer(int resourceId);
 
+    int DX12_CreateTexture(const D3D12_RESOURCE_DESC* descr, D3D12_SUBRESOURCE_DATA* pSrcData);
+    void DX12_UpdateTexture(int resourceId, D3D12_SUBRESOURCE_DATA* pSrcData);
+    void DX12_BindTexture(UINT slot, int resourceId);
+
     void DX12_SetViewport(const D3D12_VIEWPORT* pViewport);
     void DX12_Draw(UINT numOfVertices, UINT firstVertexToDraw);
     void DX12_DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLocation);
-    void Dx12_SetRenderState(const State* newState);
-    const State* Dx12_GetRenderState();
-
-    void DX12_SetVertexShader(ShaderType shaderType);
-    void DX12_SetPixelShader(ShaderType shaderType);
-    void DX12_SetInputLayout(InputLayout inputLayout);
-    void DX12_SetBlendState(BlendState blendState);
-    void DX12_SetDepthState(DepthStencilState depthState);
-    void DX12_SetRasterizerState(RasterizerState rasterizerState);
+    void Dx12_SetRenderState(UINT stateId);
+    UINT DX12_CreateRenderState(const State* state);
 
     void DX12_ClearRTVandDSV();
     void DX12_Present();

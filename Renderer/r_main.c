@@ -64,14 +64,13 @@ __declspec(align(16)) typedef struct entityconstants_s {
 #if DX11_IMPL
 ID3D11Buffer *d3d_MainConstants = NULL;
 ID3D11Buffer *d3d_EntityConstants = NULL;
-
-int d3d_PolyblendShader = 0;
 #else // DX12
 int d3d_MainConstants;
 int d3d_EntityConstants;
-
-State d3d_PolyblendShader;
 #endif // DX11_IMPL
+
+
+int d3d_PolyblendShader = -1;
 
 void R_InitMain (void)
 {
@@ -108,9 +107,17 @@ void R_InitMain (void)
     DX12_BindConstantBuffer(d3d_MainConstants, 1);
     DX12_BindConstantBuffer(d3d_EntityConstants, 2);
 
-    d3d_PolyblendShader = *Dx12_GetRenderState();
-    d3d_PolyblendShader.VS = SHADER_DRAW_POLYBLEND_VS;
-    d3d_PolyblendShader.PS = SHADER_DRAW_POLYBLEND_PS;
+
+    State polyblendState;
+    polyblendState.inputLayout = INPUT_LAYOUT_STANDART;
+    polyblendState.BS = BSAlphaBlend;
+    polyblendState.DS = DSDepthNoWrite;
+    polyblendState.RS = RSNoCull;
+    polyblendState.topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    polyblendState.VS = SHADER_DRAW_POLYBLEND_VS;
+    polyblendState.PS = SHADER_DRAW_POLYBLEND_PS;
+
+    d3d_PolyblendShader = DX12_CreateRenderState(&polyblendState);
 #endif // DX11_IMPL
 }
 
@@ -236,15 +243,15 @@ void R_PrepareEntityForRendering (QMATRIX *localMatrix, float *color, float alph
     // and set the correct states
     if (rflags & RF_TRANSLUCENT)
     {
-        DX12_SetBlendState(BSAlphaBlend);
-        DX12_SetDepthState(DSDepthNoWrite);
+       // DX12_SetBlendState(BSAlphaBlend);
+       // DX12_SetDepthState(DSDepthNoWrite);
     }
     else
     {
-        DX12_SetBlendState(BSNone);
-        DX12_SetDepthState(DSFullDepth);
+       // DX12_SetBlendState(BSNone);
+       // DX12_SetDepthState(DSFullDepth);
     }
-    DX12_SetRasterizerState(SELECT_RASTERIZER(rflags));
+    // DX12_SetRasterizerState(SELECT_RASTERIZER(rflags));
 #endif // DX11_IMPL
 }
 
@@ -644,13 +651,7 @@ void R_PolyBlend (void)
 		// full-screen triangle
         RWGetDeviceContext()->lpVtbl->Draw(RWGetDeviceContext(), 3, 0);
 #else // DX12
-        State newState = d3d_PolyblendShader;
-        newState.inputLayout = INPUT_LAYOUT_STANDART;
-        newState.BS = BSAlphaBlend;
-        newState.DS = DSDepthNoWrite;
-        newState.RS = RSNoCull;
-        newState.topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-        Dx12_SetRenderState(&newState);
+        Dx12_SetRenderState(d3d_PolyblendShader);
         DX12_Draw(3, 0);
 #endif // DX11_IMPL
 	}

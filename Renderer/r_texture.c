@@ -21,6 +21,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "r_local.h"
 #if DX11_IMPL
 #include "CppWrapper.h"
+#else // DX12
+#include "TestDirectX12.h"
+#endif // #if DX11_IMPL
 
 image_t		gltextures[MAX_GLTEXTURES];
 
@@ -29,7 +32,7 @@ unsigned	d_8to24table_alpha[256];
 unsigned	d_8to24table_trans33[256];
 unsigned	d_8to24table_trans66[256];
 
-
+#if DX11_IMPL
 void R_DescribeTexture (D3D11_TEXTURE2D_DESC *Desc, int width, int height, int arraysize, int flags)
 {
 	// basic info
@@ -76,46 +79,113 @@ void R_DescribeTexture (D3D11_TEXTURE2D_DESC *Desc, int width, int height, int a
 	    Desc->MiscFlags = 0;
 	}
 }
+#else // DX12
+void R_DescribeTexture(D3D12_RESOURCE_DESC* Desc, int width, int height, int arraysize, int flags)
+{
+    /*
+        CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, width, height, 1, 1);
+
+        DXGI_FORMAT DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,
+        UINT64 width,
+        UINT height,
+         UINT16 arraySize = 1,
+        UINT16 mipLevels = 0,
+        UINT sampleCount = 1,
+        UINT sampleQuality = 0,
+        D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE,
+        D3D12_TEXTURE_LAYOUT layout = D3D12_TEXTURE_LAYOUT_UNKNOWN,
+         UINT64 alignment = 0
+    */
+    // basic info
+    Desc->Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+    Desc->Width = width;
+    Desc->Height = height;
+    Desc->MipLevels = (flags & TEX_MIPMAP) ? 0 : 1;
+    Desc->Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+    Desc->DepthOrArraySize = 1;
+    Desc->Alignment = 0;
+
+    // select the appropriate format
+    if (flags & TEX_R32F)
+        Desc->Format = DXGI_FORMAT_R32_FLOAT;
+    else if (flags & TEX_R16G16)
+        Desc->Format = DXGI_FORMAT_R16G16_SNORM;
+    else Desc->Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+    // no multisampling
+    Desc->SampleDesc.Count = 1;
+    Desc->SampleDesc.Quality = 0;
+    Desc->Flags = D3D12_RESOURCE_FLAG_NONE;
+}
+#endif // DX11_IMPL
 
 
 void R_CreateTexture32 (image_t *image, unsigned *data)
 {
+#if DX11_IMPL
 	D3D11_TEXTURE2D_DESC Desc;
+#else // DX12
+    D3D12_RESOURCE_DESC ResDescr;
+#endif // DX11_IMPL
 
 	if (image->flags & TEX_CHARSET)
 	{
-		int i;
+#if DX11_IMPL
 		D3D11_SUBRESOURCE_DATA srd[256];
-
-		for (i = 0; i < 256; i++)
+#else // DX12
+        D3D12_SUBRESOURCE_DATA srd[256];
+#endif // DX11_IMPL
+		for (int i = 0; i < 256; i++)
 		{
 			int row = (i >> 4);
 			int col = (i & 15);
-
+#if DX11_IMPL
 			srd[i].pSysMem = &data[((row * (image->width >> 4)) * image->width) + col * (image->width >> 4)];
 			srd[i].SysMemPitch = image->width << 2;
 			srd[i].SysMemSlicePitch = 0;
+#else // DX12
+            srd[i].pData = &data[((row * (image->width >> 4))* image->width) + col * (image->width >> 4)];
+            srd[i].RowPitch = image->width << 2;
+            srd[i].SlicePitch = 0;
+#endif // DX11_IMPL
 		}
-
+#if DX11_IMPL
 		// describe the texture
 		R_DescribeTexture (&Desc, image->width >> 4, image->height >> 4, 256, image->flags);
 
 		// failure is not an option...
         if (FAILED(RWCreateTexture2D(&Desc, srd, &image->Texture))) ri.Sys_Error(ERR_FATAL, "CreateTexture2D failed");
+#else // DX12
+        //CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, width, height, 1, 1);
+        // describe the texture
+        R_DescribeTexture(&ResDescr, image->width >> 4, image->height >> 4, 256, image->flags);
+
+        image->textureId = DX12_CreateTexture(&ResDescr, srd);
+#endif // DX11_IMPL
 	}
 	else
 	{
 		// this is good for a 4-billion X 4-billion texture; we assume it will never be needed that large
+#if DX11_IMPL
 		D3D11_SUBRESOURCE_DATA srd[32];
+#else // DX12
+        D3D12_SUBRESOURCE_DATA srd[32];
+#endif // DX11_IMPL
 
 		// copy these off so that they can be changed during miplevel reduction
 		int width = image->width;
 		int height = image->height;
 
 		// the first one just has the data
+#if DX11_IMPL
 		srd[0].pSysMem = data;
 		srd[0].SysMemPitch = width << 2;
 		srd[0].SysMemSlicePitch = 0;
+#else // DX12
+        srd[0].pData = data;
+        srd[0].RowPitch = width << 2;
+        srd[0].SlicePitch = 0;
+#endif // DX11_IMPL
 
 		// create further miplevels for the texture type
 		if (image->flags & TEX_MIPMAP)
@@ -131,21 +201,32 @@ void R_CreateTexture32 (image_t *image, unsigned *data)
 
 				if ((width = width >> 1) < 1) width = 1;
 				if ((height = height >> 1) < 1) height = 1;
-
+#if DX11_IMPL
 				srd[mipnum].pSysMem = data;
 				srd[mipnum].SysMemPitch = width << 2;
 				srd[mipnum].SysMemSlicePitch = 0;
+#else // DX12
+                srd[mipnum].pData = data;
+                srd[mipnum].RowPitch = width << 2;
+                srd[mipnum].SlicePitch = 0;
+#endif // DX11_IMPL
 			}
 		}
-
+#if DX11_IMPL
 		R_DescribeTexture (&Desc, image->width, image->height, 1, image->flags);
 
 		// failure is not an option...
         if (FAILED(RWCreateTexture2D(&Desc, srd, &image->Texture))) ri.Sys_Error(ERR_FATAL, "CreateTexture2D failed");
+#else // DX12
+        R_DescribeTexture(&ResDescr, image->width, image->height, 1, image->flags);
+        image->textureId = DX12_CreateTexture(&ResDescr, srd);
+#endif // DX11_IMPL
 	}
 
 	// failure is not an option...
+#if DX11_IMPL
     if (FAILED(RWCreateShaderResourceView((ID3D11Resource*)image->Texture, NULL, &image->SRV))) ri.Sys_Error(ERR_FATAL, "CreateShaderResourceView failed");
+#endif // DX11_IMPL
 }
 
 
@@ -158,17 +239,24 @@ void R_CreateTexture8 (image_t *image, byte *data, unsigned *palette)
 
 void R_TexSubImage32 (ID3D11Texture2D *tex, int level, int x, int y, int w, int h, unsigned *data)
 {
+#if DX11_IMPL
 	D3D11_BOX texbox = {x, y, 0, x + w, y + h, 1};
-	//d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) tex, level, &texbox, data, w << 2, 0);
     RWGetDeviceContext()->lpVtbl->UpdateSubresource(RWGetDeviceContext(), (ID3D11Resource*)tex, level, &texbox, data, w << 2, 0);
+#else // DX12
+    assert(0);
+#endif // DX11_IMPL
 }
 
 
 void R_TexSubImage8 (ID3D11Texture2D *tex, int level, int x, int y, int w, int h, byte *data, unsigned *palette)
 {
+#if DX11_IMPL
 	unsigned *trans = GL_Image8To32 (data, w, h, palette);
 	R_TexSubImage32 (tex, level, x, y, w, h, trans);
 	ri.Load_FreeMemory ();
+#else // DX12
+    assert(0);
+#endif // DX11_IMPL
 }
 
 
@@ -178,6 +266,7 @@ void GL_TexEnv (int mode)
 
 void R_BindTexture (ID3D11ShaderResourceView *SRV)
 {
+#if DX11_IMPL
 	// only PS slot 0 is filtered; everything else is bound once-only at the start of each frame
 	static ID3D11ShaderResourceView *OldSRV;
 
@@ -187,11 +276,15 @@ void R_BindTexture (ID3D11ShaderResourceView *SRV)
         RWGetDeviceContext()->lpVtbl->PSSetShaderResources(RWGetDeviceContext(), 0, 1, &SRV);
 		OldSRV = SRV;
 	}
+#else // DX12
+    assert(0);
+#endif // DX11_IMPL
 }
 
 
 void R_BindTexArray (ID3D11ShaderResourceView *SRV)
 {
+#if DX11_IMPL
 	// PS slot 6 holds a texture array that's used for the charset and little sbar numbers
 	static ID3D11ShaderResourceView *OldSRV;
 
@@ -201,6 +294,9 @@ void R_BindTexArray (ID3D11ShaderResourceView *SRV)
         RWGetDeviceContext()->lpVtbl->PSSetShaderResources(RWGetDeviceContext(), 6, 1, &SRV);
 		OldSRV = SRV;
 	}
+#else // DX12
+    assert(0);
+#endif // DX11_IMPL
 }
 
 
@@ -212,8 +308,12 @@ image_t *GL_FindFreeImage (char *name, int width, int height, imagetype_t type)
 	// find a free image_t
 	for (i = 0, image = gltextures; i < MAX_GLTEXTURES; i++, image++)
 	{
+#if DX11_IMPL
 		if (image->Texture) continue;
 		if (image->SRV) continue;
+#else // DX12
+        if (image->textureId) continue;
+#endif // DX11_IMPL
 
 		break;
 	}
@@ -303,9 +403,13 @@ image_t *GL_HaveImage (char *name, int flags)
 	// look for it
 	for (i = 0, image = gltextures; i < MAX_GLTEXTURES; i++, image++)
 	{
+#if DX11_IMPL
 		// not a valid image
 		if (!image->Texture) continue;
 		if (!image->SRV) continue;
+#else // DX12
+        if (!image->textureId) continue;
+#endif // DX11_IMPL
 
 		// only brush models send texinfo flags and they must match because we're encoding alpha into the textures
 		if (image->texinfoflags != flags) continue;
@@ -324,6 +428,7 @@ image_t *GL_HaveImage (char *name, int flags)
 
 float ColorNormalize (vec3_t out, vec3_t in)
 {
+#if DX11_IMPL
 	float max = in[0];
 
 	if (in[1] > max) max = in[1];
@@ -335,6 +440,10 @@ float ColorNormalize (vec3_t out, vec3_t in)
 	Vector3Scalef (out, in, 1.0f / max);
 
 	return max;
+#else // DX12
+    assert(0);
+    return 0.0f;
+#endif // DX11_IMPL
 }
 
 
@@ -345,6 +454,7 @@ GL_LoadWal
 */
 image_t *GL_LoadWal (char *name, int flags)
 {
+#if DX11_IMPL
 	miptex_t	*mt;
 	int			i, width, height;
 	image_t		*image;
@@ -408,6 +518,10 @@ image_t *GL_LoadWal (char *name, int flags)
 	image->texinfoflags = flags;
 
 	return image;
+#else // DX12
+    assert(0);
+    return NULL;
+#endif // DX11_IMPL
 }
 
 
@@ -509,8 +623,10 @@ void R_FreeUnusedImages (void)
 	for (i = 0, image = gltextures; i < MAX_GLTEXTURES; i++, image++)
 	{
 		// not a valid image
+#if DX11_IMPL
 		if (!image->Texture) continue;
 		if (!image->SRV) continue;
+#endif // DX11_IMPL
 
 		// used this sequence
 		if (image->registration_sequence == r_registration_sequence) continue;
@@ -518,8 +634,10 @@ void R_FreeUnusedImages (void)
 		// disposable type
 		if (image->flags & TEX_DISPOSABLE)
 		{
+#if DX11_IMPL
 			SAFE_RELEASE (image->Texture);
 			SAFE_RELEASE (image->SRV);
+#endif // DX11_IMPL
 
 			memset (image, 0, sizeof (*image));
 		}
@@ -546,6 +664,7 @@ R_ShutdownImages
 */
 void R_ShutdownImages (void)
 {
+#if DX11_IMPL
 	int		i;
 	image_t	*image;
 
@@ -558,6 +677,9 @@ void R_ShutdownImages (void)
 	}
 
 	Draw_ShutdownRawImage ();
+#else // DX12
+    assert(0);
+#endif // DX11_IMPL
 }
 
 
@@ -571,9 +693,13 @@ image_t *R_LoadTexArray (char *base)
 	byte	*sb_palette[11];
 	int		sb_width[11];
 	int		sb_height[11];
-
+#if DX11_IMPL
 	D3D11_SUBRESOURCE_DATA srd[11];
 	D3D11_TEXTURE2D_DESC Desc;
+#else // DX12
+    D3D12_SUBRESOURCE_DATA srd[11];
+    D3D12_RESOURCE_DESC Desc;
+#endif // DX11_IMPL
 
 	for (i = 0; i < 11; i++)
 	{
@@ -582,10 +708,15 @@ image_t *R_LoadTexArray (char *base)
 		if (!sb_pic[i]) ri.Sys_Error (ERR_FATAL, "malformed sb number set");
 		if (sb_width[i] != sb_width[0]) ri.Sys_Error (ERR_FATAL, "malformed sb number set");
 		if (sb_height[i] != sb_height[0]) ri.Sys_Error (ERR_FATAL, "malformed sb number set");
-
+#if DX11_IMPL
 		srd[i].pSysMem = GL_Image8To32 (sb_pic[i], sb_width[i], sb_height[i], d_8to24table_alpha);
 		srd[i].SysMemPitch = sb_width[i] << 2;
 		srd[i].SysMemSlicePitch = 0;
+#else // DX12
+        srd[i].pData = GL_Image8To32(sb_pic[i], sb_width[i], sb_height[i], d_8to24table_alpha);
+        srd[i].RowPitch = sb_width[i] << 2;
+        srd[i].SlicePitch = 0;
+#endif // DX11_IMPL
 	}
 
 	// find an image_t for it
@@ -595,8 +726,12 @@ image_t *R_LoadTexArray (char *base)
 	R_DescribeTexture (&Desc, sb_width[0], sb_height[0], 11, image->flags);
 
 	// failure is not an option...
+#if DX11_IMPL
     if (FAILED(RWCreateTexture2D(&Desc, srd, &image->Texture))) ri.Sys_Error(ERR_FATAL, "CreateTexture2D failed");
     if (FAILED(RWCreateShaderResourceView((ID3D11Resource*)image->Texture, NULL, &image->SRV))) ri.Sys_Error(ERR_FATAL, "CreateShaderResourceView failed");
+#else // DX12
+    image->textureId = DX12_CreateTexture(&Desc, srd);
+#endif //DX11_IMPL
 
 	// free memory used for loading the image
 	ri.Load_FreeMemory ();
@@ -607,6 +742,7 @@ image_t *R_LoadTexArray (char *base)
 
 void R_CreateRenderTarget (rendertarget_t *rt)
 {
+#if DX11_IMPL
 	ID3D11Texture2D *pBackBuffer = NULL;
 
 	// Get a pointer to the back buffer
@@ -629,20 +765,28 @@ void R_CreateRenderTarget (rendertarget_t *rt)
     if (FAILED(RWCreateShaderResourceView((ID3D11Resource*)rt->Texture, NULL, &rt->SRV))) ri.Sys_Error(ERR_FATAL, "CreateShaderResourceView failed");
 	//if (FAILED (d3d_Device->lpVtbl->CreateRenderTargetView (d3d_Device, (ID3D11Resource *) rt->Texture, NULL, &rt->RTV))) ri.Sys_Error (ERR_FATAL, "CreateRenderTargetView failed");
     if (FAILED(RWGetDevice()->lpVtbl->CreateRenderTargetView(RWGetDevice(), (ID3D11Resource*)rt->Texture, NULL, &rt->RTV))) ri.Sys_Error(ERR_FATAL, "CreateRenderTargetView failed");
+#else // DX12
+    assert(0);
+#endif // DX11_IMPL
 }
 
 
 void R_ReleaseRenderTarget (rendertarget_t *rt)
 {
+#if DX11_IMPL
 	SAFE_RELEASE (rt->Texture);
 	SAFE_RELEASE (rt->SRV);
 	SAFE_RELEASE (rt->RTV);
 	memset (rt, 0, sizeof (rendertarget_t));
+#else // DX12
+    assert(0);
+#endif // DX11_IMPL
 }
 
 
 void R_CreateTexture (texture_t *t, D3D11_SUBRESOURCE_DATA *srd, int width, int height, int arraysize, int flags)
 {
+#if DX11_IMPL
 	// if an srd is *not* specified we must make the texture mutable because we must be able to update it later
 	// if an srd *is* specified we cannot make the texture immutable because we may also need to update it later
 	if (!srd) flags |= TEX_MUTABLE;
@@ -653,19 +797,27 @@ void R_CreateTexture (texture_t *t, D3D11_SUBRESOURCE_DATA *srd, int width, int 
 	// failure is not an option...
     if (FAILED(RWCreateTexture2D(&t->Desc, srd, &t->Texture))) ri.Sys_Error(ERR_FATAL, "CreateTexture2D failed");
     if (FAILED(RWCreateShaderResourceView((ID3D11Resource*)t->Texture, NULL, &t->SRV))) ri.Sys_Error(ERR_FATAL, "CreateShaderResourceView failed");
+#else // DX12
+    assert(0);
+#endif // DX11_IMPL
 }
 
 
 void R_ReleaseTexture (texture_t *t)
 {
+#if DX11_IMPL
 	SAFE_RELEASE (t->Texture);
 	SAFE_RELEASE (t->SRV);
 	memset (t, 0, sizeof (texture_t));
+#else // DX12
+    assert(0);
+#endif // DX11_IMPL
 }
 
 
 void R_CreateTBuffer (tbuffer_t *tb, void *data, int NumElements, int ElementSize, DXGI_FORMAT Format, D3D11_USAGE Usage)
 {
+#if DX11_IMPL
 	D3D11_BUFFER_DESC tbDesc = {
 		ElementSize * NumElements,
 		Usage,
@@ -694,19 +846,27 @@ void R_CreateTBuffer (tbuffer_t *tb, void *data, int NumElements, int ElementSiz
 	}
 
     RWCreateShaderResourceView((ID3D11Resource*)tb->Buffer, &srvDesc, &tb->SRV);
+#else // DX12
+    assert(0);
+#endif // DX11_IMPL
 }
 
 
 void R_ReleaseTBuffer (tbuffer_t *tb)
 {
+#if DX11_IMPL
 	SAFE_RELEASE (tb->Buffer);
 	SAFE_RELEASE (tb->SRV);
 	memset (tb, 0, sizeof (tbuffer_t));
+#else // DX12
+    assert(0);
+#endif // DX11_IMPL
 }
 
 
 void R_CopyScreen (rendertarget_t *dst)
 {
+#if DX11_IMPL
 	ID3D11Texture2D *pBackBuffer = NULL;
 
 	// Get a pointer to the back buffer
@@ -720,6 +880,9 @@ void R_CopyScreen (rendertarget_t *dst)
 		// and done
 		pBackBuffer->lpVtbl->Release (pBackBuffer);
 	}
+#else // DX12
+    assert(0);
+#endif // DX11_IMPL
 }
 
 
@@ -738,22 +901,4 @@ void R_CreateSpecialTextures (void)
 	r_whitetexture = GL_LoadPic ("***r_whitetexture***", (byte *) &whitetexturedata, 1, 1, it_wall, 32, NULL);
 	r_notexture = GL_LoadPic ("***r_notexture***", notexturedata, 4, 4, it_wall, 8, d_8to24table_solid);
 }
-
-#else
-image_t		gltextures[MAX_GLTEXTURES];
-
-unsigned	d_8to24table_solid[256];
-unsigned	d_8to24table_alpha[256];
-unsigned	d_8to24table_trans33[256];
-unsigned	d_8to24table_trans66[256];
-
-void R_CreateSpecialTextures(void) {}
-struct image_s* R_RegisterSkin(char* name) {}
-void R_InitImages(void) {}
-void R_ShutdownImages(void) {}
-void R_FreeUnusedImages(void) {}
-image_t* GL_FindImage(char* name, imagetype_t type) { return NULL; }
-image_t* R_LoadTexArray(char* base) { return NULL; }
-
-#endif // DX11_IMPL
 

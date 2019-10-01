@@ -24,93 +24,15 @@ void PipelineStateManager::Release()
 {
     device.Reset();
     rootSignature.Reset();
-    pso.Reset();
+    PSOs.clear();
     samplerDescriptorHeap.Reset();
     shaders.clear();
-    currentState = {};
 }
 
-void PipelineStateManager::RebuildState()
-{
-    if (isUpdateRequired)
-    {
-        CreatePipelineStateObject();
-
-        isUpdateRequired = false;
-    }
-}
-
-void PipelineStateManager::SetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY_TYPE topology)
-{
-    if (currentState.topology != topology)
-    {
-        currentState.topology = topology;
-        isUpdateRequired = true;
-    }
-}
-
-void PipelineStateManager::SetVertexShader(ShaderType shaderType)
-{
-    if (currentState.VS != shaderType)
-    {
-        currentState.VS = shaderType;
-        isUpdateRequired = true;
-    }
-}
-
-void PipelineStateManager::SetPixelShader(ShaderType shaderType)
-{
-    if (currentState.PS != shaderType)
-    {
-        currentState.PS = shaderType;
-        isUpdateRequired = true;
-    }
-}
-
-void PipelineStateManager::SetInputLayout(InputLayout inputLayout)
-{
-    if (currentState.inputLayout != inputLayout)
-    {
-        currentState.inputLayout = inputLayout;
-        isUpdateRequired = true;
-    }
-}
-
-void PipelineStateManager::SetBlendState(BlendState blendState)
-{
-    if (currentState.BS != blendState)
-    {
-        currentState.BS = blendState;
-        isUpdateRequired = true;
-    }
-}
-
-void PipelineStateManager::SetDepthState(DepthStencilState depthState)
-{
-    if (currentState.DS != depthState)
-    {
-        currentState.DS = depthState;
-        isUpdateRequired = true;
-    }
-}
-
-void PipelineStateManager::SetRasterizerState(RasterizerState rasterizerState)
-{
-    if (currentState.RS != rasterizerState)
-    {
-        currentState.RS = rasterizerState;
-        isUpdateRequired = true;
-    }
-}
 
 ID3D12RootSignature* PipelineStateManager::GetRootSignature()
 {
     return rootSignature.Get();
-}
-
-ID3D12PipelineState* PipelineStateManager::GetPSO()
-{
-    return pso.Get();
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE PipelineStateManager::GetSamplerHandle()
@@ -145,6 +67,15 @@ void PipelineStateManager::InitInputLayouts()
     };
     inputLayouts[INPUT_LAYOUT_STANDART].NumElements = std::size(ilStandart);
     inputLayouts[INPUT_LAYOUT_STANDART].pInputElementDescs = ilStandart;
+
+    static const D3D12_INPUT_ELEMENT_DESC ilStandartCopy[] =
+    {
+        DECL_VERTEX("POSITION", DXGI_FORMAT_R32G32_FLOAT, 0),
+        DECL_VERTEX("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT, 0),
+        DECL_VERTEX("COLOUR", DXGI_FORMAT_R8G8B8A8_UNORM, 0)
+    };
+    inputLayouts[INPUT_LAYOUT_STANDART_COPY].NumElements = std::size(ilStandartCopy);
+    inputLayouts[INPUT_LAYOUT_STANDART_COPY].pInputElementDescs = ilStandartCopy;
 
     static const D3D12_INPUT_ELEMENT_DESC ilTexarray[] =
     {
@@ -249,6 +180,13 @@ std::wstring PipelineStateManager::GetShaderFilepath(ShaderType shaderType)
     case ShaderType::SHADER_DRAW_POLYBLEND_PS:
         shaderFilename = L"DrawPolyblendPS.cso";
         break;
+    case ShaderType::SHADER_DRAW_TEXTURED_VS:
+        shaderFilename = L"DrawTexturedVS.cso";
+        break;
+
+    case ShaderType::SHADER_DRAW_TEXTURED_PS:
+        shaderFilename = L"DrawTexturedPS.cso";
+        break;
 
     default:
         shaderFilename = L"";
@@ -320,26 +258,38 @@ void PipelineStateManager::CreateRootSignature()
     ENSURE_RESULT(device->CreateRootSignature(0, rootBlob->GetBufferPointer(), rootBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature)));
 }
 
-void PipelineStateManager::CreatePipelineStateObject()
+UINT PipelineStateManager::CreatePipelineStateObject(const State& state)
 {
+    Microsoft::WRL::ComPtr<ID3D12PipelineState> pso;
+
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-    psoDesc.VS = CD3DX12_SHADER_BYTECODE(GetShader(currentState.VS));
-    psoDesc.PS = CD3DX12_SHADER_BYTECODE(GetShader(currentState.PS));
+    psoDesc.VS = CD3DX12_SHADER_BYTECODE(GetShader(state.VS));
+    psoDesc.PS = CD3DX12_SHADER_BYTECODE(GetShader(state.PS));
     psoDesc.pRootSignature = rootSignature.Get();
     psoDesc.NumRenderTargets = 1;
     psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
     psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
 
-    psoDesc.InputLayout = inputLayouts[currentState.inputLayout];
-    psoDesc.BlendState = blendStates[currentState.BS];
-    psoDesc.DepthStencilState = depthStancilStates[currentState.DS];
-    psoDesc.RasterizerState = rasterizerStates[currentState.RS];
+    psoDesc.InputLayout = inputLayouts[state.inputLayout];
+    psoDesc.BlendState = blendStates[state.BS];
+    psoDesc.DepthStencilState = depthStancilStates[state.DS];
+    psoDesc.RasterizerState = rasterizerStates[state.RS];
 
     psoDesc.SampleDesc.Count = 1;
     psoDesc.SampleMask = 0xFFFFFFFF;
 
-    psoDesc.PrimitiveTopologyType = currentState.topology;
+    psoDesc.PrimitiveTopologyType = state.topology;
     ENSURE_RESULT(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso)));
+
+    UINT psoId = PSOs.size();
+    PSOs.push_back(pso);
+    return psoId;
+}
+
+ID3D12PipelineState* PipelineStateManager::GetPSO(UINT PSOid)
+{
+    ASSERT(PSOid < PSOs.size());
+    return PSOs[PSOid].Get();
 }
 
 void PipelineStateManager::LoadShader(ShaderType shaderType, const std::wstring& csoFilepath)

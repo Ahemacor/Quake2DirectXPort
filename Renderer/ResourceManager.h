@@ -30,7 +30,7 @@ public:
         union
         {
             D3D12_GPU_VIRTUAL_ADDRESS cbHandle;
-            struct { int width, height; } imageSize; //D3D12_GPU_DESCRIPTOR_HANDLE srvHandle;
+            CD3DX12_RESOURCE_DESC texDescr; //D3D12_GPU_DESCRIPTOR_HANDLE srvHandle;
             D3D12_VERTEX_BUFFER_VIEW vbView;
             D3D12_INDEX_BUFFER_VIEW ibView;
         } variant;
@@ -57,17 +57,11 @@ public:
     // Create RESOURCE view.
     D3D12_VERTEX_BUFFER_VIEW CreateVertexBufferView(ID3D12Resource* vertexBuffer, const std::size_t bufferSize, const std::size_t elementSize);
     D3D12_INDEX_BUFFER_VIEW CreateIndexBufferView(ID3D12Resource* indexBuffer, const std::size_t bufferSize, const DXGI_FORMAT format = DXGI_FORMAT_R32_UINT);
-    D3D12_GPU_DESCRIPTOR_HANDLE CreateShaderResourceView(ID3D12Resource* imageBuffer,
-                                                         const std::size_t width,
-                                                         const std::size_t height,
-                                                         const std::size_t slot = 0);
+    D3D12_GPU_DESCRIPTOR_HANDLE CreateShaderResourceView(ResourceManager::Resource::Id resourceId, const std::size_t slot = 0);
     
     // Update RESOURCE content.
     void UpdateSRVBuffer(ID3D12Resource* imageResource,
-                         const void* pImageData,
-                         const std::size_t width,
-                         const std::size_t height,
-                         const std::size_t texelSize = 4,
+                         D3D12_SUBRESOURCE_DATA* pSrcData,
                          const D3D12_RESOURCE_STATES origState = D3D12_RESOURCE_STATE_COPY_DEST);
 
     void UpdateBufferData(ID3D12Resource* resourceBuffer,

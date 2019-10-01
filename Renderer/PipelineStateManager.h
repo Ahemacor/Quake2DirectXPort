@@ -18,23 +18,14 @@ public:
     bool Initialize(Microsoft::WRL::ComPtr<ID3D12Device> parentDevice);
     void Release();
 
-    void RebuildState();
-
-    void SetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY_TYPE topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE::D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
-    void SetVertexShader(ShaderType shaderType);
-    void SetPixelShader(ShaderType shaderType);
-    void SetInputLayout(InputLayout inputLayout);
-    void SetBlendState(BlendState blendState);
-    void SetDepthState(DepthStencilState depthState);
-    void SetRasterizerState(RasterizerState rasterizerState);
-
     ID3D12RootSignature* GetRootSignature();
-    ID3D12PipelineState* GetPSO();
 
     D3D12_GPU_DESCRIPTOR_HANDLE GetSamplerHandle();
     ID3D12DescriptorHeap* GetSamplerDescriptorHeap();
 
-    State currentState;
+    UINT CreatePipelineStateObject(const State& state);
+    ID3D12PipelineState* GetPSO(UINT PSOid);
+
     bool isUpdateRequired = true;
 
 private:
@@ -44,7 +35,6 @@ private:
     void InitRasterizerStates();
     void InitSamplers();
     void CreateRootSignature();
-    void CreatePipelineStateObject();
     std::wstring GetShaderFilepath(ShaderType shaderType);
     void LoadShader(ShaderType shaderType, const std::wstring& csoFilepath);
     ID3DBlob* GetShader(ShaderType shaderType);
@@ -55,7 +45,7 @@ private:
 
     Microsoft::WRL::ComPtr<ID3D12Device> device;
     Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature;
-    Microsoft::WRL::ComPtr<ID3D12PipelineState> pso;
+    std::vector<Microsoft::WRL::ComPtr<ID3D12PipelineState>> PSOs;
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> samplerDescriptorHeap;
     std::map<ShaderType, Microsoft::WRL::ComPtr<ID3DBlob>> shaders;
     D3D12_INPUT_LAYOUT_DESC inputLayouts[INPUT_LAYOUT_COUNT] = {};

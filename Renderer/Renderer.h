@@ -21,12 +21,12 @@ public:
         , stateManager(sm)
         , renderEnv(re)
     {
-        if(isScoped) renderEnv.ResetCommandList();
+        if(isScoped) renderEnv.ResetRenderCommandList();
     }
 
     ~ScopedStateManager()
     {
-        if (isScoped) renderEnv.ExecuteCommandList();
+        if (isScoped) renderEnv.ExecuteRenderCommandList();
     }
 
     PipelineStateManager* operator->()
@@ -57,13 +57,13 @@ public:
 
     // CREATE METHODS:
     ResourceManager::Resource::Id CreateConstantBuffer(const std::size_t bufferSize, const void* pSrcData = nullptr);
-    ResourceManager::Resource::Id CreateTextureResource(const std::size_t width, const std::size_t height, const void* pImageData = nullptr);
+    ResourceManager::Resource::Id CreateTextureResource(const CD3DX12_RESOURCE_DESC& descr, D3D12_SUBRESOURCE_DATA* pSrcData = nullptr);
     ResourceManager::Resource::Id CreateVertexBuffer(const std::size_t numOfVertices, const std::size_t vertexSize, const void* pVertexData = nullptr);
     ResourceManager::Resource::Id CreateIndexBuffer(const std::size_t numOfIndices, const void* pIndexData = nullptr, const std::size_t indexSize = sizeof(DWORD));
 
     // UPDATE METHODS:
     void UpdateConstantBuffer(ResourceManager::Resource::Id resourceId, const void* pSrcData, const std::size_t bufferSize);
-    void UpdateTextureResource(ResourceManager::Resource::Id resourceId, const void* pImageData, const std::size_t width, const std::size_t height);
+    void UpdateTextureResource(ResourceManager::Resource::Id resourceId, D3D12_SUBRESOURCE_DATA* pSrcData);
     void UpdateVertexBuffer(ResourceManager::Resource::Id resourceId, const void* pVertexData, const std::size_t numOfVertices, const std::size_t vertexSize);
     void UpdateIndexBuffer(ResourceManager::Resource::Id resourceId, const void* pIndexData, const std::size_t numOfIndices, const std::size_t indexSize = sizeof(DWORD));
 
@@ -75,10 +75,8 @@ public:
 
     ScopedStateManager GetStateManager(bool isScoped = false) { return ScopedStateManager(isScoped, stateManager, *pRenderEnv); }
 
-    void SetPrimitiveTopologyTriangleList();
-
-    const State& GetRenderState();
-    void SetRenderState(const State& state);
+    UINT CreatePSO(const State* psoState);
+    void SetPSO(UINT PSOid);
 
 private:
     struct VertexBufferToBind
@@ -87,6 +85,7 @@ private:
         D3D12_VERTEX_BUFFER_VIEW view = {};
     } vertexBufferToBind;
 
+    UINT psoId = 0;
     RenderEnvironment* pRenderEnv = nullptr;
     PipelineStateManager stateManager;
     ResourceManager resourceManager;

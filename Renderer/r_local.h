@@ -36,7 +36,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define FEATURE_CINEMATIC 0
 #define FEATURE_DRAW_FILL 0
 #define FEATURE_DRAW_TEXT 0
-#define FEATURE_DRAW_PICTURES 0
+#define FEATURE_DRAW_PICTURES 1
 
 #define DX11_IMPL 0
 
@@ -160,10 +160,13 @@ typedef struct image_s {
 	// chained surfaces for drawing
 	// the same image_t may be used by multiple texinfo, so by storing the chain here we can get larger batches == fewer draw calls
 	struct msurface_s	*texturechain;
-
+#if DX11_IMPL
 	// D3D texture object
 	ID3D11Texture2D *Texture;
 	ID3D11ShaderResourceView *SRV;
+#else // DX12
+    int textureId;
+#endif // DX11_IMPL
 } image_t;
 
 #define	TEXNUM_LIGHTMAPS	1024
@@ -445,6 +448,8 @@ typedef enum ShaderTypeEnum
     SHADER_TEST_PS,
     SHADER_DRAW_POLYBLEND_VS,
     SHADER_DRAW_POLYBLEND_PS,
+    SHADER_DRAW_TEXTURED_VS,
+    SHADER_DRAW_TEXTURED_PS,
 
     SHADER_TYPE_COUNT
 } ShaderType;
@@ -464,6 +469,7 @@ typedef enum InputLayoutEnum
 {
     INPUT_LAYOUT_BEAM = 0,
     INPUT_LAYOUT_STANDART,
+    INPUT_LAYOUT_STANDART_COPY,
     INPUT_LAYOUT_TEXARRAY,
     INPUT_LAYOUT_MESH,
     INPUT_LAYOUT_PARTICLES,

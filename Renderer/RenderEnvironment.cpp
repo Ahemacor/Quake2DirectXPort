@@ -52,7 +52,10 @@ void RenderEnvironment::Release()
     depthStencil.Reset();
     for (auto rt : renderTargets) rt.Reset();
     for (auto ca : commandAllocators) ca.Reset();
-    commandList.Reset();
+    updateCommandAllocator.Reset();
+    renderCommandList.Reset();
+    renderCommandListState = CommandListState::CL_RESETED;
+    updateCommandListState = CommandListState::CL_RESETED;
     CloseHandle(fenceEvent);
 
     isInitialized = false;
@@ -330,12 +333,15 @@ void RenderEnvironment::InitializeAllocatorsAndCommandList()
     auto type = D3D12_COMMAND_LIST_TYPE_DIRECT;
     for (int i = 0; i < bufferCount; ++i)
     {
-        device->CreateCommandAllocator(type, IID_PPV_ARGS(&commandAllocators[i]));
+        ENSURE_RESULT(device->CreateCommandAllocator(type, IID_PPV_ARGS(&commandAllocators[i])));
     }
+    ENSURE_RESULT(device->CreateCommandAllocator(type, IID_PPV_ARGS(&updateCommandAllocator)));
 
     auto currentBufferIndex = GetCurrentBufferIndex();
-    ENSURE_RESULT(device->CreateCommandList(0, type, commandAllocators[currentBufferIndex].Get(), nullptr, IID_PPV_ARGS(&commandList)));
-    ENSURE_RESULT(commandList->Close());
+    ENSURE_RESULT(device->CreateCommandList(0, type, commandAllocators[currentBufferIndex].Get(), nullptr, IID_PPV_ARGS(&renderCommandList)));
+    ENSURE_RESULT(renderCommandList->Close());
+    ENSURE_RESULT(device->CreateCommandList(0, type, updateCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&updateCommandList)));
+    ENSURE_RESULT(updateCommandList->Close());
 }
 
 
@@ -424,7 +430,7 @@ void RenderEnvironment::BarrierFromTargetToPresent()
     barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
     barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
     barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-    commandList->ResourceBarrier(1, &barrier);
+    renderCommandList->ResourceBarrier(1, &barrier);
 }
 
 // Transition back buffer.
@@ -438,51 +444,38 @@ void RenderEnvironment::BarrierFromPresentToTarget()
     barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
     barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
     barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-    commandList->ResourceBarrier(1, &barrier);
+    renderCommandList->ResourceBarrier(1, &barrier);
 }
 
 void RenderEnvironment::ClearScreen()
 {
-    assert(isInitialized == true);
-
-    // Prepare command list.
-    auto currentBufferIndex = GetCurrentBufferIndex();
-    ENSURE_RESULT(commandAllocators[currentBufferIndex]->Reset());
-    ENSURE_RESULT(commandList->Reset(commandAllocators[currentBufferIndex].Get(), nullptr));
+    ResetRenderCommandList();
 
     // Reset resources (descr heps, root sig ...)
     auto rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
     D3D12_CPU_DESCRIPTOR_HANDLE renderTargetHandle;
-    CD3DX12_CPU_DESCRIPTOR_HANDLE::InitOffsetted(renderTargetHandle, rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), currentBufferIndex, rtvDescriptorSize);
+    CD3DX12_CPU_DESCRIPTOR_HANDLE::InitOffsetted(renderTargetHandle, rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), GetCurrentBufferIndex(), rtvDescriptorSize);
 
     // Setup viewport.
-    commandList->RSSetViewports(1, &screenViewport);
-    commandList->RSSetScissorRects(1, &scissorRect);
+    renderCommandList->RSSetViewports(1, &screenViewport);
+    renderCommandList->RSSetScissorRects(1, &scissorRect);
 
     BarrierFromPresentToTarget();
 
     // Record commands.
     float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
-    commandList->ClearRenderTargetView(renderTargetHandle, clearColor, 0, nullptr);
-    commandList->ClearDepthStencilView(dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+    renderCommandList->ClearRenderTargetView(renderTargetHandle, clearColor, 0, nullptr);
+    renderCommandList->ClearDepthStencilView(dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
     // Set the back buffer as the render target.
-    commandList->OMSetRenderTargets(1, &renderTargetHandle, FALSE, &dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
-    
+    renderCommandList->OMSetRenderTargets(1, &renderTargetHandle, FALSE, &dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 }
 
 void RenderEnvironment::Present()
 {
-    assert(isInitialized == true);
-
     BarrierFromTargetToPresent();
-
-    ENSURE_RESULT(commandList->Close());
-
-    // Execute command list
-    ID3D12CommandList* ppCommandLists[] = { commandList.Get() };
-    commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+    ExecuteRenderCommandList();
 
     // Present
     ENSURE_RESULT(swapChain->Present(vSynch, 0));
@@ -490,33 +483,69 @@ void RenderEnvironment::Present()
     Synchronize();
 }
 
-Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> RenderEnvironment::GetGraphicsCommandList()
+Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> RenderEnvironment::GetRenderCommandList()
 {
-    assert(isInitialized == true);
+    ASSERT(renderCommandListState == CommandListState::CL_RESETED);
 
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> grphCmdLst;
-    ENSURE_RESULT(commandList.As(&grphCmdLst));
+    ENSURE_RESULT(renderCommandList.As(&grphCmdLst));
     return grphCmdLst;
 }
 
-void RenderEnvironment::ResetCommandList()
+Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> RenderEnvironment::GetUpdateCommandList()
 {
-    assert(isInitialized == true);
+    ASSERT(updateCommandListState == CommandListState::CL_RESETED);
+
+    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> grphCmdLst;
+    ENSURE_RESULT(updateCommandList.As(&grphCmdLst));
+    return grphCmdLst;
+}
+
+void RenderEnvironment::ResetRenderCommandList()
+{
+    ASSERT(renderCommandListState == CommandListState::CL_EXECUTED);
 
     Synchronize();
     auto currentBufferIndex = GetCurrentBufferIndex();
     ENSURE_RESULT(commandAllocators[currentBufferIndex]->Reset());
-    ENSURE_RESULT(commandList->Reset(commandAllocators[currentBufferIndex].Get(), nullptr));
+    ENSURE_RESULT(renderCommandList->Reset(commandAllocators[currentBufferIndex].Get(), nullptr));
+
+    renderCommandListState = CommandListState::CL_RESETED;
 }
 
-void RenderEnvironment:: ExecuteCommandList()
+void RenderEnvironment::ExecuteRenderCommandList()
 {
-    assert(isInitialized == true);
+    ASSERT(renderCommandListState == CommandListState::CL_RESETED);
 
-    ENSURE_RESULT(commandList->Close());
-    ID3D12CommandList* ppCommandLists[] = { commandList.Get() };
+    ENSURE_RESULT(renderCommandList->Close());
+    ID3D12CommandList* ppCommandLists[] = { renderCommandList.Get() };
     commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
     Synchronize();
+
+    renderCommandListState = CommandListState::CL_EXECUTED;
+}
+
+void RenderEnvironment::ResetUpdateCommandList()
+{
+    ASSERT(updateCommandListState == CommandListState::CL_EXECUTED);
+
+    Synchronize();
+    ENSURE_RESULT(updateCommandAllocator->Reset());
+    ENSURE_RESULT(updateCommandList->Reset(updateCommandAllocator.Get(), nullptr));
+
+    updateCommandListState = CommandListState::CL_RESETED;
+}
+
+void RenderEnvironment::ExecuteUpdateCommandList()
+{
+    ASSERT(updateCommandListState == CommandListState::CL_RESETED);
+
+    ENSURE_RESULT(updateCommandList->Close());
+    ID3D12CommandList* ppCommandLists[] = { updateCommandList.Get() };
+    commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+    Synchronize();
+
+    updateCommandListState = CommandListState::CL_EXECUTED;
 }
 
 UINT RenderEnvironment::GetVideoModesNumber()

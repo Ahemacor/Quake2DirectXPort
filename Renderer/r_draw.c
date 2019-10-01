@@ -52,10 +52,17 @@ static drawpolyvert_t* d_drawverts = NULL;
 static ID3D11Buffer *d3d_DrawVertexes = NULL;
 static ID3D11Buffer *d3d_DrawIndexes = NULL;
 #else // DX12
-static drawpolyvert_t d_drawverts[MAX_DRAW_VERTS];
+static drawpolyvert_t vertex_buffer[MAX_DRAW_VERTS];
+static drawpolyvert_t* d_drawverts = NULL;
 static int d3d_DrawVertexes = -1;
+
+static int index_buffer[MAX_DRAW_INDEXES];
 static int d3d_DrawIndexes = -1;
 #endif // DX11_IMPL
+
+#if FEATURE_DRAW_PICTURES
+static int d3d_DrawTexturedShader = -1;
+#endif // #if FEATURE_DRAW_PICTURES
 
 static int d_firstdrawvert = 0;
 static int d_numdrawverts = 0;
@@ -64,10 +71,6 @@ static int d_numdrawverts = 0;
 
 static image_t	*draw_chars;
 static image_t	*sb_nums[2];
-
-#if FEATURE_DRAW_PICTURES
-static int d3d_DrawTexturedShader;
-#endif // #if FEATURE_DRAW_PICTURES
 
 #if FEATURE_CINEMATIC
 static int d3d_DrawCinematicShader;
@@ -98,6 +101,36 @@ __declspec(align(16)) typedef struct drawconstants_s {
 	float ConScale[2]; // conw/w, conh/h
 } drawconstants_t;
 
+
+/*
+// TEST -----------------------------------
+typedef struct VertexStruct
+{
+    float position[4];
+    float texcoord[2];
+    float color[4];
+} Vertex;
+
+static const Vertex vertices[4] = {
+    // Upper Left
+    { { -1.0f, 1.0f, 0, 1 }, { 0, 0 }, {1, 0, 0, 1} },
+    // Upper Right
+    { { 1.0f, 1.0f, 0, 1 }, { 1, 0 }, {0, 1, 0, 1} },
+    // Bottom right
+    { { 1.0f, -1.0f, 0, 1 }, { 1, 1 }, {0, 0, 1, 1} },
+    // Bottom left
+    { { -1.0f, -1.0f, 0, 1 }, { 0, 1 }, {1, 1, 0, 1} }
+};
+
+//static const int indices[6] = { 0, 1, 2, 2, 3, 0 };
+static const int indices[6] = { 0, 1, 2, 3, 4, 5 };
+
+int testVertBuffer = -1;
+int testIndxBuffer = -1;
+int testRenderState = -1;
+
+// TEST -----------------------------------
+*/
 
 void Draw_CreateBuffers (void)
 {
@@ -137,9 +170,9 @@ void Draw_CreateBuffers (void)
 
     RWCreateBuffer(&vbDesc, NULL, &d3d_DrawVertexes);
     RWCreateBuffer(&ibDesc, ndx, &d3d_DrawIndexes);
+    ri.Load_FreeMemory();
 #else // DX12
-    unsigned short* ndx = ri.Load_AllocMemory(sizeof(unsigned short) * MAX_DRAW_INDEXES);
-    unsigned short* ndxCurrent = ndx;
+    unsigned int* ndxCurrent = index_buffer;
 
     for (int i = 0; i < MAX_DRAW_VERTS; i += 4, ndxCurrent += 6)
     {
@@ -151,11 +184,27 @@ void Draw_CreateBuffers (void)
         ndxCurrent[4] = i + 2;
         ndxCurrent[5] = i + 3;
     }
-    d3d_DrawVertexes = DX12_CreateVertexBuffer(MAX_DRAW_VERTS, sizeof(drawpolyvert_t), NULL);
-    d3d_DrawIndexes = DX12_CreateIndexBuffer(MAX_DRAW_INDEXES, ndx, sizeof(unsigned short));
 
+    d3d_DrawVertexes = DX12_CreateVertexBuffer(MAX_DRAW_VERTS, sizeof(drawpolyvert_t), NULL);
+    d3d_DrawIndexes = DX12_CreateIndexBuffer(MAX_DRAW_INDEXES, index_buffer, sizeof(int));
+/*
+// TEST -----------------------------------
+    testVertBuffer = DX12_CreateVertexBuffer(sizeof(vertices) / sizeof(Vertex), sizeof(Vertex), vertices);
+    testIndxBuffer = DX12_CreateIndexBuffer(sizeof(indices) / sizeof(int), indices, sizeof(int));
+
+    State testState;
+    testState.inputLayout = INPUT_LAYOUT_STANDART;
+    testState.VS = SHADER_DRAW_TEXTURED_VS;
+    testState.PS = SHADER_DRAW_TEXTURED_PS;
+    testState.topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    testState.BS = BSAlphaBlend;
+    testState.DS = DSDepthNoWrite;
+    testState.RS = RSNoCull;
+
+    testRenderState = DX12_CreateRenderState(&testState);
+// TEST -----------------------------------
+*/
 #endif // DX11_IMPL
-	ri.Load_FreeMemory ();
 }
 
 
@@ -207,7 +256,19 @@ void Draw_InitLocal (void)
 
 	// shaders
 #if FEATURE_DRAW_PICTURES
+#if DX11_IMPL
 	d3d_DrawTexturedShader = SLCreateShaderBundle(IDR_DRAWSHADER, "DrawTexturedVS", NULL, "DrawTexturedPS", DEFINE_LAYOUT (layout_standard));
+#else // DX12
+    State TexturedState;
+    TexturedState.inputLayout = INPUT_LAYOUT_STANDART;
+    TexturedState.VS = SHADER_DRAW_TEXTURED_VS;
+    TexturedState.PS = SHADER_DRAW_TEXTURED_PS;
+    TexturedState.topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    TexturedState.BS = BSAlphaPreMult;
+    TexturedState.DS = DSNoDepth;
+    TexturedState.RS = RSNoCull;
+    d3d_DrawTexturedShader = DX12_CreateRenderState(&TexturedState);
+#endif // DX11_IMPL
 #endif // #if FEATURE_DRAW_PICTURES
 
 #if FEATURE_DRAW_FILL
@@ -284,8 +345,11 @@ void Draw_Flush (void)
         RWGetDeviceContext()->lpVtbl->DrawIndexed(RWGetDeviceContext(), (d_numdrawverts >> 2) * 6, 0, d_firstdrawvert);
 	}
 #else // DX12
-    DX12_UpdateVertexBuffer(d3d_DrawVertexes, d_drawverts, MAX_DRAW_VERTS, sizeof(drawpolyvert_t));
-    DX12_BindVertexBuffer(0, d3d_DrawVertexes);
+    if (d_drawverts)
+    {
+        DX12_UpdateVertexBuffer(d3d_DrawVertexes, vertex_buffer, MAX_DRAW_VERTS, sizeof(drawpolyvert_t));
+        d_drawverts = NULL;
+    }
 
     if (d_numdrawverts == 3)
     {
@@ -323,6 +387,11 @@ qboolean Draw_EnsureBufferSpace (void)
 			return false;
 		else d_drawverts = (drawpolyvert_t *) msr.pData + d_firstdrawvert;
 	}
+#else // DX12
+    if (!d_drawverts)
+    {
+        d_drawverts = (drawpolyvert_t*)vertex_buffer + d_firstdrawvert;
+    }
 #endif // DX11_IMPL
 
 	// all OK!
@@ -366,10 +435,14 @@ void Draw_CharacterVertex (drawpolyvert_t *vert, float x, float y, float s, floa
 void Draw_TexturedQuad (image_t *image, int x, int y, int w, int h, unsigned color)
 {
 #if FEATURE_DRAW_PICTURES
-	R_BindTexture (image->SRV);
-
+#if DX11_IMPL
+    R_BindTexture(image->SRV);
     SLBindShaderBundle(d3d_DrawTexturedShader);
 	SMSetRenderStates(BSAlphaPreMult, DSNoDepth, RSNoCull);
+#else // DX12
+    DX12_BindTexture(0, image->textureId);
+    Dx12_SetRenderState(d3d_DrawTexturedShader);
+#endif // DX11_IMPL
 
 	if (Draw_EnsureBufferSpace ())
 	{
@@ -380,6 +453,12 @@ void Draw_TexturedQuad (image_t *image, int x, int y, int w, int h, unsigned col
 
 		Draw_Flush ();
 	}
+
+    //Dx12_SetRenderState(testRenderState);
+    //DX12_BindVertexBuffer(0, testVertBuffer);
+    //DX12_BindIndexBuffer(testIndxBuffer);
+    //DX12_DrawIndexed(6, 0, 0);
+    //DX12_Draw(6, 0);
 #endif // #if FEATURE_DRAW_PICTURES
 }
 

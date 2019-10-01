@@ -48,7 +48,7 @@ void DX12_BindConstantBuffer(int resourceId, int slot);
 
 static void TestInit()
 {
-    int width = 0, height = 0;
+    /*int width = 0, height = 0;
     std::vector<std::uint8_t> imageData = LoadImageFromFile(imageFilePath, 1, &width, &height);
     
     int cbId = DX12_CreateConstantBuffer(nullptr, sizeof(shortCb));
@@ -71,7 +71,7 @@ static void TestInit()
     DX12_BindVertexBuffer(0, vbId);
 
     ResourceManager::Resource::Id ibId = g_renderer->CreateIndexBuffer(ARRAYSIZE(indices), indices);
-    g_renderer->BindIndexBuffer(ibId);
+    g_renderer->BindIndexBuffer(ibId);*/
 }
 
 static void TestRender()
@@ -200,20 +200,13 @@ HWND DX12_GetOsWindowHandle()
     return g_window->GetHandle();
 }
 
-void DX12_SetPrimitiveTopologyTriangleList()
-{
-    g_renderer->SetPrimitiveTopologyTriangleList();
-}
-
 int DX12_CreateConstantBuffer(const void* pSrcData, int bufferSize)
 {
-    ScopedStateManager SM = g_renderer->GetStateManager(true);
     return g_renderer->CreateConstantBuffer(bufferSize, pSrcData);
 }
 
 void DX12_UpdateConstantBuffer(int resourceId, const void* pSrcData, int bufferSize)
 {
-    ScopedStateManager SM = g_renderer->GetStateManager(true);
     g_renderer->UpdateConstantBuffer(resourceId, pSrcData, bufferSize);
 }
 
@@ -252,6 +245,22 @@ void DX12_BindIndexBuffer(int resourceId)
     g_renderer->BindIndexBuffer(resourceId);
 }
 
+int DX12_CreateTexture(const D3D12_RESOURCE_DESC* descr, D3D12_SUBRESOURCE_DATA* pSrcData)
+{
+    const CD3DX12_RESOURCE_DESC Descr(*descr);
+    return g_renderer->CreateTextureResource(Descr, pSrcData);
+}
+
+void DX12_UpdateTexture(int resourceId, D3D12_SUBRESOURCE_DATA* pSrcData)
+{
+    g_renderer->UpdateTextureResource(resourceId, pSrcData);
+}
+
+void DX12_BindTexture(UINT slot, int resourceId)
+{
+    g_renderer->BindTextureResource(resourceId, slot);
+}
+
 void DX12_SetViewport(const D3D12_VIEWPORT* pViewport)
 {
     g_renderEnv->SetViewport(*pViewport);
@@ -267,50 +276,14 @@ void DX12_DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLocation)
     g_renderer->DrawIndexed(indexCount, firstIndex, baseVertexLocation);
 }
 
-const State* Dx12_GetRenderState()
+void Dx12_SetRenderState(UINT stateId)
 {
-    return &g_renderer->GetRenderState();
+    g_renderer->SetPSO(stateId);
 }
 
-void Dx12_SetRenderState(const State* state)
+UINT DX12_CreateRenderState(const State* state)
 {
-    g_renderer->SetRenderState(*state);
-}
-
-void DX12_SetVertexShader(ShaderType shaderType)
-{
-    ScopedStateManager SM = g_renderer->GetStateManager(false);
-    SM->SetVertexShader(shaderType);
-}
-
-void DX12_SetPixelShader(ShaderType shaderType)
-{
-    ScopedStateManager SM = g_renderer->GetStateManager(false);
-    SM->SetPixelShader(shaderType);
-}
-
-void DX12_SetInputLayout(InputLayout inputLayout)
-{
-    ScopedStateManager SM = g_renderer->GetStateManager(false);
-    SM->SetInputLayout(inputLayout);
-}
-
-void DX12_SetBlendState(BlendState blendState)
-{
-    ScopedStateManager SM = g_renderer->GetStateManager(false);
-    SM->SetBlendState(blendState);
-}
-
-void DX12_SetDepthState(DepthStencilState depthState)
-{
-    ScopedStateManager SM = g_renderer->GetStateManager(false);
-    SM->SetDepthState(depthState);
-}
-
-void DX12_SetRasterizerState(RasterizerState rasterizerState)
-{
-    ScopedStateManager SM = g_renderer->GetStateManager(false);
-    SM->SetRasterizerState(rasterizerState);
+    return g_renderer->CreatePSO(state);
 }
 
 void DX12_ClearRTVandDSV()
