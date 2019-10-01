@@ -357,6 +357,7 @@ void Draw_Flush (void)
     }
     else if (d_numdrawverts > 3)
     {
+        DX12_BindVertexBuffer(0, d3d_DrawVertexes);
         DX12_BindIndexBuffer(d3d_DrawIndexes);
         DX12_DrawIndexed((d_numdrawverts >> 2) * 6, 0, d_firstdrawvert);
     }
