@@ -22,7 +22,13 @@ float4 GetGamma(float4 colorin)
 
 float4 PixelShaderEntryPoint(PS_DRAWTEXTURED ps_in) : SV_TARGET
 {
-    //float4 diff = GetGamma(mainTexture.Sample(drawSampler, ps_in.TexCoord)) * ps_in.Color;
-    //return float4 (diff.rgb * diff.a, diff.a);
-    return float4 (0, 0, 1, 0.1f);
+    // adjust for pre-multiplied alpha
+    float4 diff = GetGamma(mainTexture.Sample(drawSampler, ps_in.TexCoord)) * ps_in.Color;
+    float4 psColor = float4 (diff.rgb * diff.a, diff.a);
+
+    psColor.r += 0.1;
+    psColor.g += 0.1;
+    psColor.b += 0.1;
+
+    return psColor;
 }

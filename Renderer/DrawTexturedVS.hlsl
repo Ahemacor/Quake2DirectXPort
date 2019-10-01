@@ -20,6 +20,7 @@ struct PS_DRAWTEXTURED {
 PS_DRAWTEXTURED VertexShaderEntryPoint (VS_DRAWCOMMON vs_in, uint vertexId : SV_VertexID)
 {
     PS_DRAWTEXTURED vs_out;
+
     vs_out.Position = mul(orthoMatrix, vs_in.Position);
     vs_out.Color = vs_in.Color;
     vs_out.TexCoord = vs_in.TexCoord;
