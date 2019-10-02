@@ -463,7 +463,6 @@ void RenderEnvironment::ClearScreen()
     renderCommandList->ClearRenderTargetView(renderTargetHandle, clearColor, 0, nullptr);
     renderCommandList->ClearDepthStencilView(dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
-    SetupRenderingCommandList();
     ExecuteRenderCommandList();
 }
 

@@ -130,7 +130,7 @@ void R_CreateTexture32 (image_t *image, unsigned *data)
 		R_DescribeTexture (&Desc, image->width >> 4, image->height >> 4, 256, image->flags);
 
 		// failure is not an option...
-		if (FAILED (d3d_Device->lpVtbl->CreateTexture2D (d3d_Device, &Desc, srd, &image->Texture))) ri.Sys_Error (ERR_FATAL, "CreateTexture2D failed");
+		if (FAILED (RWGetDevice()->lpVtbl->CreateTexture2D (RWGetDevice(), &Desc, srd, &image->Texture))) ri.Sys_Error (ERR_FATAL, "CreateTexture2D failed");
 	}
 	else
 	{
@@ -170,11 +170,11 @@ void R_CreateTexture32 (image_t *image, unsigned *data)
 		R_DescribeTexture (&Desc, image->width, image->height, 1, image->flags);
 
 		// failure is not an option...
-		if (FAILED (d3d_Device->lpVtbl->CreateTexture2D (d3d_Device, &Desc, srd, &image->Texture))) ri.Sys_Error (ERR_FATAL, "CreateTexture2D failed");
+		if (FAILED (RWGetDevice()->lpVtbl->CreateTexture2D (RWGetDevice(), &Desc, srd, &image->Texture))) ri.Sys_Error (ERR_FATAL, "CreateTexture2D failed");
 	}
 
 	// failure is not an option...
-	if (FAILED (d3d_Device->lpVtbl->CreateShaderResourceView (d3d_Device, (ID3D11Resource *) image->Texture, NULL, &image->SRV))) ri.Sys_Error (ERR_FATAL, "CreateShaderResourceView failed");
+	if (FAILED (RWGetDevice()->lpVtbl->CreateShaderResourceView (RWGetDevice(), (ID3D11Resource *) image->Texture, NULL, &image->SRV))) ri.Sys_Error (ERR_FATAL, "CreateShaderResourceView failed");
 #else // DX12
 
     D3D12_RESOURCE_DESC  Desc;
