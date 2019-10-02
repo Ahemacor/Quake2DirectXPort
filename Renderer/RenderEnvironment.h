@@ -52,6 +52,8 @@ public:
 
     void SetViewport(const D3D12_VIEWPORT& viewPort);
 
+    void SetupRenderingCommandList();
+
 private:
     enum class CommandListState { CL_EXECUTED, CL_RESETED};
     CommandListState updateCommandListState = CommandListState::CL_EXECUTED;

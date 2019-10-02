@@ -71,15 +71,23 @@ void Renderer::CommonDraw(ID3D12GraphicsCommandList* commandList)
 
 void Renderer::Draw(UINT numOfVertices, UINT firstVertexToDraw)
 {
+    pRenderEnv->ResetRenderCommandList();
+    pRenderEnv->SetupRenderingCommandList();
+
     auto commandList = pRenderEnv->GetRenderCommandList();
 
     CommonDraw(commandList.Get());
 
     commandList->DrawInstanced(numOfVertices, 1, firstVertexToDraw, 0);
+
+    pRenderEnv->ExecuteRenderCommandList();
 }
 
 void Renderer::DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLocation)
 {
+    pRenderEnv->ResetRenderCommandList();
+    pRenderEnv->SetupRenderingCommandList();
+
     auto commandList = pRenderEnv->GetRenderCommandList();
 
     CommonDraw(commandList.Get());
@@ -89,6 +97,8 @@ void Renderer::DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLoca
     commandList->IASetIndexBuffer(&indexBufferView);
 
     commandList->DrawIndexedInstanced(indexCount, 1, firstIndex, baseVertexLocation, 0);
+
+    pRenderEnv->ExecuteRenderCommandList();
 }
 
 // CREATE METHODS:

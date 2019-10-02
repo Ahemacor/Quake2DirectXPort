@@ -449,31 +449,27 @@ void RenderEnvironment::BarrierFromPresentToTarget()
 
 void RenderEnvironment::ClearScreen()
 {
-    ResetRenderCommandList();
-
-    // Reset resources (descr heps, root sig ...)
-    auto rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-    D3D12_CPU_DESCRIPTOR_HANDLE renderTargetHandle;
-    CD3DX12_CPU_DESCRIPTOR_HANDLE::InitOffsetted(renderTargetHandle, rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), GetCurrentBufferIndex(), rtvDescriptorSize);
-
-    // Setup viewport.
-    renderCommandList->RSSetViewports(1, &screenViewport);
-    renderCommandList->RSSetScissorRects(1, &scissorRect);
+    if (renderCommandListState != CommandListState::CL_RESETED) ResetRenderCommandList();
 
     BarrierFromPresentToTarget();
 
     // Record commands.
     float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
+    auto rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    D3D12_CPU_DESCRIPTOR_HANDLE renderTargetHandle;
+    CD3DX12_CPU_DESCRIPTOR_HANDLE::InitOffsetted(renderTargetHandle, rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), GetCurrentBufferIndex(), rtvDescriptorSize);
+
     renderCommandList->ClearRenderTargetView(renderTargetHandle, clearColor, 0, nullptr);
     renderCommandList->ClearDepthStencilView(dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
-    // Set the back buffer as the render target.
-    renderCommandList->OMSetRenderTargets(1, &renderTargetHandle, FALSE, &dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+    SetupRenderingCommandList();
+    ExecuteRenderCommandList();
 }
 
 void RenderEnvironment::Present()
 {
+    if (renderCommandListState != CommandListState::CL_RESETED) ResetRenderCommandList();
     BarrierFromTargetToPresent();
     ExecuteRenderCommandList();
 
@@ -481,6 +477,17 @@ void RenderEnvironment::Present()
     ENSURE_RESULT(swapChain->Present(vSynch, 0));
 
     Synchronize();
+}
+
+void RenderEnvironment::SetupRenderingCommandList()
+{
+    auto rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    D3D12_CPU_DESCRIPTOR_HANDLE renderTargetHandle;
+    CD3DX12_CPU_DESCRIPTOR_HANDLE::InitOffsetted(renderTargetHandle, rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), GetCurrentBufferIndex(), rtvDescriptorSize);
+
+    renderCommandList->RSSetViewports(1, &screenViewport);
+    renderCommandList->RSSetScissorRects(1, &scissorRect);
+    renderCommandList->OMSetRenderTargets(1, &renderTargetHandle, FALSE, &dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 }
 
 Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> RenderEnvironment::GetRenderCommandList()
