@@ -79,6 +79,8 @@ public:
     void SetPSO(UINT PSOid);
 
 private:
+    void CommonDraw(ID3D12GraphicsCommandList* commandList);
+
     struct VertexBufferToBind
     {
         UINT slot;

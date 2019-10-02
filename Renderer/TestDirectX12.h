@@ -43,14 +43,14 @@ extern "C" {
     void DX12_BindTexture(UINT slot, int resourceId);
 
     void DX12_SetViewport(const D3D12_VIEWPORT* pViewport);
-    void DX12_Draw(UINT numOfVertices, UINT firstVertexToDraw);
-    void DX12_DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLocation);
     void Dx12_SetRenderState(UINT stateId);
     UINT DX12_CreateRenderState(const State* state);
 
+    void DX12_Draw(UINT numOfVertices, UINT firstVertexToDraw);
+    void DX12_DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLocation);
+
     void DX12_ClearRTVandDSV();
     void DX12_Present();
-
 #ifdef __cplusplus
 }
 #endif

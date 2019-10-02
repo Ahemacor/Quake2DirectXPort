@@ -48,16 +48,18 @@ void Renderer::Release()
     isInitialized = false;
 }
 
-void Renderer::Draw(UINT numOfVertices, UINT firstVertexToDraw)
+void Renderer::CommonDraw(ID3D12GraphicsCommandList* commandList)
 {
-    auto commandList = pRenderEnv->GetRenderCommandList();
-
     commandList->SetPipelineState(stateManager.GetPSO(psoId));
+
     commandList->SetGraphicsRootSignature(stateManager.GetRootSignature());
 
     ID3D12DescriptorHeap* heaps[] = { resourceManager.GetDescriptorHeap(),
                                       stateManager.GetSamplerDescriptorHeap() };
+
     commandList->SetDescriptorHeaps(_countof(heaps), heaps);
+
+    commandList->SetGraphicsRootDescriptorTable(ParameterIdx::SRV_TABLE_IDX, resourceManager.GetSrvHandle());
 
     commandList->SetGraphicsRootDescriptorTable(ParameterIdx::SAMPLERS_TABLE_IDX, stateManager.GetSamplerHandle());
 
@@ -65,78 +67,25 @@ void Renderer::Draw(UINT numOfVertices, UINT firstVertexToDraw)
     {
         commandList->SetGraphicsRootConstantBufferView(ParameterIdx::CB0_IDX + pair.first, pair.second);
     }
+}
 
-    commandList->SetGraphicsRootDescriptorTable(ParameterIdx::SRV_TABLE_IDX, resourceManager.GetSrvHandle());
+void Renderer::Draw(UINT numOfVertices, UINT firstVertexToDraw)
+{
+    auto commandList = pRenderEnv->GetRenderCommandList();
 
-    commandList->IASetVertexBuffers(vertexBufferToBind.slot, 1, &vertexBufferToBind.view);
+    CommonDraw(commandList.Get());
 
     commandList->DrawInstanced(numOfVertices, 1, firstVertexToDraw, 0);
 }
-
-/*
-Microsoft::WRL::ComPtr<ID3D12Resource> testIndexBuffer;
-Microsoft::WRL::ComPtr<ID3D12Resource> testUploadBuffer;
-D3D12_INDEX_BUFFER_VIEW testIndexBufferVies = {};
-static const int indices[6] = { 0, 1, 2, 3, 4, 5 };
-*/
 
 void Renderer::DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLocation)
 {
     auto commandList = pRenderEnv->GetRenderCommandList();
 
-    commandList->SetPipelineState(stateManager.GetPSO(psoId));
-    commandList->SetGraphicsRootSignature(stateManager.GetRootSignature());
+    CommonDraw(commandList.Get());
 
-    ID3D12DescriptorHeap* heaps[] = { resourceManager.GetDescriptorHeap(),
-                                      stateManager.GetSamplerDescriptorHeap() };
-    commandList->SetDescriptorHeaps(_countof(heaps), heaps);
-
-    commandList->SetGraphicsRootDescriptorTable(ParameterIdx::SAMPLERS_TABLE_IDX, stateManager.GetSamplerHandle());
-
-    for (const auto& pair : cbArguments)
-    {
-        commandList->SetGraphicsRootConstantBufferView(ParameterIdx::CB0_IDX + pair.first, pair.second);
-    }
-    
-    commandList->SetGraphicsRootDescriptorTable(ParameterIdx::SRV_TABLE_IDX, resourceManager.GetSrvHandle());
-
-/*
-    static const auto defaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-
-    static const auto indexBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(indices));
-    pRenderEnv->GetDevice()->CreateCommittedResource(&defaultHeapProperties,
-        D3D12_HEAP_FLAG_NONE,
-        &indexBufferDesc,
-        D3D12_RESOURCE_STATE_COPY_DEST,
-        nullptr,
-        IID_PPV_ARGS(&testIndexBuffer));
-
-    testIndexBufferVies.BufferLocation = testIndexBuffer->GetGPUVirtualAddress();
-    testIndexBufferVies.SizeInBytes = sizeof(indices);
-    testIndexBufferVies.Format = DXGI_FORMAT_R32_UINT;
-
-    pRenderEnv->GetDevice()->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-        D3D12_HEAP_FLAG_NONE,
-        &CD3DX12_RESOURCE_DESC::Buffer(sizeof(indices)),
-        D3D12_RESOURCE_STATE_GENERIC_READ,
-        nullptr,
-        IID_PPV_ARGS(&testUploadBuffer));
-
-    void* p;
-    testUploadBuffer->Map(0, nullptr, &p);
-    ::memcpy(p, indices, sizeof(indices));
-    testUploadBuffer->Unmap(0, nullptr);
-
-    commandList->CopyBufferRegion(testIndexBuffer.Get(), 0, testUploadBuffer.Get(), 0, sizeof(indices));
-
-    const CD3DX12_RESOURCE_BARRIER barriers[1] = { CD3DX12_RESOURCE_BARRIER::Transition(testIndexBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_INDEX_BUFFER) };
-    commandList->ResourceBarrier(1, barriers);
-
-    commandList->IASetIndexBuffer(&testIndexBufferVies);
-
-*/
-    // commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     commandList->IASetVertexBuffers(vertexBufferToBind.slot, 1, &vertexBufferToBind.view);
+
     commandList->IASetIndexBuffer(&indexBufferView);
 
     commandList->DrawIndexedInstanced(indexCount, 1, firstIndex, baseVertexLocation, 0);
@@ -164,7 +113,6 @@ ResourceManager::Resource::Id Renderer::CreateTextureResource(const CD3DX12_RESO
     ResourceManager::Resource resource;
     resource.type = ResourceManager::Resource::Type::SRV;
     resource.variant.texDescr = descr;
-    //CD3DX12_RESOURCE_DESC descr = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, width, height, 1, 1);
     resource.d12resource = resourceManager.CreateDx12Resource(&descr);
     if (pSrcData != nullptr)
     {
@@ -255,7 +203,6 @@ void Renderer::BindTextureResource(ResourceManager::Resource::Id resourceId, std
     ASSERT(slot < ResourceManager::DESCR_HEAP_MAX);
     ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
     ASSERT(resource.type == ResourceManager::Resource::Type::SRV);
-    //srvArguments[slot] = resource.variant.srvHandle;
     resourceManager.CreateShaderResourceView(resourceId, slot);
 }
 

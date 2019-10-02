@@ -82,20 +82,6 @@ void R_DescribeTexture (D3D11_TEXTURE2D_DESC *Desc, int width, int height, int a
 #else // DX12
 void R_DescribeTexture(D3D12_RESOURCE_DESC* Desc, int width, int height, int arraysize, int flags)
 {
-    /*
-        CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, width, height, 1, 1);
-
-        DXGI_FORMAT DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,
-        UINT64 width,
-        UINT height,
-         UINT16 arraySize = 1,
-        UINT16 mipLevels = 0,
-        UINT sampleCount = 1,
-        UINT sampleQuality = 0,
-        D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE,
-        D3D12_TEXTURE_LAYOUT layout = D3D12_TEXTURE_LAYOUT_UNKNOWN,
-         UINT64 alignment = 0
-    */
     // basic info
     Desc->Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
     Desc->Width = width;
