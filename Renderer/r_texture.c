@@ -123,69 +123,42 @@ void R_DescribeTexture(D3D12_RESOURCE_DESC* Desc, int width, int height, int arr
 void R_CreateTexture32 (image_t *image, unsigned *data)
 {
 #if DX11_IMPL
-	D3D11_TEXTURE2D_DESC Desc;
-#else // DX12
-    D3D12_RESOURCE_DESC ResDescr;
-#endif // DX11_IMPL
+    D3D11_TEXTURE2D_DESC Desc;
 
 	if (image->flags & TEX_CHARSET)
 	{
-#if DX11_IMPL
+		int i;
 		D3D11_SUBRESOURCE_DATA srd[256];
-#else // DX12
-        D3D12_SUBRESOURCE_DATA srd[256];
-#endif // DX11_IMPL
-		for (int i = 0; i < 256; i++)
+
+		for (i = 0; i < 256; i++)
 		{
 			int row = (i >> 4);
 			int col = (i & 15);
-#if DX11_IMPL
+
 			srd[i].pSysMem = &data[((row * (image->width >> 4)) * image->width) + col * (image->width >> 4)];
 			srd[i].SysMemPitch = image->width << 2;
 			srd[i].SysMemSlicePitch = 0;
-#else // DX12
-            srd[i].pData = &data[((row * (image->width >> 4))* image->width) + col * (image->width >> 4)];
-            srd[i].RowPitch = image->width << 2;
-            srd[i].SlicePitch = 0;
-#endif // DX11_IMPL
 		}
-#if DX11_IMPL
+
 		// describe the texture
 		R_DescribeTexture (&Desc, image->width >> 4, image->height >> 4, 256, image->flags);
 
 		// failure is not an option...
-        if (FAILED(RWCreateTexture2D(&Desc, srd, &image->Texture))) ri.Sys_Error(ERR_FATAL, "CreateTexture2D failed");
-#else // DX12
-        //CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, width, height, 1, 1);
-        // describe the texture
-        R_DescribeTexture(&ResDescr, image->width >> 4, image->height >> 4, 256, image->flags);
-
-        image->textureId = DX12_CreateTexture(&ResDescr, srd);
-#endif // DX11_IMPL
+		if (FAILED (d3d_Device->lpVtbl->CreateTexture2D (d3d_Device, &Desc, srd, &image->Texture))) ri.Sys_Error (ERR_FATAL, "CreateTexture2D failed");
 	}
 	else
 	{
 		// this is good for a 4-billion X 4-billion texture; we assume it will never be needed that large
-#if DX11_IMPL
 		D3D11_SUBRESOURCE_DATA srd[32];
-#else // DX12
-        D3D12_SUBRESOURCE_DATA srd[32];
-#endif // DX11_IMPL
 
 		// copy these off so that they can be changed during miplevel reduction
 		int width = image->width;
 		int height = image->height;
 
 		// the first one just has the data
-#if DX11_IMPL
 		srd[0].pSysMem = data;
 		srd[0].SysMemPitch = width << 2;
 		srd[0].SysMemSlicePitch = 0;
-#else // DX12
-        srd[0].pData = data;
-        srd[0].RowPitch = width << 2;
-        srd[0].SlicePitch = 0;
-#endif // DX11_IMPL
 
 		// create further miplevels for the texture type
 		if (image->flags & TEX_MIPMAP)
@@ -201,31 +174,78 @@ void R_CreateTexture32 (image_t *image, unsigned *data)
 
 				if ((width = width >> 1) < 1) width = 1;
 				if ((height = height >> 1) < 1) height = 1;
-#if DX11_IMPL
+
 				srd[mipnum].pSysMem = data;
 				srd[mipnum].SysMemPitch = width << 2;
 				srd[mipnum].SysMemSlicePitch = 0;
-#else // DX12
-                srd[mipnum].pData = data;
-                srd[mipnum].RowPitch = width << 2;
-                srd[mipnum].SlicePitch = 0;
-#endif // DX11_IMPL
 			}
 		}
-#if DX11_IMPL
+
 		R_DescribeTexture (&Desc, image->width, image->height, 1, image->flags);
 
 		// failure is not an option...
-        if (FAILED(RWCreateTexture2D(&Desc, srd, &image->Texture))) ri.Sys_Error(ERR_FATAL, "CreateTexture2D failed");
-#else // DX12
-        R_DescribeTexture(&ResDescr, image->width, image->height, 1, image->flags);
-        image->textureId = DX12_CreateTexture(&ResDescr, srd);
-#endif // DX11_IMPL
+		if (FAILED (d3d_Device->lpVtbl->CreateTexture2D (d3d_Device, &Desc, srd, &image->Texture))) ri.Sys_Error (ERR_FATAL, "CreateTexture2D failed");
 	}
 
 	// failure is not an option...
-#if DX11_IMPL
-    if (FAILED(RWCreateShaderResourceView((ID3D11Resource*)image->Texture, NULL, &image->SRV))) ri.Sys_Error(ERR_FATAL, "CreateShaderResourceView failed");
+	if (FAILED (d3d_Device->lpVtbl->CreateShaderResourceView (d3d_Device, (ID3D11Resource *) image->Texture, NULL, &image->SRV))) ri.Sys_Error (ERR_FATAL, "CreateShaderResourceView failed");
+#else // DX12
+
+    D3D12_RESOURCE_DESC  Desc;
+    if (image->flags & TEX_CHARSET)
+    {
+        D3D12_SUBRESOURCE_DATA srd[256];
+        for (int i = 0; i < 256; i++)
+        {
+            int row = (i >> 4);
+            int col = (i & 15);
+
+            srd[i].pData = &data[((row * (image->width >> 4))* image->width) + col * (image->width >> 4)];
+            srd[i].RowPitch = image->width << 2;
+            srd[i].SlicePitch = 0;
+        }
+
+        R_DescribeTexture(&Desc, image->width >> 4, image->height >> 4, 256, image->flags);
+        image->textureId = DX12_CreateTexture(&Desc, &srd);
+    }
+    else
+    {
+        // this is good for a 4-billion X 4-billion texture; we assume it will never be needed that large
+        D3D12_SUBRESOURCE_DATA srd[32];
+
+        // copy these off so that they can be changed during miplevel reduction
+        int width = image->width;
+        int height = image->height;
+
+        // the first one just has the data
+        srd[0].pData = data;
+        srd[0].RowPitch = width << 2;
+        srd[0].SlicePitch = 0;
+
+        // create further miplevels for the texture type
+        if (image->flags & TEX_MIPMAP)
+        {
+            int mipnum;
+
+            for (mipnum = 1; width > 1 || height > 1; mipnum++)
+            {
+                // choose the appropriate filter
+                if ((width & 1) || (height & 1))
+                    data = Image_MipReduceLinearFilter(data, width, height);
+                else data = Image_MipReduceBoxFilter(data, width, height);
+
+                if ((width = width >> 1) < 1) width = 1;
+                if ((height = height >> 1) < 1) height = 1;
+
+                srd[mipnum].pData = data;
+                srd[mipnum].RowPitch = width << 2;
+                srd[mipnum].SlicePitch = 0;
+            }
+        }
+
+        R_DescribeTexture(&Desc, image->width, image->height, 1, image->flags);
+        image->textureId = DX12_CreateTexture(&Desc, &srd);
+    }
 #endif // DX11_IMPL
 }
 

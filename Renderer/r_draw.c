@@ -455,11 +455,6 @@ void Draw_TexturedQuad (image_t *image, int x, int y, int w, int h, unsigned col
 		Draw_Flush ();
 	}
 
-    //Dx12_SetRenderState(testRenderState);
-    //DX12_BindVertexBuffer(0, testVertBuffer);
-    //DX12_BindIndexBuffer(testIndxBuffer);
-    //DX12_DrawIndexed(6, 0, 0);
-    //DX12_Draw(6, 0);
 #endif // #if FEATURE_DRAW_PICTURES
 }
 

@@ -112,15 +112,9 @@ void ResourceManager::UpdateSRVBuffer(ID3D12Resource* imageResource, D3D12_SUBRE
     const auto uploadBufferSize = GetRequiredIntermediateSize(imageResource, 0, 1);
     ID3D12Resource* uploadBuffer = CreateUploadBuffer(uploadBufferSize);
 
-    /*D3D12_SUBRESOURCE_DATA srcData;
-    srcData.pData = pImageData;
-    srcData.RowPitch = width * texelSize;
-    srcData.SlicePitch = width * height * texelSize;*/
-
     pRenderEnv->ResetUpdateCommandList();
     auto uploadCommandList = pRenderEnv->GetUpdateCommandList();
-    //UpdateSubresources(uploadCommandList.Get(), imageResource, uploadBuffer, 0, 0, 1, &srcData);
-    UpdateSubresources(uploadCommandList.Get(), imageResource, uploadBuffer, 0, 0, 0, pSrcData);
+    UpdateSubresources(uploadCommandList.Get(), imageResource, uploadBuffer, 0, 0, 1, pSrcData);
     pRenderEnv->ExecuteUpdateCommandList();
 
     if (origState != D3D12_RESOURCE_STATE_COPY_DEST)
