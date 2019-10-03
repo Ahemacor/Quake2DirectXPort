@@ -548,7 +548,7 @@ void Draw_Char (int x, int y, int num)
 {
 #if FEATURE_DRAW_TEXT
 	// totally off screen
-	/*if (y <= -8) return;
+	if (y <= -8) return;
 
 	// space
 	if ((num & 127) == 32) return;
@@ -559,16 +559,11 @@ void Draw_Char (int x, int y, int num)
     SLBindShaderBundle(d3d_DrawTexArrayShader);
     SMSetRenderStates(BSAlphaPreMult, DSNoDepth, RSNoCull);
 #else // DX12
-    static int OldResId = -1;
-    if (OldResId != draw_chars->textureId)
-    {
-        DX12_BindTexture(6, draw_chars->textureId);
-        OldResId = draw_chars->textureId;
-    }
+    R_BindTexArray(draw_chars->textureId);
     Dx12_SetRenderState(d3d_DrawTexArrayShader);
 #endif // DX11_IMPL
 
-	Draw_CharacterQuad (x, y, 8, 8, num & 255);*/
+	Draw_CharacterQuad (x, y, 8, 8, num & 255);
 #endif // #if FEATURE_DRAW_TEXT
 }
 
