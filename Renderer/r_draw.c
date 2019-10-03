@@ -321,7 +321,19 @@ void Draw_InitLocal (void)
 
 	// shaders for use without buffers
 #if FEATURE_FADE_SCREEN
+#if DX11_IMPL
 	d3d_DrawFadescreenShader = SLCreateShaderBundle(IDR_DRAWSHADER, "DrawFadescreenVS", NULL, "DrawFadescreenPS", NULL, 0);
+#else // DX12
+    State FadeScreenState;
+    FadeScreenState.inputLayout = INPUT_LAYOUT_STANDART;
+    FadeScreenState.VS = SHADER_FADE_SCREEN_VS;
+    FadeScreenState.PS = SHADER_FADE_SCREEN_PS;
+    FadeScreenState.topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    FadeScreenState.BS = BSAlphaPreMult;
+    FadeScreenState.DS = DSDepthNoWrite;
+    FadeScreenState.RS = RSNoCull;
+    d3d_DrawFadescreenShader = DX12_CreateRenderState(&FadeScreenState);
+#endif // DX11_IMPL
 #endif // FEATURE_FADE_SCREEN
 
 	// vertex and index buffers
@@ -713,11 +725,15 @@ Draw_FadeScreen
 void Draw_FadeScreen (void)
 {
 #if FEATURE_FADE_SCREEN
+    // full-screen triangle
+#if DX11_IMPL
     SMSetRenderStates(BSAlphaPreMult, DSDepthNoWrite, RSNoCull);
     SLBindShaderBundle(d3d_DrawFadescreenShader);
-
-	// full-screen triangle
     RWGetDeviceContext()->lpVtbl->Draw(RWGetDeviceContext(), 3, 0);
+#else // DX12
+    Dx12_SetRenderState(d3d_DrawFadescreenShader);
+    DX12_Draw(3, 0);
+#endif // DX11_IMPL
 #endif // FEATURE_FADE_SCREEN
 }
 

@@ -213,6 +213,14 @@ std::wstring PipelineStateManager::GetShaderFilepath(ShaderType shaderType)
         shaderFilename = L"DrawCinematicPS.cso";
         break;
 
+    case ShaderType::SHADER_FADE_SCREEN_VS:
+        shaderFilename = L"DrawFadescreenVS.cso";
+        break;
+
+    case ShaderType::SHADER_FADE_SCREEN_PS:
+        shaderFilename = L"DrawFadescreenPS.cso";
+        break;
+
     default:
         shaderFilename = L"";
         break;
