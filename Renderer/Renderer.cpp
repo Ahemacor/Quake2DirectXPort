@@ -67,6 +67,8 @@ void Renderer::CommonDraw(ID3D12GraphicsCommandList* commandList)
     {
         commandList->SetGraphicsRootConstantBufferView(ParameterIdx::CB0_IDX + pair.first, pair.second);
     }
+
+    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
 void Renderer::Draw(UINT numOfVertices, UINT firstVertexToDraw)
