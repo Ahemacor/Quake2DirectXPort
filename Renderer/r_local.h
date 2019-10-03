@@ -35,7 +35,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define FEATURE_FADE_SCREEN 0
 #define FEATURE_CINEMATIC 0
 #define FEATURE_DRAW_FILL 0
-#define FEATURE_DRAW_TEXT 0
+#define FEATURE_DRAW_TEXT 1
 #define FEATURE_DRAW_PICTURES 1
 
 #define DX11_IMPL 0
@@ -444,12 +444,18 @@ typedef enum ParameterIdxEnum
 typedef enum ShaderTypeEnum
 {
     SHADER_UNDEFINED = 0,
+
     SHADER_TEST_VS,
     SHADER_TEST_PS,
+
     SHADER_DRAW_POLYBLEND_VS,
     SHADER_DRAW_POLYBLEND_PS,
+
     SHADER_DRAW_TEXTURED_VS,
     SHADER_DRAW_TEXTURED_PS,
+
+    SHADER_DRAW_TEXT_ARRAY_VS,
+    SHADER_DRAW_TEXT_ARRAY_PS,
 
     SHADER_TYPE_COUNT
 } ShaderType;

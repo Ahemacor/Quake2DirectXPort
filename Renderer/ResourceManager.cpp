@@ -84,13 +84,28 @@ D3D12_INDEX_BUFFER_VIEW ResourceManager::CreateIndexBufferView(ID3D12Resource* i
 D3D12_GPU_DESCRIPTOR_HANDLE ResourceManager::CreateShaderResourceView(ResourceManager::Resource::Id resourceId, const std::size_t slot)
 {
     Resource resource = GetResource(resourceId);
+    const std::size_t arraySize = resource.variant.texDescr.ArraySize();
+
     D3D12_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc = {};
-    shaderResourceViewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-    shaderResourceViewDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
     shaderResourceViewDesc.Format = resource.variant.texDescr.Format;
-    shaderResourceViewDesc.Texture2D.MipLevels = resource.variant.texDescr.MipLevels;
-    shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
-    shaderResourceViewDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+    shaderResourceViewDesc.ViewDimension = (arraySize > 1) ? D3D12_SRV_DIMENSION_TEXTURE2DARRAY : D3D12_SRV_DIMENSION_TEXTURE2D;
+    shaderResourceViewDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+
+    if (arraySize > 1)
+    {
+        shaderResourceViewDesc.Texture2DArray.MostDetailedMip = 0;
+        shaderResourceViewDesc.Texture2DArray.MipLevels = resource.variant.texDescr.MipLevels;
+        shaderResourceViewDesc.Texture2DArray.FirstArraySlice = 0;
+        shaderResourceViewDesc.Texture2DArray.ArraySize = arraySize;
+        shaderResourceViewDesc.Texture2DArray.PlaneSlice = 0;
+        shaderResourceViewDesc.Texture2DArray.ResourceMinLODClamp = 0.0f;
+    }
+    else
+    {
+        shaderResourceViewDesc.Texture2D.MipLevels = resource.variant.texDescr.MipLevels;
+        shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
+        shaderResourceViewDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+    }
 
     const UINT descrHandleSize = pRenderEnv->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     CD3DX12_CPU_DESCRIPTOR_HANDLE cpuHandle(descriptorHeap->GetCPUDescriptorHandleForHeapStart(), slot, descrHandleSize);
@@ -102,19 +117,24 @@ D3D12_GPU_DESCRIPTOR_HANDLE ResourceManager::CreateShaderResourceView(ResourceMa
     return gpuDescrHandle;
 }
 
-void ResourceManager::UpdateSRVBuffer(ID3D12Resource* imageResource, D3D12_SUBRESOURCE_DATA* pSrcData, const D3D12_RESOURCE_STATES origState)
+void ResourceManager::UpdateSRVBuffer(Resource::Id resourceId, D3D12_SUBRESOURCE_DATA* pSrcData, const D3D12_RESOURCE_STATES origState)
 {
-    ASSERT(imageResource != nullptr);
+    ASSERT(resourceId != 0);
+
+    Resource resource = GetResource(resourceId);
+    ID3D12Resource* imageResource = resource.d12resource.Get();
 
     if (origState != D3D12_RESOURCE_STATE_COPY_DEST)
         UpdateResourceState(imageResource, origState, D3D12_RESOURCE_STATE_COPY_DEST);
 
-    const auto uploadBufferSize = GetRequiredIntermediateSize(imageResource, 0, 1);
+    const UINT numOfsubresources = resource.variant.texDescr.ArraySize();
+
+    const auto uploadBufferSize = GetRequiredIntermediateSize(imageResource, 0, numOfsubresources);
     ID3D12Resource* uploadBuffer = CreateUploadBuffer(uploadBufferSize);
 
     pRenderEnv->ResetUpdateCommandList();
     auto uploadCommandList = pRenderEnv->GetUpdateCommandList();
-    UpdateSubresources(uploadCommandList.Get(), imageResource, uploadBuffer, 0, 0, 1, pSrcData);
+    UpdateSubresources(uploadCommandList.Get(), imageResource, uploadBuffer, 0, 0, numOfsubresources, pSrcData);
     pRenderEnv->ExecuteUpdateCommandList();
 
     if (origState != D3D12_RESOURCE_STATE_COPY_DEST)

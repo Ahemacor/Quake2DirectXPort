@@ -83,13 +83,14 @@ void R_DescribeTexture (D3D11_TEXTURE2D_DESC *Desc, int width, int height, int a
 void R_DescribeTexture(D3D12_RESOURCE_DESC* Desc, int width, int height, int arraysize, int flags)
 {
     // basic info
+    //Desc->Dimension = (arraysize > 1) ? D3D12_RESOURCE_DIMENSION_TEXTURE3D : D3D12_RESOURCE_DIMENSION_TEXTURE2D;
     Desc->Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+    Desc->Alignment = 0;
+
     Desc->Width = width;
     Desc->Height = height;
+
     Desc->MipLevels = (flags & TEX_MIPMAP) ? 0 : 1;
-    Desc->Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-    Desc->DepthOrArraySize = 1;
-    Desc->Alignment = 0;
 
     // select the appropriate format
     if (flags & TEX_R32F)
@@ -101,7 +102,22 @@ void R_DescribeTexture(D3D12_RESOURCE_DESC* Desc, int width, int height, int arr
     // no multisampling
     Desc->SampleDesc.Count = 1;
     Desc->SampleDesc.Quality = 0;
+
+    Desc->Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+
     Desc->Flags = D3D12_RESOURCE_FLAG_NONE;
+
+    // select if creating a cubemap (allow creation of cubemap arrays)
+    if (flags & TEX_CUBEMAP)
+    {
+        Desc->DepthOrArraySize = 6 * arraysize;
+        // Desc->MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+    }
+    else
+    {
+        Desc->DepthOrArraySize = arraysize;
+        // Desc->MiscFlags = 0;
+    }
 }
 #endif // DX11_IMPL
 
@@ -287,10 +303,9 @@ void R_BindTexture (ID3D11ShaderResourceView *SRV)
 #endif // DX11_IMPL
 }
 
-
+#if DX11_IMPL
 void R_BindTexArray (ID3D11ShaderResourceView *SRV)
 {
-#if DX11_IMPL
 	// PS slot 6 holds a texture array that's used for the charset and little sbar numbers
 	static ID3D11ShaderResourceView *OldSRV;
 
@@ -300,10 +315,20 @@ void R_BindTexArray (ID3D11ShaderResourceView *SRV)
         RWGetDeviceContext()->lpVtbl->PSSetShaderResources(RWGetDeviceContext(), 6, 1, &SRV);
 		OldSRV = SRV;
 	}
-#else // DX12
-    assert(0);
-#endif // DX11_IMPL
 }
+#else // DX12
+void R_BindTexArray(int resId)
+{
+    // PS slot 6 holds a texture array that's used for the charset and little sbar numbers
+    static int* OldResId;
+
+    if (OldResId != resId)
+    {
+        DX12_BindTexture(6, resId);
+        OldResId = resId;
+    }
+}
+#endif // DX11_IMPL
 
 
 image_t *GL_FindFreeImage (char *name, int width, int height, imagetype_t type)
@@ -691,58 +716,78 @@ void R_ShutdownImages (void)
 
 image_t *R_LoadTexArray (char *base)
 {
-	int i;
-	image_t *image = NULL;
-	char *sb_nums[11] = {"_0", "_1", "_2", "_3", "_4", "_5", "_6", "_7", "_8", "_9", "_minus"};
-
-	byte	*sb_pic[11];
-	byte	*sb_palette[11];
-	int		sb_width[11];
-	int		sb_height[11];
 #if DX11_IMPL
-	D3D11_SUBRESOURCE_DATA srd[11];
-	D3D11_TEXTURE2D_DESC Desc;
+    int i;
+    image_t* image = NULL;
+    char* sb_nums[11] = { "_0", "_1", "_2", "_3", "_4", "_5", "_6", "_7", "_8", "_9", "_minus" };
+
+    byte* sb_pic[11];
+    byte* sb_palette[11];
+    int		sb_width[11];
+    int		sb_height[11];
+
+    D3D11_SUBRESOURCE_DATA srd[11];
+    D3D11_TEXTURE2D_DESC Desc;
+
+    for (i = 0; i < 11; i++)
+    {
+        LoadPCX(va("pics/%s%s.pcx", base, sb_nums[i]), &sb_pic[i], &sb_palette[i], &sb_width[i], &sb_height[i]);
+
+        if (!sb_pic[i]) ri.Sys_Error(ERR_FATAL, "malformed sb number set");
+        if (sb_width[i] != sb_width[0]) ri.Sys_Error(ERR_FATAL, "malformed sb number set");
+        if (sb_height[i] != sb_height[0]) ri.Sys_Error(ERR_FATAL, "malformed sb number set");
+
+        srd[i].pSysMem = GL_Image8To32(sb_pic[i], sb_width[i], sb_height[i], d_8to24table_alpha);
+        srd[i].SysMemPitch = sb_width[i] << 2;
+        srd[i].SysMemSlicePitch = 0;
+    }
+
+    // find an image_t for it
+    image = GL_FindFreeImage(va("sb_%ss_texarray", base), sb_width[0], sb_height[0], it_pic);
+
+    // describe the texture
+    R_DescribeTexture(&Desc, sb_width[0], sb_height[0], 11, image->flags);
+
+    // failure is not an option...
+    if (FAILED(d3d_Device->lpVtbl->CreateTexture2D(d3d_Device, &Desc, srd, &image->Texture))) ri.Sys_Error(ERR_FATAL, "CreateTexture2D failed");
+    if (FAILED(d3d_Device->lpVtbl->CreateShaderResourceView(d3d_Device, (ID3D11Resource*)image->Texture, NULL, &image->SRV))) ri.Sys_Error(ERR_FATAL, "CreateShaderResourceView failed");
+
+    // free memory used for loading the image
+    ri.Load_FreeMemory();
+
+    return image;
 #else // DX12
+    int i;
+    image_t* image = NULL;
+    char* sb_nums[11] = { "_0", "_1", "_2", "_3", "_4", "_5", "_6", "_7", "_8", "_9", "_minus" };
+
+    byte* sb_pic[11];
+    byte* sb_palette[11];
+    int		sb_width[11];
+    int		sb_height[11];
+
     D3D12_SUBRESOURCE_DATA srd[11];
     D3D12_RESOURCE_DESC Desc;
-#endif // DX11_IMPL
 
-	for (i = 0; i < 11; i++)
-	{
-		LoadPCX (va ("pics/%s%s.pcx", base, sb_nums[i]), &sb_pic[i], &sb_palette[i], &sb_width[i], &sb_height[i]);
+    for (i = 0; i < 11; i++)
+    {
+        LoadPCX(va("pics/%s%s.pcx", base, sb_nums[i]), &sb_pic[i], &sb_palette[i], &sb_width[i], &sb_height[i]);
 
-		if (!sb_pic[i]) ri.Sys_Error (ERR_FATAL, "malformed sb number set");
-		if (sb_width[i] != sb_width[0]) ri.Sys_Error (ERR_FATAL, "malformed sb number set");
-		if (sb_height[i] != sb_height[0]) ri.Sys_Error (ERR_FATAL, "malformed sb number set");
-#if DX11_IMPL
-		srd[i].pSysMem = GL_Image8To32 (sb_pic[i], sb_width[i], sb_height[i], d_8to24table_alpha);
-		srd[i].SysMemPitch = sb_width[i] << 2;
-		srd[i].SysMemSlicePitch = 0;
-#else // DX12
+        if (!sb_pic[i]) ri.Sys_Error(ERR_FATAL, "malformed sb number set");
+        if (sb_width[i] != sb_width[0]) ri.Sys_Error(ERR_FATAL, "malformed sb number set");
+        if (sb_height[i] != sb_height[0]) ri.Sys_Error(ERR_FATAL, "malformed sb number set");
+
         srd[i].pData = GL_Image8To32(sb_pic[i], sb_width[i], sb_height[i], d_8to24table_alpha);
         srd[i].RowPitch = sb_width[i] << 2;
         srd[i].SlicePitch = 0;
+    }
+
+    image = GL_FindFreeImage(va("sb_%ss_texarray", base), sb_width[0], sb_height[0], it_pic);
+    R_DescribeTexture(&Desc, sb_width[0], sb_height[0], 11, image->flags);
+    image->textureId = DX12_CreateTexture(&Desc, &srd);
+
+    return image;
 #endif // DX11_IMPL
-	}
-
-	// find an image_t for it
-	image = GL_FindFreeImage (va ("sb_%ss_texarray", base), sb_width[0], sb_height[0], it_pic);
-
-	// describe the texture
-	R_DescribeTexture (&Desc, sb_width[0], sb_height[0], 11, image->flags);
-
-	// failure is not an option...
-#if DX11_IMPL
-    if (FAILED(RWCreateTexture2D(&Desc, srd, &image->Texture))) ri.Sys_Error(ERR_FATAL, "CreateTexture2D failed");
-    if (FAILED(RWCreateShaderResourceView((ID3D11Resource*)image->Texture, NULL, &image->SRV))) ri.Sys_Error(ERR_FATAL, "CreateShaderResourceView failed");
-#else // DX12
-    image->textureId = DX12_CreateTexture(&Desc, srd);
-#endif //DX11_IMPL
-
-	// free memory used for loading the image
-	ri.Load_FreeMemory ();
-
-	return image;
 }
 
 

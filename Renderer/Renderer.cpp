@@ -126,12 +126,13 @@ ResourceManager::Resource::Id Renderer::CreateTextureResource(const CD3DX12_RESO
     resource.type = ResourceManager::Resource::Type::SRV;
     resource.variant.texDescr = descr;
     resource.d12resource = resourceManager.CreateDx12Resource(&descr);
+    ResourceManager::Resource::Id  resId = resourceManager.AddResource(resource);
     if (pSrcData != nullptr)
     {
-        resourceManager.UpdateSRVBuffer(resource.d12resource.Get(), pSrcData);
+        resourceManager.UpdateSRVBuffer(resId, pSrcData);
     }
     resourceManager.UpdateResourceState(resource.d12resource.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-    return resourceManager.AddResource(resource);
+    return resId;
 }
 
 ResourceManager::Resource::Id Renderer::CreateVertexBuffer(const std::size_t numOfVertices, const std::size_t vertexSize, const void* pVertexData)
@@ -179,8 +180,7 @@ void Renderer::UpdateTextureResource(ResourceManager::Resource::Id resourceId, D
 {
     ASSERT(resourceId != 0);
     ASSERT(pSrcData != nullptr);
-    ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
-    resourceManager.UpdateSRVBuffer(resource.d12resource.Get(), pSrcData, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    resourceManager.UpdateSRVBuffer(resourceId, pSrcData, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 }
 
 void Renderer::UpdateVertexBuffer(ResourceManager::Resource::Id resourceId, const void* pVertexData, const std::size_t numOfVertices, const std::size_t vertexSize)

@@ -60,10 +60,6 @@ static int index_buffer[MAX_DRAW_INDEXES];
 static int d3d_DrawIndexes = -1;
 #endif // DX11_IMPL
 
-#if FEATURE_DRAW_PICTURES
-static int d3d_DrawTexturedShader = -1;
-#endif // #if FEATURE_DRAW_PICTURES
-
 static int d_firstdrawvert = 0;
 static int d_numdrawverts = 0;
 
@@ -71,6 +67,10 @@ static int d_numdrawverts = 0;
 
 static image_t	*draw_chars;
 static image_t	*sb_nums[2];
+
+#if FEATURE_DRAW_PICTURES
+static int d3d_DrawTexturedShader = -1;
+#endif // #if FEATURE_DRAW_PICTURES
 
 #if FEATURE_CINEMATIC
 static int d3d_DrawCinematicShader;
@@ -81,7 +81,7 @@ static int d3d_DrawColouredShader;
 #endif // FEATURE_DRAW_FILL
 
 #if FEATURE_DRAW_TEXT
-static int d3d_DrawTexArrayShader;
+static int d3d_DrawTexArrayShader = -1;
 #endif // #if FEATURE_DRAW_TEXT
 
 #if FEATURE_FADE_SCREEN
@@ -276,7 +276,19 @@ void Draw_InitLocal (void)
 #endif // #if FEATURE_DRAW_FILL
 
 #if FEATURE_DRAW_TEXT
+#if DX11_IMPL
 	d3d_DrawTexArrayShader = SLCreateShaderBundle(IDR_DRAWSHADER, "DrawTexArrayVS", NULL, "DrawTexArrayPS", DEFINE_LAYOUT (layout_texarray));
+#else // DX12
+    State TextState;
+    TexturedState.inputLayout = INPUT_LAYOUT_TEXARRAY;
+    TexturedState.VS = SHADER_DRAW_TEXT_ARRAY_VS;
+    TexturedState.PS = SHADER_DRAW_TEXT_ARRAY_PS;
+    TexturedState.topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    TexturedState.BS = BSAlphaPreMult;
+    TexturedState.DS = DSNoDepth;
+    TexturedState.RS = RSNoCull;
+    d3d_DrawTexArrayShader = DX12_CreateRenderState(&TexturedState);
+#endif // DX11_IMPL
 #endif // #if FEATURE_DRAW_TEXT
 
 #if FEATURE_CINEMATIC
@@ -476,45 +488,49 @@ void Draw_CharacterQuad (int x, int y, int w, int h, int slice)
 void Draw_Field (int x, int y, int color, int width, int value)
 {
 #if FEATURE_DRAW_TEXT
-	char	num[16], *ptr;
-	int		l;
-	int		frame;
+    char	num[16], * ptr;
+    int		l;
+    int		frame;
 
-	if (width < 1)
-		return;
+    if (width < 1)
+        return;
 
-	// draw number string
-	if (width > 5)
-		width = 5;
+    // draw number string
+    if (width > 5)
+        width = 5;
 
-	Com_sprintf (num, sizeof (num), "%i", value);
-	l = strlen (num);
+    Com_sprintf(num, sizeof(num), "%i", value);
+    l = strlen(num);
 
-	if (l > width)
-		l = width;
+    if (l > width)
+        l = width;
 
-	x += 2 + sb_nums[color]->width * (width - l);
-	ptr = num;
+    x += 2 + sb_nums[color]->width * (width - l);
+    ptr = num;
 
-	R_BindTexArray (sb_nums[color]->SRV);
+#if DX11_IMPL
+    R_BindTexArray(sb_nums[color]->SRV);
+    D_BindShaderBundle(d3d_DrawTexArrayShader);
+    D_SetRenderStates(d3d_BSAlphaPreMult, d3d_DSNoDepth, d3d_RSNoCull);
+#else // DX12
+    R_BindTexArray(sb_nums[color]->textureId);
+    Dx12_SetRenderState(d3d_DrawTexArrayShader);
+#endif // DX11_IMPL
 
-    SLBindShaderBundle(d3d_DrawTexArrayShader);
-    SMSetRenderStates(BSAlphaPreMult, DSNoDepth, RSNoCull);
+    while (*ptr && l)
+    {
+        if (*ptr == '-')
+            frame = STAT_MINUS;
+        else frame = *ptr - '0';
 
-	while (*ptr && l)
-	{
-		if (*ptr == '-')
-			frame = STAT_MINUS;
-		else frame = *ptr - '0';
+        Draw_CharacterQuad(x, y, sb_nums[color]->width, sb_nums[color]->height, frame);
 
-		Draw_CharacterQuad (x, y, sb_nums[color]->width, sb_nums[color]->height, frame);
+        x += sb_nums[color]->width;
+        ptr++;
+        l--;
+    }
 
-		x += sb_nums[color]->width;
-		ptr++;
-		l--;
-	}
-
-	Draw_Flush ();
+    Draw_Flush();
 #endif // #if FEATURE_DRAW_TEXT
 }
 
@@ -532,18 +548,27 @@ void Draw_Char (int x, int y, int num)
 {
 #if FEATURE_DRAW_TEXT
 	// totally off screen
-	if (y <= -8) return;
+	/*if (y <= -8) return;
 
 	// space
 	if ((num & 127) == 32) return;
 
+#if DX11_IMPL
 	// these are done for each char but they only trigger state changes for the first
 	R_BindTexArray (draw_chars->SRV);
-
     SLBindShaderBundle(d3d_DrawTexArrayShader);
     SMSetRenderStates(BSAlphaPreMult, DSNoDepth, RSNoCull);
+#else // DX12
+    static int OldResId = -1;
+    if (OldResId != draw_chars->textureId)
+    {
+        DX12_BindTexture(6, draw_chars->textureId);
+        OldResId = draw_chars->textureId;
+    }
+    Dx12_SetRenderState(d3d_DrawTexArrayShader);
+#endif // DX11_IMPL
 
-	Draw_CharacterQuad (x, y, 8, 8, num & 255);
+	Draw_CharacterQuad (x, y, 8, 8, num & 255);*/
 #endif // #if FEATURE_DRAW_TEXT
 }
 

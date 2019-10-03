@@ -180,12 +180,21 @@ std::wstring PipelineStateManager::GetShaderFilepath(ShaderType shaderType)
     case ShaderType::SHADER_DRAW_POLYBLEND_PS:
         shaderFilename = L"DrawPolyblendPS.cso";
         break;
+
     case ShaderType::SHADER_DRAW_TEXTURED_VS:
         shaderFilename = L"DrawTexturedVS.cso";
         break;
 
     case ShaderType::SHADER_DRAW_TEXTURED_PS:
         shaderFilename = L"DrawTexturedPS.cso";
+        break;
+
+    case ShaderType::SHADER_DRAW_TEXT_ARRAY_VS:
+        shaderFilename = L"DrawTexArrayVS.cso";
+        break;
+
+    case ShaderType::SHADER_DRAW_TEXT_ARRAY_PS:
+        shaderFilename = L"DrawTexArrayPS.cso";
         break;
 
     default:

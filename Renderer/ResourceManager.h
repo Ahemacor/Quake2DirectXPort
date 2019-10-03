@@ -60,7 +60,7 @@ public:
     D3D12_GPU_DESCRIPTOR_HANDLE CreateShaderResourceView(ResourceManager::Resource::Id resourceId, const std::size_t slot = 0);
     
     // Update RESOURCE content.
-    void UpdateSRVBuffer(ID3D12Resource* imageResource,
+    void UpdateSRVBuffer(Resource::Id resourceId,
                          D3D12_SUBRESOURCE_DATA* pSrcData,
                          const D3D12_RESOURCE_STATES origState = D3D12_RESOURCE_STATE_COPY_DEST);
 
