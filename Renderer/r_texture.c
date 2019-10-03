@@ -749,8 +749,8 @@ image_t *R_LoadTexArray (char *base)
     R_DescribeTexture(&Desc, sb_width[0], sb_height[0], 11, image->flags);
 
     // failure is not an option...
-    if (FAILED(d3d_Device->lpVtbl->CreateTexture2D(d3d_Device, &Desc, srd, &image->Texture))) ri.Sys_Error(ERR_FATAL, "CreateTexture2D failed");
-    if (FAILED(d3d_Device->lpVtbl->CreateShaderResourceView(d3d_Device, (ID3D11Resource*)image->Texture, NULL, &image->SRV))) ri.Sys_Error(ERR_FATAL, "CreateShaderResourceView failed");
+    if (FAILED(RWGetDevice()->lpVtbl->CreateTexture2D(RWGetDevice(), &Desc, srd, &image->Texture))) ri.Sys_Error(ERR_FATAL, "CreateTexture2D failed");
+    if (FAILED(RWGetDevice()->lpVtbl->CreateShaderResourceView(RWGetDevice(), (ID3D11Resource*)image->Texture, NULL, &image->SRV))) ri.Sys_Error(ERR_FATAL, "CreateShaderResourceView failed");
 
     // free memory used for loading the image
     ri.Load_FreeMemory();

@@ -510,8 +510,8 @@ void Draw_Field (int x, int y, int color, int width, int value)
 
 #if DX11_IMPL
     R_BindTexArray(sb_nums[color]->SRV);
-    D_BindShaderBundle(d3d_DrawTexArrayShader);
-    D_SetRenderStates(d3d_BSAlphaPreMult, d3d_DSNoDepth, d3d_RSNoCull);
+    SLBindShaderBundle(d3d_DrawTexArrayShader);
+    SMSetRenderStates(BSAlphaPreMult, DSNoDepth, RSNoCull);
 #else // DX12
     R_BindTexArray(sb_nums[color]->textureId);
     Dx12_SetRenderState(d3d_DrawTexArrayShader);
