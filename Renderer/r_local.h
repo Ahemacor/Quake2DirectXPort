@@ -33,7 +33,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define FEATURE_SPRITE_MODEL 0
 #define FEATURE_NULL 0
 #define FEATURE_FADE_SCREEN 0
-#define FEATURE_CINEMATIC 0
+#define FEATURE_CINEMATIC 1
 #define FEATURE_DRAW_FILL 1
 #define FEATURE_DRAW_TEXT 1
 #define FEATURE_DRAW_PICTURES 1
@@ -460,6 +460,9 @@ typedef enum ShaderTypeEnum
     SHADER_DRAW_TEXT_ARRAY_VS,
     SHADER_DRAW_TEXT_ARRAY_PS,
 
+    SHADER_DRAW_CINEMATIC_VS,
+    SHADER_DRAW_CINEMATIC_PS,
+
     SHADER_TYPE_COUNT
 } ShaderType;
 
@@ -639,6 +642,7 @@ typedef struct rendertarget_s {
 void R_CreateRenderTarget (rendertarget_t *rt);
 void R_ReleaseRenderTarget (rendertarget_t *rt);
 
+#if DX11_IMPL
 typedef struct texture_s {
 	ID3D11Texture2D *Texture;
 	ID3D11ShaderResourceView *SRV;
@@ -647,6 +651,15 @@ typedef struct texture_s {
 
 void R_CreateTexture (texture_t *t, D3D11_SUBRESOURCE_DATA *srd, int width, int height, int arraysize, int flags);
 void R_ReleaseTexture (texture_t *t);
+#else // DX12
+typedef struct texture_s {
+    int Id;
+    D3D12_RESOURCE_DESC Desc;
+} texture_t;
+
+void R_CreateTexture(texture_t* t, D3D12_SUBRESOURCE_DATA* srd, int width, int height, int arraysize, int flags);
+void R_ReleaseTexture(texture_t* t);
+#endif // DX11_IMPL
 
 
 typedef struct tbuffer_s {

@@ -304,7 +304,19 @@ void Draw_InitLocal (void)
 #endif // #if FEATURE_DRAW_TEXT
 
 #if FEATURE_CINEMATIC
+#if DX11_IMPL
 	d3d_DrawCinematicShader = SLCreateShaderBundle(IDR_DRAWSHADER, "DrawCinematicVS", NULL, "DrawCinematicPS", DEFINE_LAYOUT (layout_standard));
+#else // DX12
+    State CinematicState;
+    CinematicState.inputLayout = INPUT_LAYOUT_STANDART;
+    CinematicState.VS = SHADER_DRAW_CINEMATIC_VS;
+    CinematicState.PS = SHADER_DRAW_CINEMATIC_PS;
+    CinematicState.topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    CinematicState.BS = BSNone;
+    CinematicState.DS = DSNoDepth;
+    CinematicState.RS = RSNoCull;
+    d3d_DrawCinematicShader = DX12_CreateRenderState(&CinematicState);
+#endif // DX11_IMPL
 #endif // FEATURE_CINEMATIC
 
 	// shaders for use without buffers
@@ -737,6 +749,7 @@ void R_TexSubImage8 (ID3D11Texture2D *tex, int level, int x, int y, int w, int h
 void Draw_StretchRaw (int cols, int rows, byte *data, int frame, const unsigned char *palette)
 {
 #if FEATURE_CINEMATIC
+#if DX11_IMPL
 	// we only need to refresh the texture if the frame changes
 	static int r_rawframe = -1;
 
@@ -799,6 +812,9 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame, const unsigned 
 		// always flush
 		Draw_Flush ();
 	}
+#else // DX12
+    assert(0);
+#endif // DX11_IMPL
 #endif // #if FEATURE_CINEMATIC
 }
 

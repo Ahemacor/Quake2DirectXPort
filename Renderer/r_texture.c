@@ -834,10 +834,9 @@ void R_ReleaseRenderTarget (rendertarget_t *rt)
 #endif // DX11_IMPL
 }
 
-
+#if DX11_IMPL
 void R_CreateTexture (texture_t *t, D3D11_SUBRESOURCE_DATA *srd, int width, int height, int arraysize, int flags)
 {
-#if DX11_IMPL
 	// if an srd is *not* specified we must make the texture mutable because we must be able to update it later
 	// if an srd *is* specified we cannot make the texture immutable because we may also need to update it later
 	if (!srd) flags |= TEX_MUTABLE;
@@ -848,10 +847,13 @@ void R_CreateTexture (texture_t *t, D3D11_SUBRESOURCE_DATA *srd, int width, int 
 	// failure is not an option...
     if (FAILED(RWCreateTexture2D(&t->Desc, srd, &t->Texture))) ri.Sys_Error(ERR_FATAL, "CreateTexture2D failed");
     if (FAILED(RWCreateShaderResourceView((ID3D11Resource*)t->Texture, NULL, &t->SRV))) ri.Sys_Error(ERR_FATAL, "CreateShaderResourceView failed");
-#else // DX12
-    assert(0);
-#endif // DX11_IMPL
 }
+#else // DX12
+void R_CreateTexture(texture_t* t, D3D12_SUBRESOURCE_DATA* srd, int width, int height, int arraysize, int flags)
+{
+    assert(0);
+}
+#endif // DX11_IMPL
 
 
 void R_ReleaseTexture (texture_t *t)
