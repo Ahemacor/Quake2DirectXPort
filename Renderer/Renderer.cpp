@@ -242,3 +242,8 @@ void Renderer::SetPSO(UINT PSOid)
 {
     psoId = PSOid;
 }
+
+State Renderer::GetCurrentRenderState()
+{
+    return stateManager.GetStateDescr(psoId);
+}

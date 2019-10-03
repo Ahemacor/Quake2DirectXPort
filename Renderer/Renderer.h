@@ -77,6 +77,7 @@ public:
 
     UINT CreatePSO(const State* psoState);
     void SetPSO(UINT PSOid);
+    State GetCurrentRenderState();
 
 private:
     void CommonDraw(ID3D12GraphicsCommandList* commandList);

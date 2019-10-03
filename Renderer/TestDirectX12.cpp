@@ -276,7 +276,7 @@ void DX12_DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLocation)
     g_renderer->DrawIndexed(indexCount, firstIndex, baseVertexLocation);
 }
 
-void Dx12_SetRenderState(UINT stateId)
+void DX12_SetRenderState(UINT stateId)
 {
     g_renderer->SetPSO(stateId);
 }
@@ -284,6 +284,11 @@ void Dx12_SetRenderState(UINT stateId)
 UINT DX12_CreateRenderState(const State* state)
 {
     return g_renderer->CreatePSO(state);
+}
+
+State DX12_GetCurrentRenderState()
+{
+    return g_renderer->GetCurrentRenderState();
 }
 
 void DX12_ClearRTVandDSV()

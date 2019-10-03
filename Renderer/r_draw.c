@@ -262,6 +262,7 @@ void Draw_InitLocal (void)
     State TexturedState;
     TexturedState.inputLayout = INPUT_LAYOUT_STANDART;
     TexturedState.VS = SHADER_DRAW_TEXTURED_VS;
+    TexturedState.GS = SHADER_UNDEFINED;
     TexturedState.PS = SHADER_DRAW_TEXTURED_PS;
     TexturedState.topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     TexturedState.BS = BSAlphaPreMult;
@@ -278,6 +279,7 @@ void Draw_InitLocal (void)
     State ColouredState;
     ColouredState.inputLayout = INPUT_LAYOUT_STANDART;
     ColouredState.VS = SHADER_DRAW_COLOURED_VS;
+    ColouredState.GS = SHADER_UNDEFINED;
     ColouredState.PS = SHADER_DRAW_COLOURED_PS;
     ColouredState.topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     ColouredState.BS = BSNone;
@@ -294,6 +296,7 @@ void Draw_InitLocal (void)
     State TextState;
     TextState.inputLayout = INPUT_LAYOUT_TEXARRAY;
     TextState.VS = SHADER_DRAW_TEXT_ARRAY_VS;
+    TextState.GS = SHADER_UNDEFINED;
     TextState.PS = SHADER_DRAW_TEXT_ARRAY_PS;
     TextState.topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     TextState.BS = BSAlphaPreMult;
@@ -310,6 +313,7 @@ void Draw_InitLocal (void)
     State CinematicState;
     CinematicState.inputLayout = INPUT_LAYOUT_STANDART;
     CinematicState.VS = SHADER_DRAW_CINEMATIC_VS;
+    CinematicState.GS = SHADER_UNDEFINED;
     CinematicState.PS = SHADER_DRAW_CINEMATIC_PS;
     CinematicState.topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     CinematicState.BS = BSNone;
@@ -327,6 +331,7 @@ void Draw_InitLocal (void)
     State FadeScreenState;
     FadeScreenState.inputLayout = INPUT_LAYOUT_STANDART;
     FadeScreenState.VS = SHADER_FADE_SCREEN_VS;
+    FadeScreenState.GS = SHADER_UNDEFINED;
     FadeScreenState.PS = SHADER_FADE_SCREEN_PS;
     FadeScreenState.topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     FadeScreenState.BS = BSAlphaPreMult;
@@ -490,7 +495,7 @@ void Draw_TexturedQuad (image_t *image, int x, int y, int w, int h, unsigned col
 	SMSetRenderStates(BSAlphaPreMult, DSNoDepth, RSNoCull);
 #else // DX12
     DX12_BindTexture(0, image->textureId);
-    Dx12_SetRenderState(d3d_DrawTexturedShader);
+    DX12_SetRenderState(d3d_DrawTexturedShader);
 #endif // DX11_IMPL
 
 	if (Draw_EnsureBufferSpace ())
@@ -550,7 +555,7 @@ void Draw_Field (int x, int y, int color, int width, int value)
     SMSetRenderStates(BSAlphaPreMult, DSNoDepth, RSNoCull);
 #else // DX12
     R_BindTexArray(sb_nums[color]->textureId);
-    Dx12_SetRenderState(d3d_DrawTexArrayShader);
+    DX12_SetRenderState(d3d_DrawTexArrayShader);
 #endif // DX11_IMPL
 
     while (*ptr && l)
@@ -596,7 +601,7 @@ void Draw_Char (int x, int y, int num)
     SMSetRenderStates(BSAlphaPreMult, DSNoDepth, RSNoCull);
 #else // DX12
     R_BindTexArray(draw_chars->textureId);
-    Dx12_SetRenderState(d3d_DrawTexArrayShader);
+    DX12_SetRenderState(d3d_DrawTexArrayShader);
 #endif // DX11_IMPL
 
 	Draw_CharacterQuad (x, y, 8, 8, num & 255);
@@ -698,7 +703,7 @@ void Draw_Fill (int x, int y, int w, int h, int c)
     SLBindShaderBundle(d3d_DrawColouredShader);
     SMSetRenderStates(BSNone, DSNoDepth, RSNoCull);
 #else // DX12
-    Dx12_SetRenderState(d3d_DrawColouredShader);
+    DX12_SetRenderState(d3d_DrawColouredShader);
 #endif // DX11_IMPL
 
 	if (Draw_EnsureBufferSpace ())
@@ -731,7 +736,7 @@ void Draw_FadeScreen (void)
     SLBindShaderBundle(d3d_DrawFadescreenShader);
     RWGetDeviceContext()->lpVtbl->Draw(RWGetDeviceContext(), 3, 0);
 #else // DX12
-    Dx12_SetRenderState(d3d_DrawFadescreenShader);
+    DX12_SetRenderState(d3d_DrawFadescreenShader);
     DX12_Draw(3, 0);
 #endif // DX11_IMPL
 #endif // FEATURE_FADE_SCREEN

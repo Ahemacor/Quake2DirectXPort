@@ -31,7 +31,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define FEATURE_ALIAS_MODEL 0
 #define FEATURE_BRUSH_MODEL 0
 #define FEATURE_SPRITE_MODEL 0
-#define FEATURE_NULL 0
+#define FEATURE_NULL 1
 #define FEATURE_FADE_SCREEN 1
 #define FEATURE_CINEMATIC 1
 #define FEATURE_DRAW_FILL 1
@@ -466,6 +466,10 @@ typedef enum ShaderTypeEnum
     SHADER_FADE_SCREEN_VS,
     SHADER_FADE_SCREEN_PS,
 
+    SHADER_NULL_VS,
+    SHADER_NULL_GS,
+    SHADER_NULL_PS,
+
     SHADER_TYPE_COUNT
 } ShaderType;
 
@@ -500,6 +504,7 @@ typedef struct State
     InputLayout inputLayout;
 
     ShaderType VS;
+    ShaderType GS;
     ShaderType PS;
 
     BlendState BS;

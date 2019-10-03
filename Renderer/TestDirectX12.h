@@ -43,8 +43,9 @@ extern "C" {
     void DX12_BindTexture(UINT slot, int resourceId);
 
     void DX12_SetViewport(const D3D12_VIEWPORT* pViewport);
-    void Dx12_SetRenderState(UINT stateId);
+    void DX12_SetRenderState(UINT stateId);
     UINT DX12_CreateRenderState(const State* state);
+    State DX12_GetCurrentRenderState();
 
     void DX12_Draw(UINT numOfVertices, UINT firstVertexToDraw);
     void DX12_DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLocation);

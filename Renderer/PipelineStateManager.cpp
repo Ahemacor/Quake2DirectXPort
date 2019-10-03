@@ -221,6 +221,18 @@ std::wstring PipelineStateManager::GetShaderFilepath(ShaderType shaderType)
         shaderFilename = L"DrawFadescreenPS.cso";
         break;
 
+    case ShaderType::SHADER_NULL_VS:
+        shaderFilename = L"NullVS.cso";
+        break;
+
+    case ShaderType::SHADER_NULL_GS:
+        shaderFilename = L"NullGS.cso";
+        break;
+
+    case ShaderType::SHADER_NULL_PS:
+        shaderFilename = L"NullPS.cso";
+        break;
+
     default:
         shaderFilename = L"";
         break;
@@ -296,8 +308,9 @@ UINT PipelineStateManager::CreatePipelineStateObject(const State& state)
     Microsoft::WRL::ComPtr<ID3D12PipelineState> pso;
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-    psoDesc.VS = CD3DX12_SHADER_BYTECODE(GetShader(state.VS));
-    psoDesc.PS = CD3DX12_SHADER_BYTECODE(GetShader(state.PS));
+    psoDesc.VS = GetShader(state.VS);
+    psoDesc.GS = GetShader(state.GS);
+    psoDesc.PS = GetShader(state.PS);
     psoDesc.pRootSignature = rootSignature.Get();
     psoDesc.NumRenderTargets = 1;
     psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
@@ -315,14 +328,24 @@ UINT PipelineStateManager::CreatePipelineStateObject(const State& state)
     ENSURE_RESULT(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso)));
 
     UINT psoId = PSOs.size();
-    PSOs.push_back(pso);
+    RenderState rs;
+    rs.pso = pso;
+    rs.state = state;
+    PSOs.push_back(rs);
+
     return psoId;
 }
 
-ID3D12PipelineState* PipelineStateManager::GetPSO(UINT PSOid)
+ID3D12PipelineState* PipelineStateManager::GetPSO(UINT stateId)
 {
-    ASSERT(PSOid < PSOs.size());
-    return PSOs[PSOid].Get();
+    ASSERT(stateId < PSOs.size());
+    return PSOs[stateId].pso.Get();
+}
+
+State PipelineStateManager::GetStateDescr(UINT stateId)
+{
+    ASSERT(stateId < PSOs.size());
+    return PSOs[stateId].state;
 }
 
 void PipelineStateManager::LoadShader(ShaderType shaderType, const std::wstring& csoFilepath)
@@ -332,14 +355,18 @@ void PipelineStateManager::LoadShader(ShaderType shaderType, const std::wstring&
     shaders[shaderType] = shaderBlob;
 }
 
-ID3DBlob* PipelineStateManager::GetShader(ShaderType shaderType)
+D3D12_SHADER_BYTECODE PipelineStateManager::GetShader(ShaderType shaderType)
 {
-    if (shaders.find(shaderType) == shaders.cend())
+    D3D12_SHADER_BYTECODE shader = {};
+    if (shaderType != ShaderType::SHADER_UNDEFINED)
     {
-        LoadShader(shaderType, GetShaderFilepath(shaderType));
+        if (shaders.find(shaderType) == shaders.cend())
+        {
+            LoadShader(shaderType, GetShaderFilepath(shaderType));
+        }
+        shader = CD3DX12_SHADER_BYTECODE(shaders[shaderType].Get());
     }
-
-    return shaders[shaderType].Get();
+    return shader;
 }
 
 D3D12_BLEND_DESC PipelineStateManager::CreateBlendState(bool blendon, D3D12_BLEND src, D3D12_BLEND dst, D3D12_BLEND_OP op)

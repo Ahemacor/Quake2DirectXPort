@@ -15,6 +15,12 @@
 class PipelineStateManager
 {
 public:
+    struct RenderState
+    {
+        Microsoft::WRL::ComPtr<ID3D12PipelineState> pso;
+        State state;
+    };
+
     bool Initialize(Microsoft::WRL::ComPtr<ID3D12Device> parentDevice);
     void Release();
 
@@ -24,7 +30,8 @@ public:
     ID3D12DescriptorHeap* GetSamplerDescriptorHeap();
 
     UINT CreatePipelineStateObject(const State& state);
-    ID3D12PipelineState* GetPSO(UINT PSOid);
+    ID3D12PipelineState* GetPSO(UINT stateId);
+    State GetStateDescr(UINT stateId);
 
     bool isUpdateRequired = true;
 
@@ -37,7 +44,7 @@ private:
     void CreateRootSignature();
     std::wstring GetShaderFilepath(ShaderType shaderType);
     void LoadShader(ShaderType shaderType, const std::wstring& csoFilepath);
-    ID3DBlob* GetShader(ShaderType shaderType);
+    D3D12_SHADER_BYTECODE GetShader(ShaderType shaderType);
     D3D12_BLEND_DESC CreateBlendState(bool blendon, D3D12_BLEND src, D3D12_BLEND dst, D3D12_BLEND_OP op);
     D3D12_DEPTH_STENCIL_DESC CreateDepthState(bool test, bool mask, D3D12_COMPARISON_FUNC func);
     D3D12_RASTERIZER_DESC CreateRasterizerState(D3D12_FILL_MODE fill, D3D12_CULL_MODE cull, bool clip, bool scissor);
@@ -45,7 +52,7 @@ private:
 
     Microsoft::WRL::ComPtr<ID3D12Device> device;
     Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature;
-    std::vector<Microsoft::WRL::ComPtr<ID3D12PipelineState>> PSOs;
+    std::vector<RenderState> PSOs;
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> samplerDescriptorHeap;
     std::map<ShaderType, Microsoft::WRL::ComPtr<ID3DBlob>> shaders;
     D3D12_INPUT_LAYOUT_DESC inputLayouts[INPUT_LAYOUT_COUNT] = {};
