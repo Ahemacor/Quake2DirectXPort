@@ -197,6 +197,14 @@ std::wstring PipelineStateManager::GetShaderFilepath(ShaderType shaderType)
         shaderFilename = L"DrawTexArrayPS.cso";
         break;
 
+    case ShaderType::SHADER_DRAW_COLOURED_VS:
+        shaderFilename = L"DrawColouredVS.cso";
+        break;
+
+    case ShaderType::SHADER_DRAW_COLOURED_PS:
+        shaderFilename = L"DrawColouredPS.cso";
+        break;
+
     default:
         shaderFilename = L"";
         break;

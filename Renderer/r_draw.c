@@ -54,10 +54,10 @@ static ID3D11Buffer *d3d_DrawIndexes = NULL;
 #else // DX12
 static drawpolyvert_t vertex_buffer[MAX_DRAW_VERTS];
 static drawpolyvert_t* d_drawverts = NULL;
-static int d3d_DrawVertexes = -1;
+static int d3d_DrawVertexes;
 
 static int index_buffer[MAX_DRAW_INDEXES];
-static int d3d_DrawIndexes = -1;
+static int d3d_DrawIndexes;
 #endif // DX11_IMPL
 
 static int d_firstdrawvert = 0;
@@ -69,7 +69,7 @@ static image_t	*draw_chars;
 static image_t	*sb_nums[2];
 
 #if FEATURE_DRAW_PICTURES
-static int d3d_DrawTexturedShader = -1;
+static int d3d_DrawTexturedShader;
 #endif // #if FEATURE_DRAW_PICTURES
 
 #if FEATURE_CINEMATIC
@@ -81,7 +81,7 @@ static int d3d_DrawColouredShader;
 #endif // FEATURE_DRAW_FILL
 
 #if FEATURE_DRAW_TEXT
-static int d3d_DrawTexArrayShader = -1;
+static int d3d_DrawTexArrayShader;
 #endif // #if FEATURE_DRAW_TEXT
 
 #if FEATURE_FADE_SCREEN
@@ -91,7 +91,7 @@ static int d3d_DrawFadescreenShader;
 #if DX11_IMPL
 static ID3D11Buffer *d3d_DrawConstants = NULL;
 #else // DX12
-static int d3d_DrawConstants = -1;
+static int d3d_DrawConstants;
 #endif // DX11_IMPL
 
 __declspec(align(16)) typedef struct drawconstants_s {
@@ -272,7 +272,19 @@ void Draw_InitLocal (void)
 #endif // #if FEATURE_DRAW_PICTURES
 
 #if FEATURE_DRAW_FILL
+#if DX11_IMPL
 	d3d_DrawColouredShader = SLCreateShaderBundle(IDR_DRAWSHADER, "DrawColouredVS", NULL, "DrawColouredPS", DEFINE_LAYOUT (layout_standard));
+#else // DX12
+    State ColouredState;
+    ColouredState.inputLayout = INPUT_LAYOUT_STANDART;
+    ColouredState.VS = SHADER_DRAW_COLOURED_VS;
+    ColouredState.PS = SHADER_DRAW_COLOURED_PS;
+    ColouredState.topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    ColouredState.BS = BSNone;
+    ColouredState.DS = DSNoDepth;
+    ColouredState.RS = RSNoCull;
+    d3d_DrawColouredShader = DX12_CreateRenderState(&ColouredState);
+#endif //DX11_IMPL
 #endif // #if FEATURE_DRAW_FILL
 
 #if FEATURE_DRAW_TEXT
@@ -280,14 +292,14 @@ void Draw_InitLocal (void)
 	d3d_DrawTexArrayShader = SLCreateShaderBundle(IDR_DRAWSHADER, "DrawTexArrayVS", NULL, "DrawTexArrayPS", DEFINE_LAYOUT (layout_texarray));
 #else // DX12
     State TextState;
-    TexturedState.inputLayout = INPUT_LAYOUT_TEXARRAY;
-    TexturedState.VS = SHADER_DRAW_TEXT_ARRAY_VS;
-    TexturedState.PS = SHADER_DRAW_TEXT_ARRAY_PS;
-    TexturedState.topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-    TexturedState.BS = BSAlphaPreMult;
-    TexturedState.DS = DSNoDepth;
-    TexturedState.RS = RSNoCull;
-    d3d_DrawTexArrayShader = DX12_CreateRenderState(&TexturedState);
+    TextState.inputLayout = INPUT_LAYOUT_TEXARRAY;
+    TextState.VS = SHADER_DRAW_TEXT_ARRAY_VS;
+    TextState.PS = SHADER_DRAW_TEXT_ARRAY_PS;
+    TextState.topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    TextState.BS = BSAlphaPreMult;
+    TextState.DS = DSNoDepth;
+    TextState.RS = RSNoCull;
+    d3d_DrawTexArrayShader = DX12_CreateRenderState(&TextState);
 #endif // DX11_IMPL
 #endif // #if FEATURE_DRAW_TEXT
 
@@ -658,8 +670,12 @@ void Draw_Fill (int x, int y, int w, int h, int c)
 {
 #if FEATURE_DRAW_FILL
 	// this is a quad filled with a single solid colour so it doesn't need to blend
+#if DX11_IMPL
     SLBindShaderBundle(d3d_DrawColouredShader);
     SMSetRenderStates(BSNone, DSNoDepth, RSNoCull);
+#else // DX12
+    Dx12_SetRenderState(d3d_DrawColouredShader);
+#endif // DX11_IMPL
 
 	if (Draw_EnsureBufferSpace ())
 	{
