@@ -276,8 +276,8 @@ void PipelineStateManager::CreateRootSignature()
 
     // Create root parameters and initialize.
     CD3DX12_ROOT_PARAMETER rootParameters[ParameterIdx::ROOT_PARAMS_COUNT] = {};
-    rootParameters[ParameterIdx::SRV_TABLE_IDX].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
-    rootParameters[ParameterIdx::SAMPLERS_TABLE_IDX].InitAsDescriptorTable(1, &samplerRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[ParameterIdx::SRV_TABLE_IDX].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[ParameterIdx::SAMPLERS_TABLE_IDX].InitAsDescriptorTable(1, &samplerRange, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[ParameterIdx::CB0_IDX].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[ParameterIdx::CB1_IDX].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[ParameterIdx::CB2_IDX].InitAsConstantBufferView(2, 0, D3D12_SHADER_VISIBILITY_ALL);
@@ -292,7 +292,6 @@ void PipelineStateManager::CreateRootSignature()
     // Description.
     D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
         D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
         D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS;
 
     // Serialize and create.
@@ -308,21 +307,23 @@ UINT PipelineStateManager::CreatePipelineStateObject(const State& state)
     Microsoft::WRL::ComPtr<ID3D12PipelineState> pso;
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-    psoDesc.VS = GetShader(state.VS);
-    psoDesc.GS = GetShader(state.GS);
-    psoDesc.PS = GetShader(state.PS);
     psoDesc.pRootSignature = rootSignature.Get();
     psoDesc.NumRenderTargets = 1;
     psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
     psoDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    psoDesc.SampleDesc.Count = 1;
+    psoDesc.SampleMask = 0xFFFFFFFF;
 
     psoDesc.InputLayout = inputLayouts[state.inputLayout];
+
+    psoDesc.VS = GetShader(state.VS);
+    psoDesc.GS = GetShader(state.GS);
+    psoDesc.PS = GetShader(state.PS);
+
     psoDesc.BlendState = blendStates[state.BS];
     psoDesc.DepthStencilState = depthStancilStates[state.DS];
     psoDesc.RasterizerState = rasterizerStates[state.RS];
 
-    psoDesc.SampleDesc.Count = 1;
-    psoDesc.SampleMask = 0xFFFFFFFF;
 
     psoDesc.PrimitiveTopologyType = state.topology;
     ENSURE_RESULT(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso)));
