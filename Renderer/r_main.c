@@ -192,6 +192,25 @@ cvar_t	*vid_width;
 cvar_t	*vid_height;
 cvar_t	*vid_vsync;
 
+#if !DX11_IMPL
+void R_UpdateEntityShader(int stateId, int rflags)
+{
+    State state = DX12_GetRenderState(stateId);
+    if (rflags & RF_TRANSLUCENT)
+    {
+        state.BS = BSAlphaBlend;
+        state.DS = DSDepthNoWrite;
+    }
+    else
+    {
+        state.BS = BSNone;
+        state.DS = DSFullDepth;
+    }
+    state.RS = SELECT_RASTERIZER(rflags);
+    DX12_UpdateRenderState(&state, stateId);
+}
+#endif // DX12
+
 
 void R_PrepareEntityForRendering (QMATRIX *localMatrix, float *color, float alpha, int rflags)
 {
@@ -238,24 +257,8 @@ void R_PrepareEntityForRendering (QMATRIX *localMatrix, float *color, float alph
 		SMSetRenderStates(BSAlphaBlend, DSDepthNoWrite, SELECT_RASTERIZER(rflags));
 	else SMSetRenderStates(BSNone, DSFullDepth, SELECT_RASTERIZER(rflags));
 #else // DX12
-    // and update to the cbuffer
     DX12_UpdateConstantBuffer(d3d_EntityConstants, &consts, sizeof(entityconstants_t));
-
-    int currentStateId = DX12_GetCurrentRenderStateId();
-    State currentState = DX12_GetCurrentRenderState();
-
-    if (rflags & RF_TRANSLUCENT)
-    {
-        currentState.BS = BSAlphaBlend;
-        currentState.DS = DSDepthNoWrite;
-    }
-    else
-    {
-        currentState.BS = BSNone;
-        currentState.DS = DSFullDepth;
-    }
-    currentState.RS = SELECT_RASTERIZER(rflags);
-    DX12_UpdateRenderState(&currentState, currentStateId);
+    R_UpdateEntityShader(DX12_GetCurrentRenderStateId(), rflags);
 #endif // DX11_IMPL
 }
 
@@ -367,7 +370,7 @@ qboolean R_CullForEntity (vec3_t mins, vec3_t maxs, QMATRIX *localmatrix)
 
 void R_DrawEntitiesOnList (qboolean trans)
 {
-	int		i;
+	/*int		i;
 
 	if (!r_drawentities->value)
 		return;
@@ -410,7 +413,7 @@ void R_DrawEntitiesOnList (qboolean trans)
 				break;
 			}
 		}
-	}
+	}*/
 }
 
 
@@ -635,7 +638,7 @@ void R_Clear (ID3D11RenderTargetView *RTV, ID3D11DepthStencilView *DSV)
 	//d3d_Context->lpVtbl->ClearDepthStencilView (d3d_Context, DSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 1);
     RWGetDeviceContext()->lpVtbl->ClearDepthStencilView(RWGetDeviceContext(), DSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 1);
 #else // DX12
-    DX12_ClearRTVandDSV();
+        DX12_ClearRTVandDSV();
 #endif // DX11_IMPL
 }
 

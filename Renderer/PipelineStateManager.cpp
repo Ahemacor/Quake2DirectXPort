@@ -241,6 +241,50 @@ std::wstring PipelineStateManager::GetShaderFilepath(ShaderType shaderType)
         shaderFilename = L"SpritePS.cso";
         break;
 
+    case ShaderType::SHADER_MODEL_SURFACE_BASIC_VS:
+        shaderFilename = L"SurfBasicVS.cso";
+        break;
+
+    case ShaderType::SHADER_MODEL_SURFACE_BASIC_PS:
+        shaderFilename = L"SurfBasicPS.cso";
+        break;
+
+    case ShaderType::SHADER_MODEL_SURFACE_ALPHA_VS:
+        shaderFilename = L"SurfAlphaVS.cso";
+        break;
+
+    case ShaderType::SHADER_MODEL_SURFACE_ALPHA_PS:
+        shaderFilename = L"SurfAlphaPS.cso";
+        break;
+
+    case ShaderType::SHADER_MODEL_SURFACE_LIGHTMAP_VS:
+        shaderFilename = L"SurfLightmapVS.cso";
+        break;
+
+    case ShaderType::SHADER_MODEL_SURFACE_LIGHTMAP_PS:
+        shaderFilename = L"SurfLightmapPS.cso";
+        break;
+
+    case ShaderType::SHADER_MODEL_SURFACE_DRAWTURB_VS:
+        shaderFilename = L"SurfDrawTurbVS.cso";
+        break;
+
+    case ShaderType::SHADER_MODEL_SURFACE_DRAWTURB_PS:
+        shaderFilename = L"SurfDrawTurbPS.cso";
+        break;
+
+    case ShaderType::SHADER_MODEL_SURFACE_DYNAMIC_VS:
+        shaderFilename = L"SurfDynamicVS.cso";
+        break;
+
+    case ShaderType::SHADER_MODEL_SURFACE_DYNAMIC_GS:
+        shaderFilename = L"SurfDynamicGS.cso";
+        break;
+
+    case ShaderType::SHADER_MODEL_SURFACE_DYNAMIC_PS:
+        shaderFilename = L"GenericDynamicPS.cso";
+        break;
+
     default:
         shaderFilename = L"";
         break;
@@ -334,7 +378,12 @@ UINT PipelineStateManager::CreatePipelineStateObject(const State& state, int sta
 
 
     psoDesc.PrimitiveTopologyType = state.topology;
-    ENSURE_RESULT(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso)));
+    HRESULT hr = device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso));
+
+    if (FAILED(hr))
+    {
+        ENSURE_RESULT(device->GetDeviceRemovedReason());
+    }
 
     RenderState rs;
     rs.pso = pso;

@@ -139,6 +139,8 @@ void ResourceManager::UpdateSRVBuffer(Resource::Id resourceId, D3D12_SUBRESOURCE
 
     if (origState != D3D12_RESOURCE_STATE_COPY_DEST)
         UpdateResourceState(imageResource, D3D12_RESOURCE_STATE_COPY_DEST, origState);
+
+    ClearUploadBuffers();
 }
 
 void ResourceManager::UpdateBufferData(ID3D12Resource* resourceBuffer, const void* pSrcData, const std::size_t dataSize, const D3D12_RESOURCE_STATES origState)
@@ -163,6 +165,8 @@ void ResourceManager::UpdateBufferData(ID3D12Resource* resourceBuffer, const voi
 
     if (origState != D3D12_RESOURCE_STATE_COPY_DEST)
         UpdateResourceState(resourceBuffer, D3D12_RESOURCE_STATE_COPY_DEST, origState);
+
+    ClearUploadBuffers();
 }
 
 void ResourceManager::RebuildDescriptorHeap()
@@ -183,12 +187,16 @@ D3D12_GPU_DESCRIPTOR_HANDLE ResourceManager::GetSrvHandle()
 ID3D12Resource* ResourceManager::CreateUploadBuffer(const std::size_t bufferSize)
 {
     Microsoft::WRL::ComPtr<ID3D12Resource> uploadResource;
-    ENSURE_RESULT(pRenderEnv->GetDevice()->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+    HRESULT hr = pRenderEnv->GetDevice()->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
                                                                     D3D12_HEAP_FLAG_NONE,
                                                                     &CD3DX12_RESOURCE_DESC::Buffer(bufferSize),
                                                                     D3D12_RESOURCE_STATE_GENERIC_READ,
                                                                     nullptr,
-                                                                    IID_PPV_ARGS(&uploadResource)));
+                                                                    IID_PPV_ARGS(&uploadResource));
+    if (FAILED(hr))
+    {
+        ENSURE_RESULT(pRenderEnv->GetDevice()->GetDeviceRemovedReason());
+    }
     uploadBuffers.push_back(uploadResource);
     return uploadResource.Get();
 }

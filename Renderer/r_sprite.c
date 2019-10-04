@@ -264,7 +264,7 @@ void R_ShutdownSprites (void)
 
 void R_DrawSpriteModel (entity_t *e, QMATRIX *localmatrix)
 {
-	model_t *mod = e->model;
+	/*model_t *mod = e->model;
 
 	// don't even bother culling, because it's just a single polygon without a surface cache
 	// (note - with hardware it might make sense to cull)
@@ -305,7 +305,7 @@ void R_DrawSpriteModel (entity_t *e, QMATRIX *localmatrix)
     DX12_BindVertexBuffer(5, d3d_SpriteBuffers[mod->bufferset].PolyVertsId);
     DX12_BindIndexBuffer(d3d_SpriteIndexes);
     DX12_DrawIndexed(6, 0, framenum * 4);
-#endif // DX11_IMPL
+#endif // DX11_IMPL*/
 }
 
 

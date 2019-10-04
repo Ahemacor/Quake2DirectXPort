@@ -77,7 +77,7 @@ void R_InitNull(void)
 
 void R_DrawNullModel(entity_t* e, QMATRIX* localmatrix)
 {
-    float shadelight[3];
+    /*float shadelight[3];
 
     float mins[3] = { -16, -16, -16 };
     float maxs[3] = { 16, 16, 16 };
@@ -96,7 +96,7 @@ void R_DrawNullModel(entity_t* e, QMATRIX* localmatrix)
     R_PrepareEntityForRendering(localmatrix, shadelight, e->alpha, e->flags);
     DX12_SetRenderState(d3d_NullShader);
 
-    DX12_Draw(24, 0);
+    DX12_Draw(24, 0);*/
 }
 
 void R_PrepareNullModel(entity_t* e, QMATRIX* localmatrix)

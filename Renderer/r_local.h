@@ -29,12 +29,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define FEATURE_BEAM 0
 #define FEATURE_LIGHT 0
 #define FEATURE_ALIAS_MODEL 0
-#define FEATURE_BRUSH_MODEL 0
-#define FEATURE_SPRITE_MODEL 1
-#define FEATURE_NULL 1
-#define FEATURE_FADE_SCREEN 1
-#define FEATURE_CINEMATIC 1
-#define FEATURE_DRAW_FILL 1
+#define FEATURE_BRUSH_MODEL 1
+#define FEATURE_SPRITE_MODEL 0
+#define FEATURE_NULL 0
+#define FEATURE_FADE_SCREEN 0
+#define FEATURE_CINEMATIC 0
+#define FEATURE_DRAW_FILL 0
 #define FEATURE_DRAW_TEXT 1
 #define FEATURE_DRAW_PICTURES 1
 
@@ -385,6 +385,9 @@ void Draw_Flush (void);
 //void D_BindShaderBundle (int sb);
 //void D_RegisterConstantBuffer (ID3D11Buffer *cBuffer, int slot);
 //void D_BindConstantBuffers (void);
+#if !DX11_IMPL
+void R_UpdateEntityShader(int stateId, int rflags);
+#endif
 void R_PrepareEntityForRendering (QMATRIX *localMatrix, float *color, float alpha, int rflags);
 
 
@@ -472,6 +475,22 @@ typedef enum ShaderTypeEnum
     SHADER_NULL_VS,
     SHADER_NULL_GS,
     SHADER_NULL_PS,
+
+    SHADER_MODEL_SURFACE_BASIC_VS,
+    SHADER_MODEL_SURFACE_BASIC_PS,
+
+    SHADER_MODEL_SURFACE_ALPHA_VS,
+    SHADER_MODEL_SURFACE_ALPHA_PS,
+
+    SHADER_MODEL_SURFACE_LIGHTMAP_VS,
+    SHADER_MODEL_SURFACE_LIGHTMAP_PS,
+
+    SHADER_MODEL_SURFACE_DRAWTURB_VS,
+    SHADER_MODEL_SURFACE_DRAWTURB_PS,
+
+    SHADER_MODEL_SURFACE_DYNAMIC_VS,
+    SHADER_MODEL_SURFACE_DYNAMIC_GS,
+    SHADER_MODEL_SURFACE_DYNAMIC_PS,
 
     SHADER_TYPE_COUNT
 } ShaderType;
