@@ -6,6 +6,18 @@
 
 #define DECL_VERTEX(name, fmt, slot) { name, 0, fmt, slot, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
 
+bool operator==(const State& lhs, const State& rhs)
+{
+    return lhs.inputLayout == rhs.inputLayout &&
+           lhs.VS == rhs.VS &&
+           lhs.GS == rhs.GS &&
+           lhs.PS == rhs.PS &&
+           lhs.BS == rhs.BS &&
+           lhs.DS == rhs.DS &&
+           lhs.RS == rhs.RS &&
+           lhs.topology == rhs.topology;
+}
+
 bool PipelineStateManager::Initialize(Microsoft::WRL::ComPtr<ID3D12Device> parentDevice)
 {
     device = parentDevice;
@@ -356,6 +368,25 @@ void PipelineStateManager::CreateRootSignature()
 
 UINT PipelineStateManager::CreatePipelineStateObject(const State& state, int stateId)
 {
+    int foundId = -1;
+    for (int psoId = 0; psoId < PSOs.size(); ++psoId)
+    {
+        const State& storedState = PSOs[psoId].state;
+        if (storedState == state)
+        {
+            foundId = psoId;
+            break;
+        }
+    }
+
+    if (foundId > 0)
+    {
+        if ((stateId < 0) || (stateId == foundId))
+        {
+            return foundId;
+        }
+    }
+
     Microsoft::WRL::ComPtr<ID3D12PipelineState> pso;
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};

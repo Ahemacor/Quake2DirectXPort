@@ -12,6 +12,8 @@
 #include <map>
 #include <string>
 
+bool operator==(const State& lhs, const State& rhs);
+
 class PipelineStateManager
 {
 public:

@@ -107,7 +107,6 @@ void R_InitMain (void)
     DX12_BindConstantBuffer(d3d_MainConstants, 1);
     DX12_BindConstantBuffer(d3d_EntityConstants, 2);
 
-
     State polyblendState;
     polyblendState.inputLayout = INPUT_LAYOUT_STANDART;
     polyblendState.BS = BSAlphaBlend;

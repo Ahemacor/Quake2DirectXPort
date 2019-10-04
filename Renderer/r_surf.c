@@ -343,7 +343,7 @@ void R_DrawTextureChains (entity_t *e, model_t *mod, QMATRIX *localmatrix, float
 		R_BindTexture (R_SelectSurfaceTexture (ti, e->currframe)->SRV);
 #else // DX12
         R_UpdateEntityShader(DX12_GetCurrentRenderStateId(), e->flags);
-        R_BindTexture(R_SelectSurfaceTexture(ti, e->currframe)->textureId);
+        //R_BindTexture(R_SelectSurfaceTexture(ti, e->currframe)->textureId);
 #endif // DX11_IMPL
 
 		// and draw the texture chain
