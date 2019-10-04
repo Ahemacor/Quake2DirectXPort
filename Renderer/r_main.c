@@ -241,18 +241,21 @@ void R_PrepareEntityForRendering (QMATRIX *localMatrix, float *color, float alph
     // and update to the cbuffer
     DX12_UpdateConstantBuffer(d3d_EntityConstants, &consts, sizeof(entityconstants_t));
 
-    // and set the correct states
+    int currentStateId = DX12_GetCurrentRenderStateId();
+    State currentState = DX12_GetCurrentRenderState();
+
     if (rflags & RF_TRANSLUCENT)
     {
-       // DX12_SetBlendState(BSAlphaBlend);
-       // DX12_SetDepthState(DSDepthNoWrite);
+        currentState.BS = BSAlphaBlend;
+        currentState.DS = DSDepthNoWrite;
     }
     else
     {
-       // DX12_SetBlendState(BSNone);
-       // DX12_SetDepthState(DSFullDepth);
+        currentState.BS = BSNone;
+        currentState.DS = DSFullDepth;
     }
-    // DX12_SetRasterizerState(SELECT_RASTERIZER(rflags));
+    currentState.RS = SELECT_RASTERIZER(rflags);
+    DX12_UpdateRenderState(&currentState, currentStateId);
 #endif // DX11_IMPL
 }
 

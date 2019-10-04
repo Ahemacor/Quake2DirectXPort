@@ -238,9 +238,19 @@ UINT Renderer::CreatePSO(const State* psoState)
     return stateManager.CreatePipelineStateObject(*psoState);
 }
 
+void Renderer::CreatePSO(const State* psoState, int stateId)
+{
+    stateManager.CreatePipelineStateObject(*psoState, stateId);
+}
+
 void Renderer::SetPSO(UINT PSOid)
 {
     psoId = PSOid;
+}
+
+UINT Renderer::GetPSOiD()
+{
+    return psoId;
 }
 
 State Renderer::GetCurrentRenderState()

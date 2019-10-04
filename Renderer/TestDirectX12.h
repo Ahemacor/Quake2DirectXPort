@@ -45,7 +45,10 @@ extern "C" {
     void DX12_SetViewport(const D3D12_VIEWPORT* pViewport);
     void DX12_SetRenderState(UINT stateId);
     UINT DX12_CreateRenderState(const State* state);
+    void DX12_UpdateRenderState(const State* state, int stateId);
+    State DX12_GetRenderState(int stateId);
     State DX12_GetCurrentRenderState();
+    UINT DX12_GetCurrentRenderStateId();
 
     void DX12_Draw(UINT numOfVertices, UINT firstVertexToDraw);
     void DX12_DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLocation);

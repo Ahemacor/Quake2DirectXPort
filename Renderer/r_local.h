@@ -30,7 +30,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define FEATURE_LIGHT 0
 #define FEATURE_ALIAS_MODEL 0
 #define FEATURE_BRUSH_MODEL 0
-#define FEATURE_SPRITE_MODEL 0
+#define FEATURE_SPRITE_MODEL 1
 #define FEATURE_NULL 1
 #define FEATURE_FADE_SCREEN 1
 #define FEATURE_CINEMATIC 1
@@ -466,6 +466,9 @@ typedef enum ShaderTypeEnum
     SHADER_FADE_SCREEN_VS,
     SHADER_FADE_SCREEN_PS,
 
+    SHADER_MODEL_SPRITE_VS,
+    SHADER_MODEL_SPRITE_PS,
+
     SHADER_NULL_VS,
     SHADER_NULL_GS,
     SHADER_NULL_PS,
@@ -544,8 +547,13 @@ typedef struct State
 // textures marked disposable may be flushed on map changes
 #define TEX_DISPOSABLE		(1 << 30)
 
+#if DX11_IMPL
 void R_BindTexture (ID3D11ShaderResourceView *SRV);
 void R_BindTexArray (ID3D11ShaderResourceView *SRV);
+#else // DX12
+void R_BindTexture(int resId);
+void R_BindTexArray(int resId);
+#endif // DX11_IMPL
 image_t *R_LoadTexArray (char *base);
 
 

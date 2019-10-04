@@ -233,6 +233,14 @@ std::wstring PipelineStateManager::GetShaderFilepath(ShaderType shaderType)
         shaderFilename = L"NullPS.cso";
         break;
 
+    case ShaderType::SHADER_MODEL_SPRITE_VS:
+        shaderFilename = L"SpriteVS.cso";
+        break;
+
+    case ShaderType::SHADER_MODEL_SPRITE_PS:
+        shaderFilename = L"SpritePS.cso";
+        break;
+
     default:
         shaderFilename = L"";
         break;
@@ -302,7 +310,7 @@ void PipelineStateManager::CreateRootSignature()
     ENSURE_RESULT(device->CreateRootSignature(0, rootBlob->GetBufferPointer(), rootBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature)));
 }
 
-UINT PipelineStateManager::CreatePipelineStateObject(const State& state)
+UINT PipelineStateManager::CreatePipelineStateObject(const State& state, int stateId)
 {
     Microsoft::WRL::ComPtr<ID3D12PipelineState> pso;
 
@@ -328,13 +336,21 @@ UINT PipelineStateManager::CreatePipelineStateObject(const State& state)
     psoDesc.PrimitiveTopologyType = state.topology;
     ENSURE_RESULT(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso)));
 
-    UINT psoId = PSOs.size();
     RenderState rs;
     rs.pso = pso;
     rs.state = state;
-    PSOs.push_back(rs);
 
-    return psoId;
+    if (stateId < 0)
+    {
+        PSOs.push_back(rs);
+        return PSOs.size() - 1;
+    }
+    else
+    {
+        ASSERT(stateId < PSOs.size());
+        PSOs[stateId] = rs;
+        return stateId;
+    }
 }
 
 ID3D12PipelineState* PipelineStateManager::GetPSO(UINT stateId)

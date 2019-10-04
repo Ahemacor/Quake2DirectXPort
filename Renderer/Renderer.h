@@ -76,7 +76,9 @@ public:
     ScopedStateManager GetStateManager(bool isScoped = false) { return ScopedStateManager(isScoped, stateManager, *pRenderEnv); }
 
     UINT CreatePSO(const State* psoState);
+    void CreatePSO(const State* psoState, int stateId);
     void SetPSO(UINT PSOid);
+    UINT GetPSOiD();
     State GetCurrentRenderState();
 
 private:

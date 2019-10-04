@@ -286,9 +286,24 @@ UINT DX12_CreateRenderState(const State* state)
     return g_renderer->CreatePSO(state);
 }
 
+void DX12_UpdateRenderState(const State* state, int stateId)
+{
+    g_renderer->CreatePSO(state, stateId);
+}
+
+State DX12_GetRenderState(int stateId)
+{
+    return g_renderer->GetStateManager()->GetStateDescr(stateId);
+}
+
 State DX12_GetCurrentRenderState()
 {
     return g_renderer->GetCurrentRenderState();
+}
+
+UINT DX12_GetCurrentRenderStateId()
+{
+    return g_renderer->GetPSOiD();
 }
 
 void DX12_ClearRTVandDSV()

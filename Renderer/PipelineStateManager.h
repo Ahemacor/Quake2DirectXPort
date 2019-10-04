@@ -29,7 +29,7 @@ public:
     D3D12_GPU_DESCRIPTOR_HANDLE GetSamplerHandle();
     ID3D12DescriptorHeap* GetSamplerDescriptorHeap();
 
-    UINT CreatePipelineStateObject(const State& state);
+    UINT CreatePipelineStateObject(const State& state, int stateId = -1);
     ID3D12PipelineState* GetPSO(UINT stateId);
     State GetStateDescr(UINT stateId);
 

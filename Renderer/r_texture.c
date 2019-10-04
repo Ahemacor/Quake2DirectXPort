@@ -286,9 +286,10 @@ void GL_TexEnv (int mode)
 {
 }
 
+#if DX11_IMPL
 void R_BindTexture (ID3D11ShaderResourceView *SRV)
 {
-#if DX11_IMPL
+
 	// only PS slot 0 is filtered; everything else is bound once-only at the start of each frame
 	static ID3D11ShaderResourceView *OldSRV;
 
@@ -298,12 +299,8 @@ void R_BindTexture (ID3D11ShaderResourceView *SRV)
         RWGetDeviceContext()->lpVtbl->PSSetShaderResources(RWGetDeviceContext(), 0, 1, &SRV);
 		OldSRV = SRV;
 	}
-#else // DX12
-    assert(0);
-#endif // DX11_IMPL
 }
 
-#if DX11_IMPL
 void R_BindTexArray (ID3D11ShaderResourceView *SRV)
 {
 	// PS slot 6 holds a texture array that's used for the charset and little sbar numbers
@@ -319,15 +316,24 @@ void R_BindTexArray (ID3D11ShaderResourceView *SRV)
 #else // DX12
 void R_BindTexArray(int resId)
 {
-    // PS slot 6 holds a texture array that's used for the charset and little sbar numbers
     static int* OldResId;
-
     if (OldResId != resId)
     {
         DX12_BindTexture(6, resId);
         OldResId = resId;
     }
 }
+
+void R_BindTexture(int resId)
+{
+    static int OldRes;
+    if (OldRes != resId)
+    {
+        DX12_BindTexture(0, resId);
+        OldRes = resId;
+    }
+}
+
 #endif // DX11_IMPL
 
 
