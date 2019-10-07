@@ -22,6 +22,9 @@ struct PS_DRAWTEXTURED {
 
 float4 GetGamma(float4 colorin)
 {
+    /*float contrast_ = 0.4f;
+    float gamma_ = 1.0f;
+    return float4 (pow(max(colorin.rgb * contrast_, 0.0f), gamma_), colorin.a);*/
     return float4 (pow(max(colorin.rgb * v_contrast, 0.0f), v_gamma), colorin.a);
 }
 

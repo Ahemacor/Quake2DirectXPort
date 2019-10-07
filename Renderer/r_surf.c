@@ -60,8 +60,8 @@ typedef struct brushpolyvert_s {
 	float st[2];
 	unsigned short lm[2];
 	byte styles[4];
-	unsigned short mapnum;
-	unsigned short scroll;
+	unsigned int mapnum;
+	float scroll;
 } brushpolyvert_t;
 #pragma pack(pop)
 
@@ -206,7 +206,7 @@ void R_AddSurfaceToBatch (const msurface_t *surf)
 			return;
 		else r_SurfIndexes = (unsigned int *) msr.pData + r_FirstSurfIndex;
 #else // DX12
-        r_SurfIndexes = (unsigned int*)r_SurfIndexes + r_FirstSurfIndex;
+        r_SurfIndexes = (unsigned int*)surf_index_buffer + r_FirstSurfIndex;
 #endif // DX11_IMPL
 	}
 
@@ -343,9 +343,9 @@ void R_DrawTextureChains (entity_t *e, model_t *mod, QMATRIX *localmatrix, float
 		R_BindTexture (R_SelectSurfaceTexture (ti, e->currframe)->SRV);
 #else // DX12
         R_UpdateEntityShader(DX12_GetCurrentRenderStateId(), e->flags);
-        //R_BindTexture(R_SelectSurfaceTexture(ti, e->currframe)->textureId);
+        R_BindTexture(R_SelectSurfaceTexture(ti, e->currframe)->textureId);
 #endif // DX11_IMPL
-
+        
 		// and draw the texture chain
 		for (; surf; surf = surf->texturechain)
 		{
@@ -357,7 +357,7 @@ void R_DrawTextureChains (entity_t *e, model_t *mod, QMATRIX *localmatrix, float
 		R_EndSurfaceBatch ();
 		ti->image->texturechain = NULL;
 	}
-
+    
     if (r_sky_surfaces)
 	{
 		R_DrawSkyChain (r_sky_surfaces);
@@ -493,7 +493,7 @@ R_DrawBrushModel
 */
 void R_DrawBrushModel (entity_t *e, QMATRIX *localmatrix)
 {
-	/*int			i;
+	int			i;
 	int			numsurfaces = 0;
 	float		mins[3], maxs[3];
 	model_t		*mod = e->model;
@@ -538,7 +538,7 @@ void R_DrawBrushModel (entity_t *e, QMATRIX *localmatrix)
 		if (e->flags & RF_TRANSLUCENT)
 			R_DrawTextureChains (e, mod, localmatrix, 0.25f);
 		else R_DrawTextureChains (e, mod, localmatrix, 1.0f);
-	}*/
+	}
 }
 
 

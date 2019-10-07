@@ -257,7 +257,7 @@ void R_PrepareEntityForRendering (QMATRIX *localMatrix, float *color, float alph
 	else SMSetRenderStates(BSNone, DSFullDepth, SELECT_RASTERIZER(rflags));
 #else // DX12
     DX12_UpdateConstantBuffer(d3d_EntityConstants, &consts, sizeof(entityconstants_t));
-    R_UpdateEntityShader(DX12_GetCurrentRenderStateId(), rflags);
+    // R_UpdateEntityShader(DX12_GetCurrentRenderStateId(), rflags);
 #endif // DX11_IMPL
 }
 
@@ -369,7 +369,7 @@ qboolean R_CullForEntity (vec3_t mins, vec3_t maxs, QMATRIX *localmatrix)
 
 void R_DrawEntitiesOnList (qboolean trans)
 {
-	/*int		i;
+	int		i;
 
 	if (!r_drawentities->value)
 		return;
@@ -412,7 +412,7 @@ void R_DrawEntitiesOnList (qboolean trans)
 				break;
 			}
 		}
-	}*/
+	}
 }
 
 

@@ -95,6 +95,7 @@ private:
     PipelineStateManager stateManager;
     ResourceManager resourceManager;
 
+    std::map<Slot, ResourceManager::Resource::Id> srvArguments;
     std::map<Slot, D3D12_GPU_VIRTUAL_ADDRESS> cbArguments;
     D3D12_INDEX_BUFFER_VIEW indexBufferView;
 

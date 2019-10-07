@@ -83,14 +83,13 @@ void R_DescribeTexture (D3D11_TEXTURE2D_DESC *Desc, int width, int height, int a
 void R_DescribeTexture(D3D12_RESOURCE_DESC* Desc, int width, int height, int arraysize, int flags)
 {
     // basic info
-    //Desc->Dimension = (arraysize > 1) ? D3D12_RESOURCE_DIMENSION_TEXTURE3D : D3D12_RESOURCE_DIMENSION_TEXTURE2D;
     Desc->Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
     Desc->Alignment = 0;
 
     Desc->Width = width;
     Desc->Height = height;
 
-    Desc->MipLevels = (flags & TEX_MIPMAP) ? 0 : 1;
+    Desc->MipLevels = 1; //(flags & TEX_MIPMAP) ? 0 : 1; 
 
     // select the appropriate format
     if (flags & TEX_R32F)
@@ -394,41 +393,41 @@ This is also used as an entry point for the generated r_notexture
 */
 image_t *GL_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type, int bits, unsigned *palette)
 {
-	image_t *image = GL_FindFreeImage (name, width, height, type);
+    image_t* image = GL_FindFreeImage(name, width, height, type);
 
-	// floodfill 8-bit alias skins (32-bit are assumed to be already filled)
-	if (type == it_skin && bits == 8)
-		R_FloodFillSkin (pic, width, height);
+    // floodfill 8-bit alias skins (32-bit are assumed to be already filled)
+    if (type == it_skin && bits == 8)
+        R_FloodFillSkin(pic, width, height);
 
-	// problem - if we use linear filtering, we lose all of the fine pixel art detail in the original 8-bit textures.
-	// if we use nearest filtering we can't do anisotropic and we get noise at minification levels.
-	// so what we do is upscale the texture by a simple 2x nearest-neighbour upscale, which gives us magnification-nearest
-	// quality but not with the same degree of discontinuous noise, but let's us minify and anisotropically filter them properly.
-	if ((type == it_wall || type == it_skin) && bits == 8)
-	{
-		pic = Image_Upscale8 (pic, image->width, image->height);
-		image->width <<= 1;
-		image->height <<= 1;
-		image->flags |= TEX_UPSCALE;
-	}
+    // problem - if we use linear filtering, we lose all of the fine pixel art detail in the original 8-bit textures.
+    // if we use nearest filtering we can't do anisotropic and we get noise at minification levels.
+    // so what we do is upscale the texture by a simple 2x nearest-neighbour upscale, which gives us magnification-nearest
+    // quality but not with the same degree of discontinuous noise, but let's us minify and anisotropically filter them properly.
+    if ((type == it_wall || type == it_skin) && bits == 8)
+    {
+        pic = Image_Upscale8(pic, image->width, image->height);
+        image->width <<= 1;
+        image->height <<= 1;
+        image->flags |= TEX_UPSCALE;
+    }
 
-	// it's 2018 and we have non-power-of-two textures nowadays so don't bother with scraps
-	if (bits == 8)
-		R_CreateTexture8 (image, pic, palette);
-	else
-		R_CreateTexture32 (image, (unsigned *) pic);
+    // it's 2018 and we have non-power-of-two textures nowadays so don't bother with scraps
+    if (bits == 8)
+        R_CreateTexture8(image, pic, palette);
+    else
+        R_CreateTexture32(image, (unsigned*)pic);
 
-	// if the image was upscaled, bring it back down again so that texcoord calculation will work as expected
-	if (image->flags & TEX_UPSCALE)
-	{
-		image->width >>= 1;
-		image->height >>= 1;
-	}
+    // if the image was upscaled, bring it back down again so that texcoord calculation will work as expected
+    if (image->flags & TEX_UPSCALE)
+    {
+        image->width >>= 1;
+        image->height >>= 1;
+    }
 
-	// free memory used for loading the image
-	ri.Load_FreeMemory ();
+    // free memory used for loading the image
+    ri.Load_FreeMemory();
 
-	return image;
+    return image;
 }
 
 
@@ -486,7 +485,6 @@ GL_LoadWal
 */
 image_t *GL_LoadWal (char *name, int flags)
 {
-#if DX11_IMPL
 	miptex_t	*mt;
 	int			i, width, height;
 	image_t		*image;
@@ -550,71 +548,77 @@ image_t *GL_LoadWal (char *name, int flags)
 	image->texinfoflags = flags;
 
 	return image;
-#else // DX12
-    miptex_t* mt;
-    int			i, width, height;
-    image_t* image;
-    byte* texels;
-    float		scale;
+    /*const char* hardName = "textures/e1u1/box1_1.wal";
+    if (strcmp(name, hardName) == 0)
+    {
+        miptex_t	*mt;
+        int			i, width, height;
+        image_t		*image;
+        byte		*texels;
+        float		scale;
 
-    // look for it
-    if ((image = GL_HaveImage(name, flags)) != NULL)
+        // look for it
+        if ((image = GL_HaveImage (name, flags)) != NULL)
+            return image;
+
+        // load the pic from disk
+        ri.FS_LoadFile (name, (void **) &mt);
+
+        if (!mt)
+        {
+            ri.Con_Printf (PRINT_ALL, "GL_FindImage: can't load %s\n", name);
+            return r_notexture;
+        }
+
+        width = LittleLong (mt->width);
+        height = LittleLong (mt->height);
+        texels = (byte *) mt + LittleLong (mt->offsets[0]);
+
+        // choose the correct palette to use (note: using texinfo flags here)
+        if (flags & SURF_TRANS33)
+            image = GL_LoadPic (name, texels, width, height, it_wall, 8, d_8to24table_trans33);
+        else if (flags & SURF_TRANS66)
+            image = GL_LoadPic (name, texels, width, height, it_wall, 8, d_8to24table_trans66);
+        else image = GL_LoadPic (name, texels, width, height, it_wall, 8, d_8to24table_solid);
+
+        // calculate the colour that was used to generate radiosity for this texture
+        // https://github.com/id-Software/Quake-2-Tools/blob/master/bsp/qrad3/patches.c#L88
+        // this is used for R_LightPoint tracing that hits sky and may also be used for contents colours in the future
+        Vector3Set (image->color, 0, 0, 0);
+
+        // accumulate the colours
+        for (i = 0; i < width * height; i++)
+        {
+            image->color[0] += ((byte *) &d_8to24table_solid[texels[i]])[0];
+            image->color[1] += ((byte *) &d_8to24table_solid[texels[i]])[1];
+            image->color[2] += ((byte *) &d_8to24table_solid[texels[i]])[2];
+        }
+
+        // average them out and bring to 0..1 scale
+        image->color[0] = image->color[0] / (width * height) / 255.0f;
+        image->color[1] = image->color[1] / (width * height) / 255.0f;
+        image->color[2] = image->color[2] / (width * height) / 255.0f;
+
+        // scale the reflectivity up, because the textures are so dim
+        scale = ColorNormalize (image->color, image->color);
+
+        // ??? can this even happen ???
+        if (scale < 0.5)
+            Vector3Scalef (image->color, image->color, scale * 2);
+
+        // free any memory used for loading
+        ri.FS_FreeFile ((void *) mt);
+        ri.Load_FreeMemory ();
+
+        // store out the flags used for matching
+        image->texinfoflags = flags;
+
         return image;
-
-    // load the pic from disk
-    ri.FS_LoadFile(name, (void**)&mt);
-
-    if (!mt)
-    {
-        ri.Con_Printf(PRINT_ALL, "GL_FindImage: can't load %s\n", name);
-        return r_notexture;
     }
-
-    width = LittleLong(mt->width);
-    height = LittleLong(mt->height);
-    texels = (byte*)mt + LittleLong(mt->offsets[0]);
-
-    // choose the correct palette to use (note: using texinfo flags here)
-    if (flags & SURF_TRANS33)
-        image = GL_LoadPic(name, texels, width, height, it_wall, 8, d_8to24table_trans33);
-    else if (flags & SURF_TRANS66)
-        image = GL_LoadPic(name, texels, width, height, it_wall, 8, d_8to24table_trans66);
-    else image = GL_LoadPic(name, texels, width, height, it_wall, 8, d_8to24table_solid);
-
-    // calculate the colour that was used to generate radiosity for this texture
-    // https://github.com/id-Software/Quake-2-Tools/blob/master/bsp/qrad3/patches.c#L88
-    // this is used for R_LightPoint tracing that hits sky and may also be used for contents colours in the future
-    Vector3Set(image->color, 0, 0, 0);
-
-    // accumulate the colours
-    for (i = 0; i < width * height; i++)
+    else
     {
-        image->color[0] += ((byte*)&d_8to24table_solid[texels[i]])[0];
-        image->color[1] += ((byte*)&d_8to24table_solid[texels[i]])[1];
-        image->color[2] += ((byte*)&d_8to24table_solid[texels[i]])[2];
-    }
-
-    // average them out and bring to 0..1 scale
-    image->color[0] = image->color[0] / (width * height) / 255.0f;
-    image->color[1] = image->color[1] / (width * height) / 255.0f;
-    image->color[2] = image->color[2] / (width * height) / 255.0f;
-
-    // scale the reflectivity up, because the textures are so dim
-    scale = ColorNormalize(image->color, image->color);
-
-    // ??? can this even happen ???
-    if (scale < 0.5)
-        Vector3Scalef(image->color, image->color, scale * 2);
-
-    // free any memory used for loading
-    ri.FS_FreeFile((void*)mt);
-    ri.Load_FreeMemory();
-
-    // store out the flags used for matching
-    image->texinfoflags = flags;
-
-    return image;
-#endif // DX11_IMPL
+        return NULL;
+    }*/
 }
 
 

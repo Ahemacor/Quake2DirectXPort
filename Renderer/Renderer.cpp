@@ -50,6 +50,15 @@ void Renderer::Release()
 
 void Renderer::CommonDraw(ID3D12GraphicsCommandList* commandList)
 {
+    // Init SRVs
+    for (const auto& srvPair : srvArguments)
+    {
+        const auto& slot = srvPair.first;
+        const auto& srvResId = srvPair.second;
+        ASSERT(slot < ResourceManager::DESCR_HEAP_MAX);
+        resourceManager.CreateShaderResourceView(srvResId, slot);
+    }
+
     commandList->SetPipelineState(stateManager.GetPSO(psoId));
 
     commandList->SetGraphicsRootSignature(stateManager.GetRootSignature());
@@ -212,10 +221,14 @@ void Renderer::BindConstantBuffer(ResourceManager::Resource::Id resourceId, std:
 
 void Renderer::BindTextureResource(ResourceManager::Resource::Id resourceId, std::size_t slot)
 {
-    ASSERT(slot < ResourceManager::DESCR_HEAP_MAX);
+    /*ASSERT(slot < ResourceManager::DESCR_HEAP_MAX);
     ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
     ASSERT(resource.type == ResourceManager::Resource::Type::SRV);
-    resourceManager.CreateShaderResourceView(resourceId, slot);
+    resourceManager.CreateShaderResourceView(resourceId, slot);*/
+    ASSERT(slot <= ResourceManager::DESCR_HEAP_MAX);
+    ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
+    ASSERT(resource.type == ResourceManager::Resource::Type::SRV);
+    srvArguments[slot] = resourceId;
 }
 
 void Renderer::BindVertexBuffer(UINT Slot, ResourceManager::Resource::Id resourceId)

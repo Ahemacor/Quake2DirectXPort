@@ -10,6 +10,11 @@
 
 RenderEnvironment::RenderEnvironment()
 {
+#if defined(_DEBUG)
+    Microsoft::WRL::ComPtr<ID3D12Debug> debugInterface;
+    ENSURE_RESULT(D3D12GetDebugInterface(IID_PPV_ARGS(&debugInterface)));
+    debugInterface->EnableDebugLayer();
+#endif
     InitializeFactory();
     InitializeAdapters();
     InitializeVideoModes();
@@ -64,7 +69,11 @@ void RenderEnvironment::Release()
 void RenderEnvironment::InitializeFactory()
 {
     factory.Reset();
-    ENSURE_RESULT(CreateDXGIFactory(IID_PPV_ARGS(&factory)));
+    UINT createFactoryFlags = 0;
+#if defined(_DEBUG)
+    createFactoryFlags = DXGI_CREATE_FACTORY_DEBUG;
+#endif
+    ENSURE_RESULT(CreateDXGIFactory2(createFactoryFlags, IID_PPV_ARGS(&factory)));
 }
 
 void RenderEnvironment::InitializeAdapters()
@@ -219,6 +228,43 @@ void RenderEnvironment::InitializeVideoModes()
 void RenderEnvironment::InitializeDevice()
 {
     ENSURE_RESULT(D3D12CreateDevice(GetMaxMemoryAdapter().Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(device.GetAddressOf())));
+
+    // Enable debug messages in debug mode.
+#if defined(_DEBUG)
+    Microsoft::WRL::ComPtr<ID3D12InfoQueue> pInfoQueue;
+    if (SUCCEEDED(device.As(&pInfoQueue)))
+    {
+        pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE);
+        pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, TRUE);
+        pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, TRUE);
+
+        // Suppress whole categories of messages
+        //D3D12_MESSAGE_CATEGORY Categories[] = {};
+
+        // Suppress messages based on their severity level
+        D3D12_MESSAGE_SEVERITY Severities[] =
+        {
+            D3D12_MESSAGE_SEVERITY_INFO
+        };
+
+        // Suppress individual messages by their ID
+        D3D12_MESSAGE_ID DenyIds[] = {
+            D3D12_MESSAGE_ID_CLEARRENDERTARGETVIEW_MISMATCHINGCLEARVALUE,   // I'm really not sure how to avoid this message.
+            D3D12_MESSAGE_ID_MAP_INVALID_NULLRANGE,                         // This warning occurs when using capture frame while graphics debugging.
+            D3D12_MESSAGE_ID_UNMAP_INVALID_NULLRANGE,                       // This warning occurs when using capture frame while graphics debugging.
+        };
+
+        D3D12_INFO_QUEUE_FILTER NewFilter = {};
+        //NewFilter.DenyList.NumCategories = _countof(Categories);
+        //NewFilter.DenyList.pCategoryList = Categories;
+        NewFilter.DenyList.NumSeverities = _countof(Severities);
+        NewFilter.DenyList.pSeverityList = Severities;
+        NewFilter.DenyList.NumIDs = _countof(DenyIds);
+        NewFilter.DenyList.pIDList = DenyIds;
+
+        ENSURE_RESULT(pInfoQueue->PushStorageFilter(&NewFilter));
+    }
+#endif
 }
 
 Microsoft::WRL::ComPtr<ID3D12CommandQueue> RenderEnvironment::CreateCommandQueue(D3D12_COMMAND_LIST_TYPE type)
