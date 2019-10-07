@@ -29,7 +29,6 @@ bool Renderer::Init(RenderEnvironment* environment)
     stateManager.Initialize(pRenderEnv->GetDevice());
     resourceManager.Initialize(pRenderEnv);
 
-    vertexBufferToBind = {};
     indexBufferView = {};
 
     isInitialized = true;
@@ -43,7 +42,7 @@ void Renderer::Release()
     stateManager.Release();
     resourceManager.Release();
     cbArguments.clear();
-    vertexBufferToBind = {};
+    vertexBuffers.clear();
     indexBufferView = {};
     isInitialized = false;
 }
@@ -103,7 +102,13 @@ void Renderer::DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLoca
 
     CommonDraw(commandList.Get());
 
-    commandList->IASetVertexBuffers(vertexBufferToBind.slot, 1, &vertexBufferToBind.view);
+    //commandList->IASetVertexBuffers(vertexBufferToBind.slot, 1, &vertexBufferToBind.view);
+    for (const auto vbPair : vertexBuffers)
+    {
+        const auto& vbSlot = vbPair.first;
+        const auto& vbView = vbPair.second;
+        commandList->IASetVertexBuffers(vbSlot, 1, &vbView);
+    }
 
     commandList->IASetIndexBuffer(&indexBufferView);
 
@@ -221,10 +226,6 @@ void Renderer::BindConstantBuffer(ResourceManager::Resource::Id resourceId, std:
 
 void Renderer::BindTextureResource(ResourceManager::Resource::Id resourceId, std::size_t slot)
 {
-    /*ASSERT(slot < ResourceManager::DESCR_HEAP_MAX);
-    ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
-    ASSERT(resource.type == ResourceManager::Resource::Type::SRV);
-    resourceManager.CreateShaderResourceView(resourceId, slot);*/
     ASSERT(slot <= ResourceManager::DESCR_HEAP_MAX);
     ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
     ASSERT(resource.type == ResourceManager::Resource::Type::SRV);
@@ -235,8 +236,7 @@ void Renderer::BindVertexBuffer(UINT Slot, ResourceManager::Resource::Id resourc
 {
     ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
     ASSERT(resource.type == ResourceManager::Resource::Type::VB);
-    vertexBufferToBind.slot = Slot;
-    vertexBufferToBind.view = resource.variant.vbView;
+    vertexBuffers[Slot] = resource.variant.vbView;;
 }
 
 void Renderer::BindIndexBuffer(ResourceManager::Resource::Id resourceId)

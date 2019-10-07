@@ -84,17 +84,12 @@ public:
 private:
     void CommonDraw(ID3D12GraphicsCommandList* commandList);
 
-    struct VertexBufferToBind
-    {
-        UINT slot;
-        D3D12_VERTEX_BUFFER_VIEW view = {};
-    } vertexBufferToBind;
-
     UINT psoId = 0;
     RenderEnvironment* pRenderEnv = nullptr;
     PipelineStateManager stateManager;
     ResourceManager resourceManager;
 
+    std::map<Slot, D3D12_VERTEX_BUFFER_VIEW> vertexBuffers;
     std::map<Slot, ResourceManager::Resource::Id> srvArguments;
     std::map<Slot, D3D12_GPU_VIRTUAL_ADDRESS> cbArguments;
     D3D12_INDEX_BUFFER_VIEW indexBufferView;

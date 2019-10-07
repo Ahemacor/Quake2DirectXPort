@@ -22,17 +22,21 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "r_local.h"
 
 #if FEATURE_ALIAS_MODEL
+#if DX11_IMPL
 #include "CppWrapper.h"
+#else // DX12
+#include "TestDirectX12.h"
+#endif // DX11_IMPL
 
 qboolean VCache_ReorderIndices (char *name, unsigned short *outIndices, const unsigned short *indices, int nTriangles, int nVertices);
 void VCache_Init (void);
 
+#if DX11_IMPL
 // deduplication
 typedef struct aliasmesh_s {
 	short index_xyz;
 	short index_st;
 } aliasmesh_t;
-
 
 typedef struct aliasbuffers_s {
 	ID3D11Buffer *PolyVerts;
@@ -42,6 +46,22 @@ typedef struct aliasbuffers_s {
 	char Name[256];
 	int registration_sequence;
 } aliasbuffers_t;
+#else // DX12
+typedef struct aliasmesh_s {
+    int index_xyz;
+    int index_st;
+} aliasmesh_t;
+
+
+typedef struct aliasbuffers_s {
+    int PolyVerts;
+    int TexCoords;
+    int Indexes;
+
+    char Name[256];
+    int registration_sequence;
+} aliasbuffers_t;
+#endif // DX11_IMPL
 
 __declspec(align(16)) typedef struct meshconstants_s {
 	float shadelight[4];	// padded for cbuffer
@@ -62,10 +82,15 @@ static int d3d_MeshDynamicShader;
 static int d3d_MeshPowersuitShader;
 static int d3d_MeshFullbrightShader;
 
+#if DX11_IMPL
 static ID3D11Buffer *d3d_MeshConstants = NULL;
+#else // DX12
+static int d3d_MeshConstants;
+#endif // DX11_IMPL
 
 void R_InitMesh (void)
 {
+#if DX11_IMPL
 	D3D11_INPUT_ELEMENT_DESC layout[] = {
 		VDECL ("PREVTRIVERTX", 0, DXGI_FORMAT_R8G8B8A8_UINT, 1, 0),
 		VDECL ("CURRTRIVERTX", 0, DXGI_FORMAT_R8G8B8A8_UINT, 2, 0),
@@ -88,6 +113,27 @@ void R_InitMesh (void)
 
     RWCreateBuffer(&cbPerMeshDesc, NULL, &d3d_MeshConstants);
     SLRegisterConstantBuffer(d3d_MeshConstants, 3);
+#else // DX12
+    d3d_MeshConstants = DX12_CreateConstantBuffer(NULL, sizeof(meshconstants_t));
+    DX12_BindConstantBuffer(d3d_MeshConstants, 3);
+
+    State meshState;
+    meshState.inputLayout = INPUT_LAYOUT_MESH;
+    meshState.BS = BSAlphaBlend;
+    meshState.DS = DSFullDepth;
+    meshState.RS = RSFullCull;
+    meshState.topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    meshState.VS = SHADER_MODEL_MESH_LIGHTMAP_VS;
+    meshState.GS = SHADER_UNDEFINED;
+    meshState.PS = SHADER_MODEL_MESH_FULLBRIGHT_PS;
+    d3d_MeshFullbrightShader = DX12_CreateRenderState(&meshState);
+
+    //d3d_MeshLightmapShader = SLCreateShaderBundle(IDR_MESHSHADER, "MeshLightmapVS", NULL, "MeshLightmapPS", DEFINE_LAYOUT(layout));
+    //d3d_MeshDynamicShader = SLCreateShaderBundle(IDR_MESHSHADER, "MeshDynamicVS", NULL, "GenericDynamicPS", DEFINE_LAYOUT(layout));
+    //d3d_MeshPowersuitShader = SLCreateShaderBundle(IDR_MESHSHADER, "MeshPowersuitVS", NULL, "MeshPowersuitPS", DEFINE_LAYOUT(layout));
+    //d3d_MeshFullbrightShader = SLCreateShaderBundle(IDR_MESHSHADER, "MeshLightmapVS", NULL, "MeshFullbrightPS", DEFINE_LAYOUT(layout));
+
+#endif // DX11_IMPL
 
 	// init vertex cache optimization
 	VCache_Init ();
@@ -101,11 +147,13 @@ void R_ShutdownMesh (void)
 	for (i = 0; i < MAX_MOD_KNOWN; i++)
 	{
 		aliasbuffers_t *set = &d3d_AliasBuffers[i];
-
+#if DX11_IMPL
 		SAFE_RELEASE (set->PolyVerts);
 		SAFE_RELEASE (set->TexCoords);
 		SAFE_RELEASE (set->Indexes);
+#else // DX12
 
+#endif // DX11_IMPL
 		memset (set, 0, sizeof (aliasbuffers_t));
 	}
 }
@@ -121,10 +169,13 @@ void R_FreeUnusedAliasBuffers (void)
 
 		if (set->registration_sequence != r_registration_sequence)
 		{
+#if DX11_IMPL
 			SAFE_RELEASE (set->PolyVerts);
 			SAFE_RELEASE (set->TexCoords);
 			SAFE_RELEASE (set->Indexes);
+#else // DX12
 
+#endif // DX11_IMPL
 			memset (set, 0, sizeof (aliasbuffers_t));
 		}
 	}
@@ -133,6 +184,7 @@ void R_FreeUnusedAliasBuffers (void)
 
 void D_CreateAliasPolyVerts (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, aliasmesh_t *dedupe)
 {
+#if DX11_IMPL
 	dtrivertx_t *polyverts = ri.Load_AllocMemory (hdr->num_verts * hdr->num_frames * sizeof (dtrivertx_t));
 	int framenum, i;
 
@@ -164,11 +216,39 @@ void D_CreateAliasPolyVerts (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, alia
 	}
 
     RWCreateBuffer(&vbDesc, pData, &set->PolyVerts);
+#else // DX12
+    //dtrivertx_t* polyverts = ri.Load_AllocMemory(hdr->num_verts * hdr->num_frames * sizeof(dtrivertx_t));
+    dtrivertx_t* polyverts = malloc((hdr->num_verts * hdr->num_frames * sizeof(dtrivertx_t)));
+    int framenum, i;
+
+    // alloc a buffer to write the verts to and create the VB from
+    void* pData = polyverts;
+
+    for (framenum = 0; framenum < hdr->num_frames; framenum++)
+    {
+        daliasframe_t* inframe = (daliasframe_t*)((byte*)src + src->ofs_frames + framenum * src->framesize);
+
+        for (i = 0; i < hdr->num_verts; i++, polyverts++)
+        {
+            dtrivertx_t* tv = &inframe->verts[dedupe[i].index_xyz];
+
+            polyverts->v[0] = tv->v[0];
+            polyverts->v[1] = tv->v[1];
+            polyverts->v[2] = tv->v[2];
+            polyverts->lightnormalindex = tv->lightnormalindex;
+        }
+    }
+
+    //RWCreateBuffer(&vbDesc, pData, &set->PolyVerts);
+    set->PolyVerts = DX12_CreateVertexBuffer(hdr->num_verts * hdr->num_frames, sizeof(dtrivertx_t), pData);
+    free(pData);
+#endif // DX11_IMPL
 }
 
 
 void D_CreateAliasTexCoords (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, aliasmesh_t *dedupe)
 {
+#if DX11_IMPL
 	float *texcoords = ri.Load_AllocMemory (hdr->num_verts * sizeof (float) * 2);
 	int i;
 
@@ -196,11 +276,36 @@ void D_CreateAliasTexCoords (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, alia
 	}
 
     RWCreateBuffer(&vbDesc, pData, &set->TexCoords);
+#else // DX12
+    //float* texcoords = ri.Load_AllocMemory(hdr->num_verts * sizeof(float) * 2);
+    float* texcoords = malloc(hdr->num_verts * sizeof(float) * 2);
+    int i;
+
+    // alloc a buffer to write the verts to and create the VB from
+    void* pData = texcoords;
+
+    // access source stverts
+    dstvert_t* stverts = (dstvert_t*)((byte*)src + src->ofs_st);
+
+    for (i = 0; i < hdr->num_verts; i++, texcoords += 2)
+    {
+        dstvert_t* stvert = &stverts[dedupe[i].index_st];
+
+        texcoords[0] = ((float)stvert->s + 0.5f) / hdr->skinwidth;
+        texcoords[1] = ((float)stvert->t + 0.5f) / hdr->skinheight;
+    }
+
+    //RWCreateBuffer(&vbDesc, pData, &set->TexCoords);
+    set->TexCoords = DX12_CreateVertexBuffer(hdr->num_verts * 2, sizeof(float), pData);
+
+    free(pData);
+#endif // DX11_IMPL
 }
 
 
 void D_CreateAliasIndexes (mmdl_t *hdr, aliasbuffers_t *set, unsigned short *indexes)
 {
+#if DX11_IMPL
 	D3D11_BUFFER_DESC ibDesc = {
 		hdr->num_indexes * sizeof (unsigned short),
 		D3D11_USAGE_IMMUTABLE,
@@ -213,6 +318,9 @@ void D_CreateAliasIndexes (mmdl_t *hdr, aliasbuffers_t *set, unsigned short *ind
 	// alloc a buffer to write the verts to and create the VB from
 	// create the new vertex buffer
     RWCreateBuffer(&ibDesc, indexes, &set->Indexes);
+#else // DX12
+    set->Indexes = DX12_CreateIndexBuffer(hdr->num_indexes, indexes, sizeof(int));
+#endif // DX11_IMPL
 }
 
 
@@ -422,6 +530,8 @@ image_t *R_SelectAliasTexture (entity_t *e, model_t *mod)
 
 void R_SelectAliasShader (int eflags)
 {
+#if DX11_IMPL
+
 #if FEATURE_LIGHT
 	// figure the correct shaders to use
 	if (eflags & (RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM))
@@ -434,6 +544,14 @@ void R_SelectAliasShader (int eflags)
 #else
     SLBindShaderBundle(d3d_MeshFullbrightShader);
 #endif // FEATURE_LIGHT
+
+#else // DX12
+#if FEATURE_LIGHT
+    assert(0);
+#else // !FEATURE_LIGHT
+    DX12_SetRenderState(d3d_MeshFullbrightShader);
+#endif // FEATURE_LIGHT
+#endif // DX11_IMPL
 }
 
 
@@ -443,7 +561,11 @@ void R_DrawAliasPolySet (model_t *mod)
 	mmdl_t *hdr = mod->md2header;
 
 	//d3d_Context->lpVtbl->DrawIndexed (d3d_Context, hdr->num_indexes, 0, 0);
+#if DX11_IMPL
     RWGetDeviceContext()->lpVtbl->DrawIndexed(RWGetDeviceContext(), hdr->num_indexes, 0, 0);
+#else // DX12
+    DX12_DrawIndexed(hdr->num_indexes, 0, 0);
+#endif // DX11_IMPL
 }
 
 
@@ -451,14 +573,27 @@ void R_SetupAliasFrameLerp (entity_t *e, model_t *mod, aliasbuffers_t *set)
 {
 	// sets up stuff that's going to be valid for both the main pass and the dynamic lighting pass(es)
 	mmdl_t *hdr = mod->md2header;
-
+#if DX11_IMPL
 	R_BindTexture (R_SelectAliasTexture (e, mod)->SRV);
 
-	SMBindVertexBuffer (1, set->PolyVerts, sizeof (dtrivertx_t), e->prevframe * sizeof (dtrivertx_t) * hdr->num_verts);
-	SMBindVertexBuffer (2, set->PolyVerts, sizeof (dtrivertx_t), e->currframe * sizeof (dtrivertx_t) * hdr->num_verts);
-	SMBindVertexBuffer (3, set->TexCoords, sizeof (float) * 2, 0);
+    SMBindVertexBuffer(1, set->PolyVerts, sizeof(dtrivertx_t), e->prevframe * sizeof(dtrivertx_t) * hdr->num_verts);
+    SMBindVertexBuffer(2, set->PolyVerts, sizeof(dtrivertx_t), e->currframe * sizeof(dtrivertx_t) * hdr->num_verts);
+    SMBindVertexBuffer(3, set->TexCoords, sizeof(float) * 2, 0);
 
-	SMBindIndexBuffer (set->Indexes, DXGI_FORMAT_R16_UINT);
+    SMBindIndexBuffer(set->Indexes, DXGI_FORMAT_R16_UINT);
+#else // DX12
+    R_BindTexture(R_SelectAliasTexture(e, mod)->textureId);
+
+    //SMBindVertexBuffer(1, set->PolyVerts, sizeof(dtrivertx_t), e->prevframe * sizeof(dtrivertx_t) * hdr->num_verts);
+    DX12_BindVertexBuffer(1, set->PolyVerts);
+    //SMBindVertexBuffer(2, set->PolyVerts, sizeof(dtrivertx_t), e->currframe * sizeof(dtrivertx_t) * hdr->num_verts);
+    DX12_BindVertexBuffer(2, set->PolyVerts);
+    //SMBindVertexBuffer(3, set->TexCoords, sizeof(float) * 2, 0);
+    DX12_BindVertexBuffer(3, set->TexCoords);
+
+    //SMBindIndexBuffer(set->Indexes, DXGI_FORMAT_R16_UINT);
+    DX12_BindIndexBuffer(set->Indexes);
+#endif // DX11_IMPL
 }
 
 
@@ -698,6 +833,7 @@ qboolean R_AliasLightInteraction (entity_t *e, model_t *mod, dlight_t *dl)
 
 void R_AliasDlights (entity_t *e, model_t *mod, mmdl_t *hdr, QMATRIX *localMatrix)
 {
+#if DX11_IMPL
 	int	i;
 
 	for (i = 0; i < r_newrefdef.num_dlights; i++)
@@ -726,6 +862,9 @@ void R_AliasDlights (entity_t *e, model_t *mod, mmdl_t *hdr, QMATRIX *localMatri
 
 	// go to a new dlight frame for each push so that we don't carry over lights from the previous
 	r_dlightframecount++;
+#else // DX12
+    assert(0);
+#endif // DX11_IMPL
 }
 
 
@@ -756,8 +895,11 @@ void R_DrawAliasModel (entity_t *e, QMATRIX *localmatrix)
 	R_TransformAliasModel (e, hdr, &consts, localmatrix);
 
 	// and update to the cbuffer
-	//d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_MeshConstants, 0, NULL, &consts, 0, 0);
+#if DX11_IMPL
     RWGetDeviceContext()->lpVtbl->UpdateSubresource(RWGetDeviceContext(), (ID3D11Resource*)d3d_MeshConstants, 0, NULL, &consts, 0, 0);
+#else // DX12
+    DX12_UpdateConstantBuffer(d3d_MeshConstants, &consts, sizeof(meshconstants_t));
+#endif // DX11_IMPL
 
 	// set up the frame interpolation
 	R_SetupAliasFrameLerp (e, mod, &d3d_AliasBuffers[mod->bufferset]);
@@ -777,8 +919,10 @@ void R_DrawAliasModel (entity_t *e, QMATRIX *localmatrix)
 	// no dlights unless it's flagged for them
 	if (!(e->flags & RF_DYNAMICLIGHT)) return;
 
+#if FEATURE_LIGHT
 	// add dynamic lighting to the entity
 	R_AliasDlights (e, mod, hdr, localmatrix);
+#endif // FEATURE_LIGHT
 }
 
 
