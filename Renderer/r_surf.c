@@ -446,9 +446,11 @@ void R_DrawAlphaSurfaces (void)
 			R_BindTexture (R_SelectSurfaceTexture (s->texinfo, 0)->SRV);
 			R_SelectSurfaceShader (s->texinfo, true);
 #else // DX12
-            R_BindTexArray(R_SelectSurfaceTexture(s->texinfo, 0)->textureId);
+            //R_BindTexArray(R_SelectSurfaceTexture(s->texinfo, 0)->textureId);
+            //R_SelectSurfaceShader(s->texinfo, true);
+            //R_UpdateEntityShader(DX12_GetCurrentRenderStateId(), RF_TRANSLUCENT);
+            R_BindTexture(R_SelectSurfaceTexture(s->texinfo, 0)->textureId);
             R_SelectSurfaceShader(s->texinfo, true);
-            R_UpdateEntityShader(DX12_GetCurrentRenderStateId(), RF_TRANSLUCENT);
 #endif // DX11_IMPL
 
 			// cache back
