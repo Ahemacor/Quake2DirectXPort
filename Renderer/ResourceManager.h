@@ -83,7 +83,8 @@ private:
 
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap;
 
-    std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> uploadBuffers;
+    //std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> uploadBuffers;
+    std::unordered_map<std::size_t, Microsoft::WRL::ComPtr<ID3D12Resource>> uploadBuffers;
 
 };
 

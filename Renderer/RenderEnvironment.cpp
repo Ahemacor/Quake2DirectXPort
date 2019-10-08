@@ -10,7 +10,7 @@
 
 RenderEnvironment::RenderEnvironment()
 {
-#if defined(_DEBUG)
+#if defined(DX12_DEBUG_LAYER)
     Microsoft::WRL::ComPtr<ID3D12Debug> debugInterface;
     ENSURE_RESULT(D3D12GetDebugInterface(IID_PPV_ARGS(&debugInterface)));
     debugInterface->EnableDebugLayer();
@@ -70,7 +70,7 @@ void RenderEnvironment::InitializeFactory()
 {
     factory.Reset();
     UINT createFactoryFlags = 0;
-#if defined(_DEBUG)
+#if defined(DX12_DEBUG_LAYER)
     createFactoryFlags = DXGI_CREATE_FACTORY_DEBUG;
 #endif
     ENSURE_RESULT(CreateDXGIFactory2(createFactoryFlags, IID_PPV_ARGS(&factory)));
@@ -230,7 +230,7 @@ void RenderEnvironment::InitializeDevice()
     ENSURE_RESULT(D3D12CreateDevice(GetMaxMemoryAdapter().Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(device.GetAddressOf())));
 
     // Enable debug messages in debug mode.
-#if defined(_DEBUG)
+#if defined(DX12_DEBUG_LAYER)
     Microsoft::WRL::ComPtr<ID3D12InfoQueue> pInfoQueue;
     if (SUCCEEDED(device.As(&pInfoQueue)))
     {
