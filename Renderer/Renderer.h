@@ -70,7 +70,7 @@ public:
     // BIND METHODS:
     void BindConstantBuffer(ResourceManager::Resource::Id resourceId, std::size_t slot);
     void BindTextureResource(ResourceManager::Resource::Id resourceId, std::size_t slot);
-    void BindVertexBuffer(UINT Slot, ResourceManager::Resource::Id resourceId);
+    void BindVertexBuffer(UINT Slot, ResourceManager::Resource::Id resourceId, UINT Offset = 0);
     void BindIndexBuffer(ResourceManager::Resource::Id resourceId);
 
     ScopedStateManager GetStateManager(bool isScoped = false) { return ScopedStateManager(isScoped, stateManager, *pRenderEnv); }

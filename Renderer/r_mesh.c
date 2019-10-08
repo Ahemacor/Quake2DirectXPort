@@ -217,18 +217,16 @@ void D_CreateAliasPolyVerts (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, alia
 
     RWCreateBuffer(&vbDesc, pData, &set->PolyVerts);
 #else // DX12
-    //dtrivertx_t* polyverts = ri.Load_AllocMemory(hdr->num_verts * hdr->num_frames * sizeof(dtrivertx_t));
     dtrivertx_t* polyverts = malloc((hdr->num_verts * hdr->num_frames * sizeof(dtrivertx_t)));
-    int framenum, i;
 
     // alloc a buffer to write the verts to and create the VB from
     void* pData = polyverts;
 
-    for (framenum = 0; framenum < hdr->num_frames; framenum++)
+    for (int framenum = 0; framenum < hdr->num_frames; framenum++)
     {
         daliasframe_t* inframe = (daliasframe_t*)((byte*)src + src->ofs_frames + framenum * src->framesize);
 
-        for (i = 0; i < hdr->num_verts; i++, polyverts++)
+        for (int i = 0; i < hdr->num_verts; i++, polyverts++)
         {
             dtrivertx_t* tv = &inframe->verts[dedupe[i].index_xyz];
 
@@ -239,7 +237,6 @@ void D_CreateAliasPolyVerts (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, alia
         }
     }
 
-    //RWCreateBuffer(&vbDesc, pData, &set->PolyVerts);
     set->PolyVerts = DX12_CreateVertexBuffer(hdr->num_verts * hdr->num_frames, sizeof(dtrivertx_t), pData);
     free(pData);
 #endif // DX11_IMPL
@@ -571,8 +568,8 @@ void R_DrawAliasPolySet (model_t *mod)
 
 void R_SetupAliasFrameLerp (entity_t *e, model_t *mod, aliasbuffers_t *set)
 {
-	// sets up stuff that's going to be valid for both the main pass and the dynamic lighting pass(es)
-	mmdl_t *hdr = mod->md2header;
+    // sets up stuff that's going to be valid for both the main pass and the dynamic lighting pass(es)
+    mmdl_t* hdr = mod->md2header;
 #if DX11_IMPL
 	R_BindTexture (R_SelectAliasTexture (e, mod)->SRV);
 
@@ -584,14 +581,10 @@ void R_SetupAliasFrameLerp (entity_t *e, model_t *mod, aliasbuffers_t *set)
 #else // DX12
     R_BindTexture(R_SelectAliasTexture(e, mod)->textureId);
 
-    //SMBindVertexBuffer(1, set->PolyVerts, sizeof(dtrivertx_t), e->prevframe * sizeof(dtrivertx_t) * hdr->num_verts);
-    DX12_BindVertexBuffer(1, set->PolyVerts);
-    //SMBindVertexBuffer(2, set->PolyVerts, sizeof(dtrivertx_t), e->currframe * sizeof(dtrivertx_t) * hdr->num_verts);
-    DX12_BindVertexBuffer(2, set->PolyVerts);
-    //SMBindVertexBuffer(3, set->TexCoords, sizeof(float) * 2, 0);
-    DX12_BindVertexBuffer(3, set->TexCoords);
+    DX12_BindVertexBuffer(1, set->PolyVerts, e->prevframe * sizeof(dtrivertx_t) * hdr->num_verts);
+    DX12_BindVertexBuffer(2, set->PolyVerts, e->currframe * sizeof(dtrivertx_t) * hdr->num_verts);
+    DX12_BindVertexBuffer(3, set->TexCoords, 0);
 
-    //SMBindIndexBuffer(set->Indexes, DXGI_FORMAT_R16_UINT);
     DX12_BindIndexBuffer(set->Indexes);
 #endif // DX11_IMPL
 }

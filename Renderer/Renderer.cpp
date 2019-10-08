@@ -242,11 +242,14 @@ void Renderer::BindTextureResource(ResourceManager::Resource::Id resourceId, std
     srvArguments[slot] = resourceId;
 }
 
-void Renderer::BindVertexBuffer(UINT Slot, ResourceManager::Resource::Id resourceId)
+void Renderer::BindVertexBuffer(UINT Slot, ResourceManager::Resource::Id resourceId, UINT Offset)
 {
     ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
     ASSERT(resource.type == ResourceManager::Resource::Type::VB);
-    vertexBuffers[Slot] = resource.variant.vbView;;
+    D3D12_VERTEX_BUFFER_VIEW vbView = resource.variant.vbView;
+    vbView.SizeInBytes -= Offset;
+    vbView.BufferLocation += Offset;
+    vertexBuffers[Slot] = vbView;
 }
 
 void Renderer::BindIndexBuffer(ResourceManager::Resource::Id resourceId)

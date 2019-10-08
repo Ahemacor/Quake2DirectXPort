@@ -225,9 +225,9 @@ void DX12_UpdateVertexBuffer(int resourceId, const void* pVertexData, int numOfV
     g_renderer->UpdateVertexBuffer(resourceId, pVertexData, numOfVertices, vertexSize);
 }
 
-void DX12_BindVertexBuffer(UINT Slot, int resourceId)
+void DX12_BindVertexBuffer(UINT Slot, int resourceId, UINT Offset)
 {
-    g_renderer->BindVertexBuffer(Slot, resourceId);
+    g_renderer->BindVertexBuffer(Slot, resourceId, Offset);
 }
 
 int DX12_CreateIndexBuffer(int numOfIndices, const void* pIndexData, int indexSize)

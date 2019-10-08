@@ -32,7 +32,7 @@ extern "C" {
 
     int DX12_CreateVertexBuffer(int numOfVertices, int vertexSize, const void* pVertexData);
     void DX12_UpdateVertexBuffer(int resourceId, const void* pVertexData, int numOfVertices, int vertexSize);
-    void DX12_BindVertexBuffer(UINT Slot, int resourceId);
+    void DX12_BindVertexBuffer(UINT Slot, int resourceId, UINT Offset);
 
     int DX12_CreateIndexBuffer(int numOfIndices, const void* pIndexData, int indexSize);
     void DX12_UpdateIndexBuffer(int resourceId, const void* pIndexData, int numOfIndices, int indexSize);

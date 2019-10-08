@@ -315,7 +315,7 @@ void R_SetupSurfaceState (QMATRIX *localmatrix, float alphaval, int flags)
 	SMBindVertexBuffer (4, d3d_SurfVertexes, sizeof (brushpolyvert_t), 0);
 	SMBindIndexBuffer (d3d_SurfIndexes, DXGI_FORMAT_R32_UINT);
 #else // DX12
-    DX12_BindVertexBuffer(4, d3d_SurfVertexes);
+    DX12_BindVertexBuffer(4, d3d_SurfVertexes, 0);
     DX12_BindIndexBuffer(d3d_SurfIndexes);
 #endif // DX11_IMPL
 }
