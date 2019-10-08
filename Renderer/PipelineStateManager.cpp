@@ -177,14 +177,6 @@ std::wstring PipelineStateManager::GetShaderFilepath(ShaderType shaderType)
     std::wstring shaderFilename;
     switch (shaderType)
     {
-    case ShaderType::SHADER_TEST_VS:
-        shaderFilename = L"TestVertexShader.cso";
-        break;
-
-    case ShaderType::SHADER_TEST_PS:
-        shaderFilename = L"TestPixelShader.cso";
-        break;
-
     case ShaderType::SHADER_DRAW_POLYBLEND_VS:
         shaderFilename = L"DrawPolyblendVS.cso";
         break;
@@ -293,7 +285,7 @@ std::wstring PipelineStateManager::GetShaderFilepath(ShaderType shaderType)
         shaderFilename = L"SurfDynamicGS.cso";
         break;
 
-    case ShaderType::SHADER_MODEL_SURFACE_DYNAMIC_PS:
+    case ShaderType::SHADER_MODEL_GENERIC_DYNAMIC_PS:
         shaderFilename = L"GenericDynamicPS.cso";
         break;
 

@@ -15,6 +15,36 @@
     <Filter Include="Shaders">
       <UniqueIdentifier>{fbed1468-fdbb-4a6b-acea-58135817ef33}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Cinematic">
+      <UniqueIdentifier>{d305b27a-1b3c-44be-ad86-dabcecbf7925}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\FillColoured">
+      <UniqueIdentifier>{a2c30d63-35e2-45a2-b4a3-ec5ec4189f5c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Fadescreen">
+      <UniqueIdentifier>{70973069-e54c-4bc6-b0b8-08d96f40ea48}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Polyblend">
+      <UniqueIdentifier>{0e10978c-f0a3-4a62-b725-2a1e3494aa51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Text">
+      <UniqueIdentifier>{a8c7ce86-1210-4243-a10f-cdb8d41c9114}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\TexturedRect">
+      <UniqueIdentifier>{ea16f882-d411-4f5f-96c6-a23990101719}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Null">
+      <UniqueIdentifier>{dbb8b3ed-790e-4d2e-8e1a-66d684f3bd07}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Sprite">
+      <UniqueIdentifier>{64f90102-2ccb-453d-8c6c-163458ba11c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Mesh">
+      <UniqueIdentifier>{4d417fcd-cfe6-4258-ab4c-907b2c928ed1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Surface">
+      <UniqueIdentifier>{8f3b98db-688b-4b59-91d3-ee573cb73590}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glw_imp.c">
@@ -200,73 +230,94 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="TestVertexShader.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="TestPixelShader.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="DrawPolyblendPS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="DrawPolyblendVS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="DrawTexturedVS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="DrawTexturedPS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="DrawTexArrayVS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="DrawTexArrayPS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="DrawColouredVS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="DrawColouredPS.hlsl">
-      <Filter>Shaders</Filter>
+    <FxCompile Include="DrawCinematicPS.hlsl">
+      <Filter>Shaders\Cinematic</Filter>
     </FxCompile>
     <FxCompile Include="DrawCinematicVS.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\Cinematic</Filter>
     </FxCompile>
-    <FxCompile Include="DrawCinematicPS.hlsl">
-      <Filter>Shaders</Filter>
+    <FxCompile Include="DrawColouredPS.hlsl">
+      <Filter>Shaders\FillColoured</Filter>
     </FxCompile>
-    <FxCompile Include="DrawFadescreenVS.hlsl">
-      <Filter>Shaders</Filter>
+    <FxCompile Include="DrawColouredVS.hlsl">
+      <Filter>Shaders\FillColoured</Filter>
     </FxCompile>
     <FxCompile Include="DrawFadescreenPS.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\Fadescreen</Filter>
     </FxCompile>
-    <FxCompile Include="NullVS.hlsl">
-      <Filter>Shaders</Filter>
+    <FxCompile Include="DrawFadescreenVS.hlsl">
+      <Filter>Shaders\Fadescreen</Filter>
+    </FxCompile>
+    <FxCompile Include="DrawPolyblendVS.hlsl">
+      <Filter>Shaders\Polyblend</Filter>
+    </FxCompile>
+    <FxCompile Include="DrawPolyblendPS.hlsl">
+      <Filter>Shaders\Polyblend</Filter>
+    </FxCompile>
+    <FxCompile Include="DrawTexArrayPS.hlsl">
+      <Filter>Shaders\Text</Filter>
+    </FxCompile>
+    <FxCompile Include="DrawTexArrayVS.hlsl">
+      <Filter>Shaders\Text</Filter>
+    </FxCompile>
+    <FxCompile Include="DrawTexturedPS.hlsl">
+      <Filter>Shaders\TexturedRect</Filter>
+    </FxCompile>
+    <FxCompile Include="DrawTexturedVS.hlsl">
+      <Filter>Shaders\TexturedRect</Filter>
     </FxCompile>
     <FxCompile Include="NullGS.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\Null</Filter>
     </FxCompile>
     <FxCompile Include="NullPS.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\Null</Filter>
     </FxCompile>
-    <FxCompile Include="SpriteVS.hlsl">
-      <Filter>Shaders</Filter>
+    <FxCompile Include="NullVS.hlsl">
+      <Filter>Shaders\Null</Filter>
     </FxCompile>
     <FxCompile Include="SpritePS.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\Sprite</Filter>
     </FxCompile>
-    <FxCompile Include="SurfBasicVS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="SurfBasicPS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="MeshLightmapVS.hlsl">
-      <Filter>Shaders</Filter>
+    <FxCompile Include="SpriteVS.hlsl">
+      <Filter>Shaders\Sprite</Filter>
     </FxCompile>
     <FxCompile Include="MeshFullbrightPS.hlsl">
+      <Filter>Shaders\Mesh</Filter>
+    </FxCompile>
+    <FxCompile Include="MeshLightmapVS.hlsl">
+      <Filter>Shaders\Mesh</Filter>
+    </FxCompile>
+    <FxCompile Include="SurfBasicPS.hlsl">
+      <Filter>Shaders\Surface</Filter>
+    </FxCompile>
+    <FxCompile Include="SurfBasicVS.hlsl">
+      <Filter>Shaders\Surface</Filter>
+    </FxCompile>
+    <FxCompile Include="SurfAlphaVS.hlsl">
+      <Filter>Shaders\Surface</Filter>
+    </FxCompile>
+    <FxCompile Include="SurfAlphaPS.hlsl">
+      <Filter>Shaders\Surface</Filter>
+    </FxCompile>
+    <FxCompile Include="SurfLightmapVS.hlsl">
+      <Filter>Shaders\Surface</Filter>
+    </FxCompile>
+    <FxCompile Include="SurfLightmapPS.hlsl">
+      <Filter>Shaders\Surface</Filter>
+    </FxCompile>
+    <FxCompile Include="SurfDrawTurbVS.hlsl">
+      <Filter>Shaders\Surface</Filter>
+    </FxCompile>
+    <FxCompile Include="SurfDrawTurbPS.hlsl">
+      <Filter>Shaders\Surface</Filter>
+    </FxCompile>
+    <FxCompile Include="SurfDynamicVS.hlsl">
+      <Filter>Shaders\Surface</Filter>
+    </FxCompile>
+    <FxCompile Include="SurfDynamicGS.hlsl">
+      <Filter>Shaders\Surface</Filter>
+    </FxCompile>
+    <FxCompile Include="GenericDynamicPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

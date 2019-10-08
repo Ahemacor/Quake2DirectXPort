@@ -108,7 +108,6 @@ void R_InitSurfaces (void)
     surfState.RS = RSNoCull;
     d3d_SurfBasicShader = DX12_CreateRenderState(&surfState);
 
-    /*
     surfState.VS = SHADER_MODEL_SURFACE_ALPHA_VS;
     surfState.PS = SHADER_MODEL_SURFACE_ALPHA_PS;
     d3d_SurfAlphaShader = DX12_CreateRenderState(&surfState);
@@ -123,9 +122,8 @@ void R_InitSurfaces (void)
 
     surfState.VS = SHADER_MODEL_SURFACE_DYNAMIC_VS;
     surfState.GS = SHADER_MODEL_SURFACE_DYNAMIC_GS;
-    surfState.PS = SHADER_MODEL_SURFACE_DYNAMIC_PS;
+    surfState.PS = SHADER_MODEL_GENERIC_DYNAMIC_PS;
     d3d_SurfDynamicShader = DX12_CreateRenderState(&surfState);
-    */
 #endif // DX11_IMPL
 }
 
