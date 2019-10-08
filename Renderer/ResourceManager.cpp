@@ -148,8 +148,14 @@ void ResourceManager::UpdateBufferData(ID3D12Resource* resourceBuffer, const voi
     ASSERT(resourceBuffer != nullptr);
     ASSERT(pSrcData != nullptr);
 
+    pRenderEnv->ResetUpdateCommandList();
+    auto commandList = pRenderEnv->GetUpdateCommandList();
+
     if (origState != D3D12_RESOURCE_STATE_COPY_DEST)
-        UpdateResourceState(resourceBuffer, origState, D3D12_RESOURCE_STATE_COPY_DEST);
+    {
+        const CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(resourceBuffer, origState, D3D12_RESOURCE_STATE_COPY_DEST);
+        commandList->ResourceBarrier(1, &barrier);
+    }
 
     ID3D12Resource* uploadBuffer = CreateUploadBuffer(dataSize);
 
@@ -158,15 +164,15 @@ void ResourceManager::UpdateBufferData(ID3D12Resource* resourceBuffer, const voi
     ::memcpy(p, pSrcData, dataSize);
     uploadBuffer->Unmap(0, nullptr);
 
-    pRenderEnv->ResetUpdateCommandList();
-    auto commandList = pRenderEnv->GetUpdateCommandList();
     commandList->CopyBufferRegion(resourceBuffer, 0, uploadBuffer, 0, dataSize);
-    pRenderEnv->ExecuteUpdateCommandList();
 
     if (origState != D3D12_RESOURCE_STATE_COPY_DEST)
-        UpdateResourceState(resourceBuffer, D3D12_RESOURCE_STATE_COPY_DEST, origState);
+    {
+        const CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(resourceBuffer, D3D12_RESOURCE_STATE_COPY_DEST, origState);
+        commandList->ResourceBarrier(1, &barrier);
+    }
 
-    //ClearUploadBuffers();
+    pRenderEnv->ExecuteUpdateCommandList();
 }
 
 void ResourceManager::RebuildDescriptorHeap()
