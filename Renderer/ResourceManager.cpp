@@ -124,23 +124,27 @@ void ResourceManager::UpdateSRVBuffer(Resource::Id resourceId, D3D12_SUBRESOURCE
     Resource resource = GetResource(resourceId);
     ID3D12Resource* imageResource = resource.d12resource.Get();
 
+    pRenderEnv->ResetUpdateCommandList();
+    auto commandList = pRenderEnv->GetUpdateCommandList();
+
     if (origState != D3D12_RESOURCE_STATE_COPY_DEST)
-        UpdateResourceState(imageResource, origState, D3D12_RESOURCE_STATE_COPY_DEST);
+    {
+        const CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(imageResource, origState, D3D12_RESOURCE_STATE_COPY_DEST);
+        commandList->ResourceBarrier(1, &barrier);
+    }
 
     const UINT numOfsubresources = resource.variant.texDescr.ArraySize();
-
     const auto uploadBufferSize = GetRequiredIntermediateSize(imageResource, 0, numOfsubresources);
     ID3D12Resource* uploadBuffer = CreateUploadBuffer(uploadBufferSize);
-
-    pRenderEnv->ResetUpdateCommandList();
-    auto uploadCommandList = pRenderEnv->GetUpdateCommandList();
-    UpdateSubresources(uploadCommandList.Get(), imageResource, uploadBuffer, 0, 0, numOfsubresources, pSrcData);
-    pRenderEnv->ExecuteUpdateCommandList();
+    UpdateSubresources(commandList.Get(), imageResource, uploadBuffer, 0, 0, numOfsubresources, pSrcData);
 
     if (origState != D3D12_RESOURCE_STATE_COPY_DEST)
-        UpdateResourceState(imageResource, D3D12_RESOURCE_STATE_COPY_DEST, origState);
+    {
+        const CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(imageResource, D3D12_RESOURCE_STATE_COPY_DEST, origState);
+        commandList->ResourceBarrier(1, &barrier);
+    }
 
-    //ClearUploadBuffers();
+    pRenderEnv->ExecuteUpdateCommandList();
 }
 
 void ResourceManager::UpdateBufferData(ID3D12Resource* resourceBuffer, const void* pSrcData, const std::size_t dataSize, const D3D12_RESOURCE_STATES origState)
