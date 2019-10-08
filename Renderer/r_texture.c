@@ -89,14 +89,8 @@ void R_DescribeTexture(D3D12_RESOURCE_DESC* Desc, int width, int height, int arr
     Desc->Width = width;
     Desc->Height = height;
 
-    Desc->MipLevels = 1; //(flags & TEX_MIPMAP) ? 0 : 1; 
-
-    // select the appropriate format
-    if (flags & TEX_R32F)
-        Desc->Format = DXGI_FORMAT_R32_FLOAT;
-    else if (flags & TEX_R16G16)
-        Desc->Format = DXGI_FORMAT_R16G16_SNORM;
-    else Desc->Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    Desc->MipLevels = 1;
+    Desc->Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 
     // no multisampling
     Desc->SampleDesc.Count = 1;
@@ -110,12 +104,10 @@ void R_DescribeTexture(D3D12_RESOURCE_DESC* Desc, int width, int height, int arr
     if (flags & TEX_CUBEMAP)
     {
         Desc->DepthOrArraySize = 6 * arraysize;
-        // Desc->MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
     }
     else
     {
         Desc->DepthOrArraySize = arraysize;
-        // Desc->MiscFlags = 0;
     }
 }
 #endif // DX11_IMPL
