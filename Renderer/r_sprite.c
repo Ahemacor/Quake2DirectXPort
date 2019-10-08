@@ -242,7 +242,7 @@ void R_InitSprites (void)
     SpriteState.RS = RSNoCull;
     d3d_SpriteShader = DX12_CreateRenderState(&SpriteState);
 
-    d3d_SpriteIndexes = DX12_CreateIndexBuffer(sizeof(indexes) / sizeof(UINT), indexes, sizeof(indexes));
+    d3d_SpriteIndexes = DX12_CreateIndexBuffer(sizeof(indexes) / sizeof(UINT), indexes, sizeof(UINT));
 #endif // DX11_IMPL
 }
 

@@ -296,7 +296,7 @@ void D_CreateAliasTexCoords (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, alia
     }
 
     //RWCreateBuffer(&vbDesc, pData, &set->TexCoords);
-    set->TexCoords = DX12_CreateVertexBuffer(hdr->num_verts * 2, sizeof(float), pData);
+    set->TexCoords = DX12_CreateVertexBuffer(hdr->num_verts, sizeof(float) * 2, pData);
 
     free(pData);
 #endif // DX11_IMPL
@@ -319,7 +319,7 @@ void D_CreateAliasIndexes (mmdl_t *hdr, aliasbuffers_t *set, unsigned short *ind
 	// create the new vertex buffer
     RWCreateBuffer(&ibDesc, indexes, &set->Indexes);
 #else // DX12
-    set->Indexes = DX12_CreateIndexBuffer(hdr->num_indexes, indexes, sizeof(int));
+    set->Indexes = DX12_CreateIndexBuffer(hdr->num_indexes, indexes, sizeof(unsigned short));
 #endif // DX11_IMPL
 }
 

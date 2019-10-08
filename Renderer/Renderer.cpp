@@ -176,7 +176,17 @@ ResourceManager::Resource::Id Renderer::CreateIndexBuffer(const std::size_t numO
     {
         resourceManager.UpdateBufferData(resource.d12resource.Get(), pIndexData, dataSize);
     }
-    resource.variant.ibView = resourceManager.CreateIndexBufferView(resource.d12resource.Get(), dataSize);
+    DXGI_FORMAT ibFormat = DXGI_FORMAT_UNKNOWN;
+    if (indexSize == 4)
+    {
+        ibFormat = DXGI_FORMAT_R32_UINT;
+    }
+    else if (indexSize == 2)
+    {
+        ibFormat = DXGI_FORMAT_R16_UINT;
+    }
+    ASSERT(ibFormat != DXGI_FORMAT_UNKNOWN);
+    resource.variant.ibView = resourceManager.CreateIndexBufferView(resource.d12resource.Get(), dataSize, ibFormat);
     resourceManager.UpdateResourceState(resource.d12resource.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_INDEX_BUFFER);
     return resourceManager.AddResource(resource);
 }
