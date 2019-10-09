@@ -550,11 +550,20 @@ void R_SelectAliasShader (int eflags)
 #endif // FEATURE_LIGHT
 
 #else // DX12
+
 #if FEATURE_LIGHT
-    assert(0);
+    // figure the correct shaders to use
+    if (eflags & (RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM))
+        DX12_SetRenderState(d3d_MeshPowersuitShader);
+    else if (r_newrefdef.rdflags & RDF_NOWORLDMODEL)
+        DX12_SetRenderState(d3d_MeshFullbrightShader);
+    else if (!r_worldmodel->lightdata || r_fullbright->value)
+        DX12_SetRenderState(d3d_MeshFullbrightShader);
+    else DX12_SetRenderState(d3d_MeshLightmapShader);
 #else // !FEATURE_LIGHT
     DX12_SetRenderState(d3d_MeshFullbrightShader);
 #endif // FEATURE_LIGHT
+
 #endif // DX11_IMPL
 }
 
@@ -564,7 +573,6 @@ void R_DrawAliasPolySet (model_t *mod)
 	aliasbuffers_t *set = &d3d_AliasBuffers[mod->bufferset];
 	mmdl_t *hdr = mod->md2header;
 
-	//d3d_Context->lpVtbl->DrawIndexed (d3d_Context, hdr->num_indexes, 0, 0);
 #if DX11_IMPL
     RWGetDeviceContext()->lpVtbl->DrawIndexed(RWGetDeviceContext(), hdr->num_indexes, 0, 0);
 #else // DX12
@@ -833,7 +841,6 @@ qboolean R_AliasLightInteraction (entity_t *e, model_t *mod, dlight_t *dl)
 
 void R_AliasDlights (entity_t *e, model_t *mod, mmdl_t *hdr, QMATRIX *localMatrix)
 {
-#if DX11_IMPL
 	int	i;
 
 	for (i = 0; i < r_newrefdef.num_dlights; i++)
@@ -853,7 +860,11 @@ void R_AliasDlights (entity_t *e, model_t *mod, mmdl_t *hdr, QMATRIX *localMatri
 			D_SetupDynamicLight (dl, transformedorigin, e->flags);
 
 			// set up the shaders
+#if DX11_IMPL
             SLBindShaderBundle(d3d_MeshDynamicShader);
+#else // DX12
+            DX12_SetRenderState(d3d_MeshDynamicShader);
+#endif // DX11_IMPL
 
 			// and draw it
 			R_DrawAliasPolySet (mod);
@@ -862,9 +873,6 @@ void R_AliasDlights (entity_t *e, model_t *mod, mmdl_t *hdr, QMATRIX *localMatri
 
 	// go to a new dlight frame for each push so that we don't carry over lights from the previous
 	r_dlightframecount++;
-#else // DX12
-    assert(0);
-#endif // DX11_IMPL
 }
 
 

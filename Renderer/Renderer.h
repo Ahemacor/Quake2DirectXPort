@@ -58,12 +58,14 @@ public:
     // CREATE METHODS:
     ResourceManager::Resource::Id CreateConstantBuffer(const std::size_t bufferSize, const void* pSrcData = nullptr);
     ResourceManager::Resource::Id CreateTextureResource(const CD3DX12_RESOURCE_DESC& descr, D3D12_SUBRESOURCE_DATA* pSrcData = nullptr);
+    ResourceManager::Resource::Id CreateTextureBuffer(int numOfElements, int elementSize, const void* pSrcData);
     ResourceManager::Resource::Id CreateVertexBuffer(const std::size_t numOfVertices, const std::size_t vertexSize, const void* pVertexData = nullptr);
     ResourceManager::Resource::Id CreateIndexBuffer(const std::size_t numOfIndices, const void* pIndexData = nullptr, const std::size_t indexSize = sizeof(DWORD));
 
     // UPDATE METHODS:
     void UpdateConstantBuffer(ResourceManager::Resource::Id resourceId, const void* pSrcData, const std::size_t bufferSize);
     void UpdateTextureResource(ResourceManager::Resource::Id resourceId, D3D12_SUBRESOURCE_DATA* pSrcData);
+    void UpdateTextureBuffer(ResourceManager::Resource::Id resourceId, const void* pSrcData, int numOfElements, int elementSize);
     void UpdateVertexBuffer(ResourceManager::Resource::Id resourceId, const void* pVertexData, const std::size_t numOfVertices, const std::size_t vertexSize);
     void UpdateIndexBuffer(ResourceManager::Resource::Id resourceId, const void* pIndexData, const std::size_t numOfIndices, const std::size_t indexSize = sizeof(DWORD));
 

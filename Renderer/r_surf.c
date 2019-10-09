@@ -286,6 +286,7 @@ image_t *R_SelectSurfaceTexture (mtexinfo_t *ti, int frame)
 void R_SelectSurfaceShader (const mtexinfo_t *ti, qboolean alpha)
 {
 #if FEATURE_LIGHT
+#if DX11_IMPL
 	if (ti->flags & SURF_WARP)
         SLBindShaderBundle(d3d_SurfDrawTurbShader);
 	else if (alpha)
@@ -296,6 +297,18 @@ void R_SelectSurfaceShader (const mtexinfo_t *ti, qboolean alpha)
             SLBindShaderBundle(d3d_SurfBasicShader);
 		else SLBindShaderBundle(d3d_SurfLightmapShader);
 	}
+#else // DX12
+    if (ti->flags & SURF_WARP)
+        DX12_SetRenderState(d3d_SurfDrawTurbShader);
+    else if (alpha)
+        DX12_SetRenderState(d3d_SurfAlphaShader);
+    else
+    {
+        if (!r_worldmodel->lightdata || r_fullbright->value)
+            DX12_SetRenderState(d3d_SurfBasicShader);
+        else DX12_SetRenderState(d3d_SurfLightmapShader);
+}
+#endif // DX11_IMPL
 #else
 #if DX11_IMPL
     SLBindShaderBundle(d3d_SurfBasicShader);
@@ -393,7 +406,7 @@ void R_DrawDlightChains (entity_t *e, model_t *mod, QMATRIX *localmatrix)
 		// select the correct texture
 		R_BindTexture (R_SelectSurfaceTexture (ti, e->currframe)->SRV);
 #else // DX12
-        DX12_GetRenderState(d3d_SurfDynamicShader);
+        DX12_SetRenderState(d3d_SurfDynamicShader);
         R_BindTexture(R_SelectSurfaceTexture(ti, e->currframe)->textureId);
 #endif // DX11_IMPL
 

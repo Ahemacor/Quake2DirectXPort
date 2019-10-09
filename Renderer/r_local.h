@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define FEATURE_PARTICLES 0
 #define FEATURE_SCREENSHOT 0
 #define FEATURE_BEAM 0
-#define FEATURE_LIGHT 0
+#define FEATURE_LIGHT 1
 #define FEATURE_ALIAS_MODEL 1
 #define FEATURE_BRUSH_MODEL 1
 #define FEATURE_SPRITE_MODEL 1
@@ -688,6 +688,17 @@ typedef struct texture_s {
 
 void R_CreateTexture (texture_t *t, D3D11_SUBRESOURCE_DATA *srd, int width, int height, int arraysize, int flags);
 void R_ReleaseTexture (texture_t *t);
+
+typedef struct tbuffer_s {
+    ID3D11Buffer* Buffer;
+    ID3D11ShaderResourceView* SRV;
+} tbuffer_t;
+
+void R_CreateTBuffer(tbuffer_t* tb, void* data, int NumElements, int ElementSize, DXGI_FORMAT Format, D3D11_USAGE Usage);
+void R_ReleaseTBuffer(tbuffer_t* t);
+
+void R_CopyScreen(rendertarget_t* dst);
+
 #else // DX12
 typedef struct texture_s {
     int Id;
@@ -696,17 +707,8 @@ typedef struct texture_s {
 
 void R_CreateTexture(texture_t* t, D3D12_SUBRESOURCE_DATA* srd, int width, int height, int arraysize, int flags);
 void R_ReleaseTexture(texture_t* t);
+
+int R_CreateTBuffer(void* data, int NumElements, int ElementSize);
 #endif // DX11_IMPL
-
-
-typedef struct tbuffer_s {
-	ID3D11Buffer *Buffer;
-	ID3D11ShaderResourceView *SRV;
-} tbuffer_t;
-
-void R_CreateTBuffer (tbuffer_t *tb, void *data, int NumElements, int ElementSize, DXGI_FORMAT Format, D3D11_USAGE Usage);
-void R_ReleaseTBuffer (tbuffer_t *t);
-
-void R_CopyScreen (rendertarget_t *dst);
 
 #endif // R_LOCAL_H

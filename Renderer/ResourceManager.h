@@ -24,7 +24,8 @@ public:
             CB,
             SRV,
             VB,
-            IB
+            IB,
+            TB
         } type = Type::UNDEFINED;
 
         union
@@ -33,6 +34,7 @@ public:
             CD3DX12_RESOURCE_DESC texDescr; //D3D12_GPU_DESCRIPTOR_HANDLE srvHandle;
             D3D12_VERTEX_BUFFER_VIEW vbView;
             D3D12_INDEX_BUFFER_VIEW ibView;
+            D3D12_BUFFER_SRV srvBuffer;
         } variant;
 
         Microsoft::WRL::ComPtr<ID3D12Resource>  d12resource;

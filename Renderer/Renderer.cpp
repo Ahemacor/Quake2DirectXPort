@@ -149,6 +149,26 @@ ResourceManager::Resource::Id Renderer::CreateTextureResource(const CD3DX12_RESO
     return resId;
 }
 
+ResourceManager::Resource::Id Renderer::CreateTextureBuffer(int numOfElements, int elementSize, const void* pSrcData)
+{
+    ResourceManager::Resource resource;
+    resource.type = ResourceManager::Resource::Type::TB;
+    resource.variant.srvBuffer.FirstElement = 0;
+    resource.variant.srvBuffer.NumElements = numOfElements;
+    resource.variant.srvBuffer.StructureByteStride = elementSize;
+    resource.variant.srvBuffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;//D3D12_BUFFER_SRV_FLAG_RAW;
+
+    const CD3DX12_RESOURCE_DESC descr = CD3DX12_RESOURCE_DESC::Buffer(numOfElements * elementSize);
+    resource.d12resource = resourceManager.CreateDx12Resource(&descr);
+
+    if (pSrcData != nullptr)
+    {
+        resourceManager.UpdateBufferData(resource.d12resource.Get(), pSrcData, numOfElements * elementSize);
+    }
+    resourceManager.UpdateResourceState(resource.d12resource.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    return resourceManager.AddResource(resource);
+}
+
 ResourceManager::Resource::Id Renderer::CreateVertexBuffer(const std::size_t numOfVertices, const std::size_t vertexSize, const void* pVertexData)
 {
     ResourceManager::Resource resource;
@@ -207,6 +227,13 @@ void Renderer::UpdateTextureResource(ResourceManager::Resource::Id resourceId, D
     resourceManager.UpdateSRVBuffer(resourceId, pSrcData, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 }
 
+void Renderer::UpdateTextureBuffer(ResourceManager::Resource::Id resourceId, const void* pSrcData, int numOfElements, int elementSize)
+{
+    ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
+    resourceManager.UpdateBufferData(resource.d12resource.Get(), pSrcData, numOfElements * elementSize, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    resource.variant.cbHandle = resource.d12resource.Get()->GetGPUVirtualAddress();
+}
+
 void Renderer::UpdateVertexBuffer(ResourceManager::Resource::Id resourceId, const void* pVertexData, const std::size_t numOfVertices, const std::size_t vertexSize)
 {
     ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
@@ -238,7 +265,7 @@ void Renderer::BindTextureResource(ResourceManager::Resource::Id resourceId, std
 {
     ASSERT(slot <= ResourceManager::DESCR_HEAP_MAX);
     ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
-    ASSERT(resource.type == ResourceManager::Resource::Type::SRV);
+    ASSERT(resource.type == ResourceManager::Resource::Type::SRV || resource.type == ResourceManager::Resource::Type::TB);
     srvArguments[slot] = resourceId;
 }
 

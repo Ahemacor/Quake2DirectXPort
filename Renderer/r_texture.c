@@ -838,7 +838,10 @@ void R_CreateTexture (texture_t *t, D3D11_SUBRESOURCE_DATA *srd, int width, int 
 #else // DX12
 void R_CreateTexture(texture_t* t, D3D12_SUBRESOURCE_DATA* srd, int width, int height, int arraysize, int flags)
 {
-    assert(0);
+    if (!srd) flags |= TEX_MUTABLE;
+
+    R_DescribeTexture(&t->Desc, width, height, arraysize, flags);
+    t->Id = DX12_CreateTexture(&t->Desc, srd);
 }
 #endif // DX11_IMPL
 
@@ -848,16 +851,13 @@ void R_ReleaseTexture (texture_t *t)
 #if DX11_IMPL
 	SAFE_RELEASE (t->Texture);
 	SAFE_RELEASE (t->SRV);
-	memset (t, 0, sizeof (texture_t));
-#else // DX12
-    assert(0);
 #endif // DX11_IMPL
+    memset(t, 0, sizeof(texture_t));
 }
 
-
+#if DX11_IMPL
 void R_CreateTBuffer (tbuffer_t *tb, void *data, int NumElements, int ElementSize, DXGI_FORMAT Format, D3D11_USAGE Usage)
 {
-#if DX11_IMPL
 	D3D11_BUFFER_DESC tbDesc = {
 		ElementSize * NumElements,
 		Usage,
@@ -886,23 +886,20 @@ void R_CreateTBuffer (tbuffer_t *tb, void *data, int NumElements, int ElementSiz
 	}
 
     RWCreateShaderResourceView((ID3D11Resource*)tb->Buffer, &srvDesc, &tb->SRV);
-#else // DX12
-    assert(0);
-#endif // DX11_IMPL
 }
-
 
 void R_ReleaseTBuffer (tbuffer_t *tb)
 {
-#if DX11_IMPL
 	SAFE_RELEASE (tb->Buffer);
 	SAFE_RELEASE (tb->SRV);
 	memset (tb, 0, sizeof (tbuffer_t));
-#else // DX12
-    assert(0);
-#endif // DX11_IMPL
 }
-
+#else
+int R_CreateTBuffer(void* data, int NumElements, int ElementSize)
+{
+    return DX12_CreateTextureBuffer(NumElements, ElementSize, data);
+}
+#endif // DX11_IMPL
 
 void R_CopyScreen (rendertarget_t *dst)
 {
