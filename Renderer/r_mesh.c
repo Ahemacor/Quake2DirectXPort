@@ -128,10 +128,17 @@ void R_InitMesh (void)
     meshState.PS = SHADER_MODEL_MESH_FULLBRIGHT_PS;
     d3d_MeshFullbrightShader = DX12_CreateRenderState(&meshState);
 
-    //d3d_MeshLightmapShader = SLCreateShaderBundle(IDR_MESHSHADER, "MeshLightmapVS", NULL, "MeshLightmapPS", DEFINE_LAYOUT(layout));
-    //d3d_MeshDynamicShader = SLCreateShaderBundle(IDR_MESHSHADER, "MeshDynamicVS", NULL, "GenericDynamicPS", DEFINE_LAYOUT(layout));
-    //d3d_MeshPowersuitShader = SLCreateShaderBundle(IDR_MESHSHADER, "MeshPowersuitVS", NULL, "MeshPowersuitPS", DEFINE_LAYOUT(layout));
-    //d3d_MeshFullbrightShader = SLCreateShaderBundle(IDR_MESHSHADER, "MeshLightmapVS", NULL, "MeshFullbrightPS", DEFINE_LAYOUT(layout));
+    meshState.VS = SHADER_MODEL_MESH_LIGHTMAP_VS;
+    meshState.PS = SHADER_MODEL_MESH_LIGHTMAP_PS;
+    d3d_MeshLightmapShader = DX12_CreateRenderState(&meshState);
+
+    meshState.VS = SHADER_MODEL_MESH_DYNAMIC_VS;
+    meshState.PS = SHADER_MODEL_GENERIC_DYNAMIC_PS;
+    d3d_MeshDynamicShader = DX12_CreateRenderState(&meshState);
+
+    meshState.VS = SHADER_MODEL_MESH_POWERSUIT_VS;
+    meshState.PS = SHADER_MODEL_MESH_POWERSUIT_PS;
+    d3d_MeshPowersuitShader = DX12_CreateRenderState(&meshState);
 
 #endif // DX11_IMPL
 

@@ -320,5 +320,17 @@
     <FxCompile Include="GenericDynamicPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="MeshLightmapPS.hlsl">
+      <Filter>Shaders\Mesh</Filter>
+    </FxCompile>
+    <FxCompile Include="MeshDynamicVS.hlsl">
+      <Filter>Shaders\Mesh</Filter>
+    </FxCompile>
+    <FxCompile Include="MeshPowersuitVS.hlsl">
+      <Filter>Shaders\Mesh</Filter>
+    </FxCompile>
+    <FxCompile Include="MeshPowersuitPS.hlsl">
+      <Filter>Shaders\Mesh</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

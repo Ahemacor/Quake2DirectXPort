@@ -293,6 +293,22 @@ std::wstring PipelineStateManager::GetShaderFilepath(ShaderType shaderType)
         shaderFilename = L"MeshLightmapVS.cso";
         break;
 
+    case ShaderType::SHADER_MODEL_MESH_LIGHTMAP_PS:
+        shaderFilename = L"MeshLightmapPS.cso";
+        break;
+
+    case ShaderType::SHADER_MODEL_MESH_DYNAMIC_VS:
+        shaderFilename = L"MeshDynamicVS.cso";
+        break;
+
+    case ShaderType::SHADER_MODEL_MESH_POWERSUIT_VS:
+        shaderFilename = L"MeshPowersuitVS.cso";
+        break;
+
+    case ShaderType::SHADER_MODEL_MESH_POWERSUIT_PS:
+        shaderFilename = L"MeshPowersuitPS.cso";
+        break;
+
     case ShaderType::SHADER_MODEL_MESH_FULLBRIGHT_PS:
         shaderFilename = L"MeshFullbrightPS.cso";
         break;
