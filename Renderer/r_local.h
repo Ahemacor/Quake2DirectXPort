@@ -396,31 +396,33 @@ void R_PrepareEntityForRendering (QMATRIX *localMatrix, float *color, float alph
 // states
 typedef enum BSEnum
 {
-    BSNone,
-    BSAlphaBlend,
-    BSAlphaReverse,
-    BSAlphaPreMult,
-    BSAdditive,
-    BSRevSubtract,
+    BSNone, // opaque
+    BSAlphaBlend, // transparent
+    BSAlphaReverse, // not used
+    BSAlphaPreMult, // transparent overlay
+    BSAdditive, // transparent lighted level
+    BSRevSubtract, // transparent inversed lighted level
 
     BS_COUNT
 } BlendState;
 
 typedef enum DSEnum
 {
-    DSFullDepth,
-    DSDepthNoWrite,
-    DSNoDepth,
-    DSEqualDepthNoWrite,
+    DSFullDepth, // default Entity depth state
+    DSDepthNoWrite, // transparent, particles and sky
+    DSNoDepth, // ignore depth state
+    DSEqualDepthNoWrite, // Dynamic Light
 
     DS_COUNT
 } DepthStencilState;
 
 typedef enum RSEnum
 {
-    RSFullCull,
-    RSReverseCull,
-    RSNoCull,
+    // SELECT_RASTERIZER
+    RSFullCull, // Front cull
+    RSReverseCull, // Back cull
+
+    RSNoCull, // cull disabled (flat models)
 
     RS_COUNT
 } RasterizerState;

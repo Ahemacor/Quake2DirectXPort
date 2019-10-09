@@ -103,15 +103,21 @@ void R_InitSurfaces (void)
     surfState.GS = SHADER_UNDEFINED;
     surfState.PS = SHADER_MODEL_SURFACE_BASIC_PS;
     surfState.topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-    surfState.BS = BSAlphaPreMult;
-    surfState.DS = DSNoDepth;
-    surfState.RS = RSNoCull;
+    surfState.BS = BSNone;
+    surfState.DS = DSFullDepth;
+    surfState.RS = RSFullCull;
     d3d_SurfBasicShader = DX12_CreateRenderState(&surfState);
 
+    surfState.BS = BSAlphaBlend;
+    surfState.DS = DSDepthNoWrite;
+    surfState.RS = RSFullCull;
     surfState.VS = SHADER_MODEL_SURFACE_ALPHA_VS;
     surfState.PS = SHADER_MODEL_SURFACE_ALPHA_PS;
     d3d_SurfAlphaShader = DX12_CreateRenderState(&surfState);
 
+    surfState.BS = BSNone;
+    surfState.DS = DSFullDepth;
+    surfState.RS = RSFullCull;
     surfState.VS = SHADER_MODEL_SURFACE_LIGHTMAP_VS;
     surfState.PS = SHADER_MODEL_SURFACE_LIGHTMAP_PS;
     d3d_SurfLightmapShader = DX12_CreateRenderState(&surfState);
@@ -120,6 +126,9 @@ void R_InitSurfaces (void)
     surfState.PS = SHADER_MODEL_SURFACE_DRAWTURB_PS;
     d3d_SurfDrawTurbShader = DX12_CreateRenderState(&surfState);
 
+    surfState.BS = BSAdditive;
+    surfState.DS = DSEqualDepthNoWrite;
+    surfState.RS = RSFullCull;
     surfState.VS = SHADER_MODEL_SURFACE_DYNAMIC_VS;
     surfState.GS = SHADER_MODEL_SURFACE_DYNAMIC_GS;
     surfState.PS = SHADER_MODEL_GENERIC_DYNAMIC_PS;
@@ -307,7 +316,7 @@ void R_SelectSurfaceShader (const mtexinfo_t *ti, qboolean alpha)
         if (!r_worldmodel->lightdata || r_fullbright->value)
             DX12_SetRenderState(d3d_SurfBasicShader);
         else DX12_SetRenderState(d3d_SurfLightmapShader);
-}
+    }
 #endif // DX11_IMPL
 #else
 #if DX11_IMPL
@@ -353,7 +362,7 @@ void R_DrawTextureChains (entity_t *e, model_t *mod, QMATRIX *localmatrix, float
 #if DX11_IMPL
 		R_BindTexture (R_SelectSurfaceTexture (ti, e->currframe)->SRV);
 #else // DX12
-        R_UpdateEntityShader(DX12_GetCurrentRenderStateId(), e->flags);
+       // R_UpdateEntityShader(DX12_GetCurrentRenderStateId(), e->flags);
         R_BindTexture(R_SelectSurfaceTexture(ti, e->currframe)->textureId);
 #endif // DX11_IMPL
         
@@ -405,7 +414,7 @@ void R_DrawDlightChains (entity_t *e, model_t *mod, QMATRIX *localmatrix)
 
 		// select the correct texture
 		R_BindTexture (R_SelectSurfaceTexture (ti, e->currframe)->SRV);
-#else // DX12
+#else // DX12 
         DX12_SetRenderState(d3d_SurfDynamicShader);
         R_BindTexture(R_SelectSurfaceTexture(ti, e->currframe)->textureId);
 #endif // DX11_IMPL

@@ -146,28 +146,28 @@ void PipelineStateManager::InitInputLayouts()
 }
 
 void PipelineStateManager::InitBlendStates()
-{
-    blendStates[BlendState::BSNone] = CreateBlendState(false, D3D12_BLEND_SRC_ALPHA, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_OP_ADD);
-    blendStates[BlendState::BSAlphaBlend] = CreateBlendState(true, D3D12_BLEND_SRC_ALPHA, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_OP_ADD);
-    blendStates[BlendState::BSAlphaReverse] = CreateBlendState(true, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_SRC_ALPHA, D3D12_BLEND_OP_ADD);
-    blendStates[BlendState::BSAlphaPreMult] = CreateBlendState(true, D3D12_BLEND_ONE, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_OP_ADD);
-    blendStates[BlendState::BSAdditive] = CreateBlendState(true, D3D12_BLEND_ONE, D3D12_BLEND_ONE, D3D12_BLEND_OP_ADD);
-    blendStates[BlendState::BSRevSubtract] = CreateBlendState(true, D3D12_BLEND_ONE, D3D12_BLEND_ONE, D3D12_BLEND_OP_REV_SUBTRACT);
+{                                                            // ENABLE D3D12_BLEND SRC            D3D12_BLEND DST            D3D12_BLEND_OP
+    blendStates[BlendState::BSNone]         = CreateBlendState(false, D3D12_BLEND_SRC_ALPHA,     D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_OP_ADD);
+    blendStates[BlendState::BSAlphaBlend]   = CreateBlendState(true,  D3D12_BLEND_SRC_ALPHA,     D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_OP_ADD);
+    blendStates[BlendState::BSAlphaReverse] = CreateBlendState(true,  D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_SRC_ALPHA,     D3D12_BLEND_OP_ADD);
+    blendStates[BlendState::BSAlphaPreMult] = CreateBlendState(true,  D3D12_BLEND_ONE,           D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_OP_ADD);
+    blendStates[BlendState::BSAdditive]     = CreateBlendState(true,  D3D12_BLEND_ONE,           D3D12_BLEND_ONE,           D3D12_BLEND_OP_ADD);
+    blendStates[BlendState::BSRevSubtract]  = CreateBlendState(true,  D3D12_BLEND_ONE,           D3D12_BLEND_ONE,           D3D12_BLEND_OP_REV_SUBTRACT);
 }
 
 void PipelineStateManager::InitDepthStates()
-{
-    depthStancilStates[DepthStencilState::DSFullDepth] = CreateDepthState(true, true, D3D12_COMPARISON_FUNC_LESS_EQUAL);
-    depthStancilStates[DepthStencilState::DSDepthNoWrite] = CreateDepthState(true, false, D3D12_COMPARISON_FUNC_LESS_EQUAL);
-    depthStancilStates[DepthStencilState::DSNoDepth] = CreateDepthState(false, false, D3D12_COMPARISON_FUNC_ALWAYS);
-    depthStancilStates[DepthStencilState::DSEqualDepthNoWrite] = CreateDepthState(true, false, D3D12_COMPARISON_FUNC_EQUAL);
+{                                                                              // TEST   WRITE  D3D12_COMPARISON_FUNC
+    depthStancilStates[DepthStencilState::DSFullDepth]         = CreateDepthState(true,  true,  D3D12_COMPARISON_FUNC_LESS_EQUAL);
+    depthStancilStates[DepthStencilState::DSDepthNoWrite]      = CreateDepthState(true,  false, D3D12_COMPARISON_FUNC_LESS_EQUAL);
+    depthStancilStates[DepthStencilState::DSNoDepth]           = CreateDepthState(false, false, D3D12_COMPARISON_FUNC_ALWAYS);
+    depthStancilStates[DepthStencilState::DSEqualDepthNoWrite] = CreateDepthState(true,  false, D3D12_COMPARISON_FUNC_EQUAL);
 }
 
 void PipelineStateManager::InitRasterizerStates()
-{
-    rasterizerStates[RasterizerState::RSFullCull] = CreateRasterizerState(D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_FRONT, true, false);
-    rasterizerStates[RasterizerState::RSReverseCull] = CreateRasterizerState(D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_BACK, true, false);
-    rasterizerStates[RasterizerState::RSNoCull] = CreateRasterizerState(D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_NONE, true, false);
+{                                                                         // D3D12_FILL_MODE        D3D12_CULL_MODE        CLIP  SCISSOR
+    rasterizerStates[RasterizerState::RSFullCull]    = CreateRasterizerState(D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_FRONT, true, false);
+    rasterizerStates[RasterizerState::RSReverseCull] = CreateRasterizerState(D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_BACK,  true, false);
+    rasterizerStates[RasterizerState::RSNoCull]      = CreateRasterizerState(D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_NONE,  true, false);
 }
 
 std::wstring PipelineStateManager::GetShaderFilepath(ShaderType shaderType)

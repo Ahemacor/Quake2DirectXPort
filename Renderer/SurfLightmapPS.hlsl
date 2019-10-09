@@ -115,5 +115,7 @@ float4 SurfLightmapPS(PS_LIGHTMAPPED ps_in) : SV_TARGET0
         dot(lmap2Texture.Sample(lmapSampler, ps_in.Lightmap), ps_in.Styles)
     );
 
-    return float4 (diff.rgb * Desaturate(lmap), 1.0f);
+    //return float4 (diff.rgb * Desaturate(lmap), 1.0f);
+
+    return float4 (diff.rgb * max(0.1f, Desaturate(lmap)), 1.0f);
 }
