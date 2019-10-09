@@ -104,21 +104,21 @@ float3 Desaturate(float3 RGB)
     return HSLtoRGB(RGBtoHSL(RGB * 0.1f) * float3 (1.0f, desaturation, 1.0f)) * 10.0f;
 }
 
-float4 PixelShaderEntryPoint(PS_DYNAMICLIGHT ps_in) : SV_TARGET0
+float4 GenericDynamicPS(PS_DYNAMICLIGHT ps_in) : SV_TARGET0
 {
     // this clip is sufficient to exclude unlit portions; Add below may still bring it to 0
     // but in practice it's rare and it runs faster without a second clip
     clip((LightRadius * LightRadius) - dot(ps_in.LightVector, ps_in.LightVector));
 
-// reading the diffuse texture early so that it should interleave with some ALU ops
-float4 diff = GetGamma(mainTexture.Sample(mainSampler, ps_in.TexCoord));
+    // reading the diffuse texture early so that it should interleave with some ALU ops
+    float4 diff = GetGamma(mainTexture.Sample(mainSampler, ps_in.TexCoord));
 
-// this calc isn't correct per-theory but it matches with the calc used by light.exe and qrad.exe
-// at this stage we don't adjust for the overbright range; that will be done via the "intensity" cvar in the C code
-float Angle = ((dot(normalize(ps_in.Normal), normalize(ps_in.LightVector)) * 0.5f) + 0.5f) / 256.0f;
+    // this calc isn't correct per-theory but it matches with the calc used by light.exe and qrad.exe
+    // at this stage we don't adjust for the overbright range; that will be done via the "intensity" cvar in the C code
+    float Angle = ((dot(normalize(ps_in.Normal), normalize(ps_in.LightVector)) * 0.5f) + 0.5f) / 256.0f;
 
-// using our own custom attenuation, again it's not correct per-theory but matches the Quake tools
-float Add = max((LightRadius - length(ps_in.LightVector)) * Angle, 0.0f);
+    // using our own custom attenuation, again it's not correct per-theory but matches the Quake tools
+    float Add = max((LightRadius - length(ps_in.LightVector)) * Angle, 0.0f);
 
-return float4 (diff.rgb * Desaturate(LightColour) * Add, 0.0f);
+    return float4 (diff.rgb * Desaturate(LightColour) * Add, 0.0f);
 }

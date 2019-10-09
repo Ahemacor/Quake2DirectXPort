@@ -51,7 +51,7 @@ float2 GetTextureScroll(VS_SURFCOMMON vs_in)
     return vs_in.TexCoord + float2 (TexScroll, 0.0f) * vs_in.Scroll;
 }
 
-PS_BASIC VertexShaderEntryPoint(VS_SURFCOMMON vs_in)
+PS_BASIC SurfAlphaVS(VS_SURFCOMMON vs_in)
 {
     PS_BASIC vs_out;
 

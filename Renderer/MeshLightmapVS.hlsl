@@ -42,7 +42,7 @@ float3 MeshLerpNormal(VS_MESH vs_in)
     return normalize(lerp(n1, n2, BackLerp));
 }
 
-PS_MESH VertexShaderEntryPoint(VS_MESH vs_in)
+PS_MESH MeshLightmapVS(VS_MESH vs_in)
 {
     PS_MESH vs_out;
 

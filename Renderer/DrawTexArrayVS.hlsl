@@ -15,7 +15,7 @@ struct PS_DRAWCHARACTER {
     float3 TexCoord : TEXCOORD;
 };
 
-PS_DRAWCHARACTER VertexShaderEntryPoint(VS_DRAWCHARACTER vs_in)
+PS_DRAWCHARACTER DrawTexArrayVS(VS_DRAWCHARACTER vs_in)
 {
     PS_DRAWCHARACTER vs_out;
 

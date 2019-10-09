@@ -52,7 +52,7 @@ float2 GetTextureScroll(VS_SURFCOMMON vs_in)
     return vs_in.TexCoord + float2 (TexScroll, 0.0f) * vs_in.Scroll;
 }
 
-PS_DRAWTURB VertexShaderEntryPoint(VS_SURFCOMMON vs_in)
+PS_DRAWTURB SurfDrawTurbVS(VS_SURFCOMMON vs_in)
 {
     static const float M_PI = 3.14159265f;
 

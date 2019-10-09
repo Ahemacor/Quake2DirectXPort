@@ -20,7 +20,7 @@ float4 GetGamma(float4 colorin)
     return float4 (pow(max(colorin.rgb * v_contrast, 0.0f), v_gamma), colorin.a);
 }
 
-float4 PixelShaderEntryPoint(PS_DRAWTEXTURED ps_in) : SV_TARGET
+float4 DrawTexturedPS(PS_DRAWTEXTURED ps_in) : SV_TARGET
 {
     float4 diff = GetGamma(mainTexture.Sample(drawSampler, ps_in.TexCoord)) * ps_in.Color;
     return float4 (diff.rgb * diff.a, diff.a);

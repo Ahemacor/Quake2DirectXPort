@@ -45,7 +45,7 @@ struct PS_SPRITE {
 
 static const float2 SpriteTexCoords[4] = { float2 (0, 1), float2 (0, 0), float2 (1, 0), float2 (1, 1) };
 
-PS_SPRITE VertexShaderEntryPoint(float2 XYOffset : XYOFFSET, uint vertexId : SV_VertexID)
+PS_SPRITE SpriteVS(float2 XYOffset : XYOFFSET, uint vertexId : SV_VertexID)
 {
     PS_SPRITE vs_out;
 

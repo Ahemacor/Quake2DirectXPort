@@ -20,7 +20,7 @@ PS_NULL GetNullVert(float3 Position, float3 Normal)
 }
 
 [maxvertexcount(3)]
-void GeometryShaderEntryPoint(triangle float3 gs_in[3] : POSITION, inout TriangleStream<PS_NULL> gs_out)
+void NullGS(triangle float3 gs_in[3] : POSITION, inout TriangleStream<PS_NULL> gs_out)
 {
     // this is the same normal calculation as QBSP does
     float3 Normal = normalize(cross(gs_in[0] - gs_in[1], gs_in[2] - gs_in[1]));

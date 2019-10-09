@@ -39,7 +39,7 @@ float4 GetGamma(float4 colorin)
     return float4 (pow(max(colorin.rgb * v_contrast, 0.0f), v_gamma), colorin.a);
 }
 
-float4 PixelShaderEntryPoint(float4 Position : SV_POSITION) : SV_TARGET0
+float4 DrawPolyblendPS(float4 Position : SV_POSITION) : SV_TARGET0
 {
     return GetGamma(vBlend);
 }

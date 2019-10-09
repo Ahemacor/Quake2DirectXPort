@@ -16,7 +16,7 @@ struct PS_DRAWCOLOURED {
     float4 Color : COLOUR;
 };
 
-PS_DRAWCOLOURED VertexShaderEntryPoint(VS_DRAWCOMMON vs_in)
+PS_DRAWCOLOURED DrawColouredVS(VS_DRAWCOMMON vs_in)
 {
     PS_DRAWCOLOURED vs_out;
 

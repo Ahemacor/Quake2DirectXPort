@@ -7,7 +7,7 @@ struct VS_SURFCOMMON {
     float Scroll : SCROLL;
 };
 
-VS_SURFCOMMON VertexShaderEntryPoint(VS_SURFCOMMON vs_in)
+VS_SURFCOMMON SurfDynamicVS(VS_SURFCOMMON vs_in)
 {
     return vs_in;
 }

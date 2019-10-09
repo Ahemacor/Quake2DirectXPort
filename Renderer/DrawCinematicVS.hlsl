@@ -17,7 +17,7 @@ struct PS_DRAWTEXTURED {
     float2 TexCoord : TEXCOORD;
 };
 
-PS_DRAWTEXTURED VertexShaderEntryPoint(VS_DRAWCOMMON vs_in)
+PS_DRAWTEXTURED DrawCinematicVS(VS_DRAWCOMMON vs_in)
 {
     PS_DRAWTEXTURED vs_out;
 

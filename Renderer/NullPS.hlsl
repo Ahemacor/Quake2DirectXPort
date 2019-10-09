@@ -21,7 +21,7 @@ struct PS_NULL {
     float3 Normal : NORMAL;
 };
 
-float4 PixelShaderEntryPoint(PS_NULL ps_in) : SV_TARGET0
+float4 NullPS(PS_NULL ps_in) : SV_TARGET0
 {
     float shadedot = dot(normalize(ps_in.Normal), normalize(float3 (1.0f, 1.0f, 1.0f)));
     return GetGamma(float4 (ShadeColor * max(shadedot + 1.0f, (shadedot * 0.2954545f) + 1.0f), AlphaVal));

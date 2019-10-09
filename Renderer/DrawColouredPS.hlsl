@@ -15,7 +15,7 @@ float4 GetGamma(float4 colorin)
     return float4 (pow(max(colorin.rgb * v_contrast, 0.0f), v_gamma), colorin.a);
 }
 
-float4 PixelShaderEntryPoint(PS_DRAWCOLOURED ps_in) : SV_TARGET0
+float4 DrawColouredPS(PS_DRAWCOLOURED ps_in) : SV_TARGET0
 {
     // this is a quad filled with a single solid colour so it doesn't need to blend
     return GetGamma(ps_in.Color);

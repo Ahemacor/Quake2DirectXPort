@@ -25,7 +25,7 @@ float4 GetGamma(float4 colorin)
     return float4 (pow(max(colorin.rgb * v_contrast, 0.0f), v_gamma), colorin.a);
 }
 
-float4 PixelShaderEntryPoint(PS_BASIC ps_in) : SV_TARGET0
+float4 SurfAlphaPS(PS_BASIC ps_in) : SV_TARGET0
 {
     float4 diff = GetGamma(mainTexture.Sample(mainSampler, ps_in.TexCoord));
     return float4 (diff.rgb, diff.a * AlphaVal);

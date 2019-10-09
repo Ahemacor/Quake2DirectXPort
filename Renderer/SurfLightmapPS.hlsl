@@ -105,7 +105,7 @@ float3 Desaturate(float3 RGB)
     return HSLtoRGB(RGBtoHSL(RGB * 0.1f) * float3 (1.0f, desaturation, 1.0f)) * 10.0f;
 }
 
-float4 PixelShaderEntryPoint(PS_LIGHTMAPPED ps_in) : SV_TARGET0
+float4 SurfLightmapPS(PS_LIGHTMAPPED ps_in) : SV_TARGET0
 {
     float4 diff = GetGamma(mainTexture.Sample(mainSampler, ps_in.TexCoord));
 

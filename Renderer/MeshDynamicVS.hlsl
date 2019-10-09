@@ -61,7 +61,7 @@ PS_DYNAMICLIGHT GenericDynamicVS(float4 Position, float3 Normal, float2 TexCoord
     return vs_out;
 }
 
-PS_DYNAMICLIGHT VertexShaderEntryPoint(VS_MESH vs_in)
+PS_DYNAMICLIGHT MeshDynamicVS(VS_MESH vs_in)
 {
     return GenericDynamicVS(MeshLerpPosition(vs_in), MeshLerpNormal(vs_in), vs_in.TexCoord);
 }

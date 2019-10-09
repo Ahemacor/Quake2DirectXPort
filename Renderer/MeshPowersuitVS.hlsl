@@ -36,7 +36,7 @@ float3 MeshLerpNormal(VS_MESH vs_in)
     return normalize(lerp(n1, n2, BackLerp));
 }
 
-float4 VertexShaderEntryPoint(VS_MESH vs_in) : SV_POSITION
+float4 MeshPowersuitVS(VS_MESH vs_in) : SV_POSITION
 {
     return mul(LocalMatrix, MeshLerpPosition(vs_in) + float4 (MeshLerpNormal(vs_in) * PowersuitScale, 0.0f));
 }

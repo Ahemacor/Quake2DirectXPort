@@ -9,7 +9,7 @@ static const float3 NULLPositions[6] = {
     float3 (-1.0f, 0.0f, 0.0f)
 };
 
-float3 VertexShaderEntryPoint(uint vertexId : SV_VertexID) : POSITION
+float3 NullVS(uint vertexId : SV_VertexID) : POSITION
 {
     return NULLPositions[NULLIndexes[vertexId]];
 }

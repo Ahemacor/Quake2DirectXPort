@@ -20,7 +20,7 @@ float4 GetGamma(float4 colorin)
     return float4 (pow(max(colorin.rgb * v_contrast, 0.0f), v_gamma), colorin.a);
 }
 
-float4 PixelShaderEntryPoint(PS_DRAWTEXTURED ps_in) : SV_TARGET0
+float4 DrawCinematicPS(PS_DRAWTEXTURED ps_in) : SV_TARGET0
 {
     return GetGamma(mainTexture.Sample(cineSampler, ps_in.TexCoord));
 }
