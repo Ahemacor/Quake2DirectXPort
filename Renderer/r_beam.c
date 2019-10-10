@@ -20,7 +20,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "r_local.h"
 #if FEATURE_BEAM
+#if DX11_IMPL
 #include "CppWrapper.h"
+#else // DX12
+#include "TestDirectX12.h"
+#endif // DX11_IMPL
 
 typedef struct beampolyvert_s {
 	// this exists so that i don't get confused over what the actual count of verts is
@@ -31,10 +35,16 @@ typedef struct beampolyvert_s {
 int r_numbeamverts = 0;
 int r_numbeamindexes = 0;
 
+#if DX11_IMPL
 ID3D11Buffer *d3d_BeamVertexes = NULL;
 ID3D11Buffer *d3d_BeamIndexes = NULL;
+#else // DX12
+static int d3d_BeamVertexes;
+static int d3d_BeamIndexes;
+#endif // DX11_IMPL
 
-void R_CreateBeamVertexBuffer (D3D11_SUBRESOURCE_DATA *vbSrd)
+#if DX11_IMPL
+void R_CreateBeamVertexBuffer (const void* pData)
 {
 	D3D11_BUFFER_DESC vbDesc = {
 		r_numbeamverts * sizeof (beampolyvert_t),
@@ -45,12 +55,13 @@ void R_CreateBeamVertexBuffer (D3D11_SUBRESOURCE_DATA *vbSrd)
 		0
 	};
 
-    RWCreateBuffer(&vbDesc, vbSrd->pSysMem, &d3d_BeamVertexes);
+    RWCreateBuffer(&vbDesc, pData, &d3d_BeamVertexes);
 }
-
+#endif // DX11_IMPL
 
 void R_CreateBeamIndexBuffer (void)
 {
+#if DX11_IMPL
 	D3D11_BUFFER_DESC ibDesc = {
 		r_numbeamindexes * sizeof (unsigned short),
 		D3D11_USAGE_IMMUTABLE,
@@ -75,6 +86,21 @@ void R_CreateBeamIndexBuffer (void)
 	}
 
     RWCreateBuffer(&ibDesc, indexes, &d3d_BeamIndexes);
+#else // DX12
+    unsigned short* indexes = (unsigned short*)ri.Load_AllocMemory(r_numbeamindexes * sizeof(unsigned short));
+    unsigned short* ndx = indexes;
+
+    int i, numindexes = 0;
+
+    for (i = 2; i < r_numbeamverts; i++, ndx += 3, numindexes += 3)
+    {
+        ndx[0] = i - 2;
+        ndx[1] = (i & 1) ? i : (i - 1);
+        ndx[2] = (i & 1) ? (i - 1) : i;
+    }
+
+    d3d_BeamIndexes = DX12_CreateIndexBuffer(r_numbeamindexes, indexes, sizeof(unsigned short));
+#endif // DX11_IMPL
 }
 
 
@@ -82,7 +108,7 @@ void R_CreateBeamVertexes (int slices)
 {
 	int i;
 	beampolyvert_t *verts = NULL;
-	D3D11_SUBRESOURCE_DATA srd;
+	const void* pData = NULL;
 
 	// clamp sensibly
 	if (slices < 3) slices = 3;
@@ -92,9 +118,7 @@ void R_CreateBeamVertexes (int slices)
 	r_numbeamindexes = (r_numbeamverts - 2) * 3;
 	verts = (beampolyvert_t *) ri.Load_AllocMemory (r_numbeamverts * sizeof (beampolyvert_t));
 
-	srd.pSysMem = verts;
-	srd.SysMemPitch = 0;
-	srd.SysMemSlicePitch = 0;
+    pData = verts;
 
 	for (i = 0; i <= slices; i++, verts += 2)
 	{
@@ -105,8 +129,12 @@ void R_CreateBeamVertexes (int slices)
 	}
 
 	// create the buffers from the generated data
-	R_CreateBeamVertexBuffer (&srd);
-	R_CreateBeamIndexBuffer ();
+#if DX11_IMPL
+	R_CreateBeamVertexBuffer (pData);
+#else DX12
+    d3d_BeamVertexes = DX12_CreateVertexBuffer(r_numbeamverts, sizeof(beampolyvert_t), pData);
+#endif // DX11_IMPL
+    R_CreateBeamIndexBuffer();
 
 	// throw away memory used for loading
 	ri.Load_FreeMemory ();
@@ -117,6 +145,7 @@ static int d3d_BeamShader = 0;
 
 void R_InitBeam (void)
 {
+#if DX11_IMPL
 	D3D11_INPUT_ELEMENT_DESC layout[] = {
 		VDECL ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 7, 0)
 	};
@@ -129,13 +158,37 @@ void R_InitBeam (void)
 		r_beamdetail->modified = false; // don't trigger unnecessarily
 	}
 	else R_CreateBeamVertexes (24);
+#else // DX12
+    State beamState;
+    beamState.inputLayout = INPUT_LAYOUT_BEAM;
+    beamState.VS = SHADER_BEAM_VS;
+    beamState.GS = SHADER_UNDEFINED;
+    beamState.PS = SHADER_BEAM_PS;
+    beamState.topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    beamState.BS = BSAlphaBlend;
+    beamState.DS = DSDepthNoWrite;
+    beamState.RS = RSFullCull;
+    d3d_BeamShader = DX12_CreateRenderState(&beamState);
+
+    if (r_beamdetail)
+    {
+        R_CreateBeamVertexes(r_beamdetail->value);
+        r_beamdetail->modified = false; // don't trigger unnecessarily
+    }
+    else
+    {
+        R_CreateBeamVertexes(24);
+    }
+#endif // DX11_IMPL
 }
 
 
 void R_ShutdownBeam (void)
 {
+#if DX11_IMPL
 	SAFE_RELEASE (d3d_BeamVertexes);
 	SAFE_RELEASE (d3d_BeamIndexes);
+#endif // DX11_IMPL
 }
 
 
@@ -156,9 +209,13 @@ void R_DrawBeam (entity_t *e, QMATRIX *localmatrix)
 			(float) ((byte *) &d_8to24table_solid[e->skinnum & 0xff])[1] / 255.0f,
 			(float) ((byte *) &d_8to24table_solid[e->skinnum & 0xff])[2] / 255.0f
 		};
-
+        
 		R_PrepareEntityForRendering (localmatrix, color, e->alpha, RF_TRANSLUCENT);
+#if DX11_IMPL
         SLBindShaderBundle(d3d_BeamShader);
+#else // DX12
+        DX12_SetRenderState(d3d_BeamShader);
+#endif // DX11_IMPL
 
 		if (r_beamdetail->modified)
 		{
@@ -166,12 +223,17 @@ void R_DrawBeam (entity_t *e, QMATRIX *localmatrix)
 			R_CreateBeamVertexes (r_beamdetail->value);
 			r_beamdetail->modified = false;
 		}
-
+#if DX11_IMPL
 		SMBindVertexBuffer (7, d3d_BeamVertexes, sizeof (beampolyvert_t), 0);
 		SMBindIndexBuffer (d3d_BeamIndexes, DXGI_FORMAT_R16_UINT);
 
 		//d3d_Context->lpVtbl->DrawIndexed (d3d_Context, r_numbeamindexes, 0, 0);
         RWGetDeviceContext()->lpVtbl->DrawIndexed(RWGetDeviceContext(), r_numbeamindexes, 0, 0);
+#else // DX12
+        DX12_BindVertexBuffer(7, d3d_BeamVertexes, 0);
+        DX12_BindIndexBuffer(d3d_BeamIndexes);
+        DX12_DrawIndexed(r_numbeamindexes, 0, 0);
+#endif // DX11_IMPL
 	}
 }
 

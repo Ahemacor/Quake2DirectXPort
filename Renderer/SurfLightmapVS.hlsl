@@ -31,7 +31,7 @@ cbuffer cbPerObject : register(b2) {
     float AlphaVal : packoffset(c4.w);
 };
 
-Buffer<float> LightStyles : register(t0);
+Buffer<float> LightStyles : register(t7);
 
 struct PS_BASIC {
     float4 Position : SV_POSITION;

@@ -45,6 +45,9 @@
     <Filter Include="Shaders\Surface">
       <UniqueIdentifier>{8f3b98db-688b-4b59-91d3-ee573cb73590}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Beam">
+      <UniqueIdentifier>{8220bf6c-97e8-4094-adbc-6b34a74e33af}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glw_imp.c">
@@ -331,6 +334,12 @@
     </FxCompile>
     <FxCompile Include="MeshPowersuitPS.hlsl">
       <Filter>Shaders\Mesh</Filter>
+    </FxCompile>
+    <FxCompile Include="BeamVS.hlsl">
+      <Filter>Shaders\Beam</Filter>
+    </FxCompile>
+    <FxCompile Include="BeamPS.hlsl">
+      <Filter>Shaders\Beam</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

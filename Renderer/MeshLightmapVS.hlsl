@@ -14,7 +14,7 @@ cbuffer cbPerMesh : register(b3) {
     float BackLerp : packoffset(c5.y);
 };
 
-Buffer<float4> LightNormals : register(t1);
+Buffer<float4> LightNormals : register(t8);
 
 struct VS_MESH {
     uint4 PrevTriVertx: PREVTRIVERTX;

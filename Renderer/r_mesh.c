@@ -132,6 +132,9 @@ void R_InitMesh (void)
     meshState.PS = SHADER_MODEL_MESH_LIGHTMAP_PS;
     d3d_MeshLightmapShader = DX12_CreateRenderState(&meshState);
 
+    meshState.BS = BSAdditive;
+    meshState.DS = DSEqualDepthNoWrite;
+    meshState.RS = RSFullCull;
     meshState.VS = SHADER_MODEL_MESH_DYNAMIC_VS;
     meshState.PS = SHADER_MODEL_GENERIC_DYNAMIC_PS;
     d3d_MeshDynamicShader = DX12_CreateRenderState(&meshState);

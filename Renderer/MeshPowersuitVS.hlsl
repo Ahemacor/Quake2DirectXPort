@@ -4,7 +4,7 @@ cbuffer cbPerObject : register(b2) {
     float AlphaVal : packoffset(c4.w);
 };
 
-Buffer<float4> LightNormals : register(t1);
+Buffer<float4> LightNormals : register(t8);
 
 cbuffer cbPerMesh : register(b3) {
     float3 ShadeLight : packoffset(c0);

@@ -565,13 +565,13 @@ void R_BindLightmaps (void)
         DX12_UpdateTextureBuffer(d3d_LightStyles, r_newrefdef.lightstyles, MAX_LIGHTSTYLES, sizeof(float));
     }
 
-    DX12_BindTexture(0, d3d_LightStyles);
-    DX12_BindTexture(1, d3d_LightNormals);
-    DX12_BindTexture(2, d3d_QuakePalette);
+    DX12_BindTexture(1, d3d_Lightmaps[0].Id);
+    DX12_BindTexture(2, d3d_Lightmaps[1].Id);
+    DX12_BindTexture(3, d3d_Lightmaps[2].Id);
 
-    DX12_BindTexture(10, d3d_Lightmaps[0].Id);
-    DX12_BindTexture(11, d3d_Lightmaps[1].Id);
-    DX12_BindTexture(12, d3d_Lightmaps[2].Id);
+    DX12_BindTexture(7, d3d_LightStyles);
+    DX12_BindTexture(8, d3d_LightNormals);
+    DX12_BindTexture(9, d3d_QuakePalette);
 
 #endif // DX11_IMPL
 }

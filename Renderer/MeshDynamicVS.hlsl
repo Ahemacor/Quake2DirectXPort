@@ -20,7 +20,7 @@ cbuffer cbPerLight : register(b4) {
     float3 LightColour : packoffset(c1.x);
 };
 
-Buffer<float4> LightNormals : register(t1);
+Buffer<float4> LightNormals : register(t8);
 
 struct VS_MESH {
     uint4 PrevTriVertx: PREVTRIVERTX;

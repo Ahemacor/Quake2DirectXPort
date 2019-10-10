@@ -39,9 +39,9 @@ cbuffer cbPerObject : register(b2) {
 };
 
 Texture2D<float4> mainTexture : register(t0);
-Texture2DArray<float4> lmap0Texture : register(t10);	// lightmap styles 0/1/2/3
-Texture2DArray<float4> lmap1Texture : register(t11);	// lightmap styles 0/1/2/3
-Texture2DArray<float4> lmap2Texture : register(t12);	// lightmap styles 0/1/2/3
+Texture2DArray<float4> lmap0Texture : register(t1);        // lightmap styles 0/1/2/3
+Texture2DArray<float4> lmap1Texture : register(t2);        // lightmap styles 0/1/2/3
+Texture2DArray<float4> lmap2Texture : register(t3);        // lightmap styles 0/1/2/3
 
 sampler mainSampler : register(s0);
 sampler lmapSampler : register(s1);
@@ -115,7 +115,6 @@ float4 SurfLightmapPS(PS_LIGHTMAPPED ps_in) : SV_TARGET0
         dot(lmap2Texture.Sample(lmapSampler, ps_in.Lightmap), ps_in.Styles)
     );
 
-    //return float4 (diff.rgb * Desaturate(lmap), 1.0f);
-
-    return float4 (diff.rgb * max(0.1f, Desaturate(lmap)), 1.0f);
+    return float4 (diff.rgb * Desaturate(lmap), 1.0f);
+    //return float4 (diff.rgb * max(0.1f, Desaturate(lmap)), 1.0f);
 }

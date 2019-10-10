@@ -313,6 +313,14 @@ std::wstring PipelineStateManager::GetShaderFilepath(ShaderType shaderType)
         shaderFilename = L"MeshFullbrightPS.cso";
         break;
 
+    case ShaderType::SHADER_BEAM_VS:
+        shaderFilename = L"BeamVS.cso";
+        break;
+
+    case ShaderType::SHADER_BEAM_PS:
+        shaderFilename = L"BeamPS.cso";
+        break;
+
     default:
         shaderFilename = L"";
         break;
