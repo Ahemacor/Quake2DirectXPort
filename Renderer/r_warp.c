@@ -21,12 +21,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "r_local.h"
 
 #if FEATURE_WATER_WARP
+#if DX11_IMPL
 #include "CppWrapper.h"
+#else // DX12
+#include "TestDirectX12.h"
+#endif // DX11_IMPL
 
 static int d3d_WaterWarpShader;
 texture_t r_WarpNoise;
+#if DX11_IMPL
 rendertarget_t r_WaterWarpRT;
-
+#endif // DX11_IMPL
 
 void D_CreateNoiseTexture (void)
 {
@@ -34,7 +39,6 @@ void D_CreateNoiseTexture (void)
 	int x, y;
 	unsigned *data = ri.Load_AllocMemory (NOISESIZE * NOISESIZE * 4);
 	unsigned *dst = data; // preserve the original pointer so that we can use it for an SRD
-	D3D11_SUBRESOURCE_DATA srd;
 
 	for (y = 0; y < NOISESIZE; y++)
 	{
@@ -50,9 +54,17 @@ void D_CreateNoiseTexture (void)
 	}
 
 	// set up the SRD
+#if DX11_IMPL
+    D3D11_SUBRESOURCE_DATA srd;
 	srd.pSysMem = data;
 	srd.SysMemPitch = NOISESIZE << 2;
 	srd.SysMemSlicePitch = 0;
+#else // DX12
+    D3D12_SUBRESOURCE_DATA srd;
+    srd.pData = data;
+    srd.RowPitch = NOISESIZE << 2;
+    srd.SlicePitch = 0;
+#endif // DX11_IMPL
 
 	// and create it
 	R_CreateTexture (&r_WarpNoise, &srd, NOISESIZE, NOISESIZE, 1, TEX_R16G16);

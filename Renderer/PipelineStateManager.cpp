@@ -341,6 +341,18 @@ std::wstring PipelineStateManager::GetShaderFilepath(ShaderType shaderType)
         shaderFilename = L"ParticleSquarePS.cso";
         break;
 
+    case ShaderType::SHADER_SKY_VS:
+        shaderFilename = L"SurfDrawSkyVS.cso";
+        break;
+
+    case ShaderType::SHADER_SKY_PS:
+        shaderFilename = L"SurfDrawSkyPS.cso";
+        break;
+
+    case ShaderType::SHADER_NO_SKY_PS:
+        shaderFilename = L"SkyNoSkyPS.cso";
+        break;
+
     default:
         shaderFilename = L"";
         break;

@@ -111,6 +111,10 @@ D3D12_GPU_DESCRIPTOR_HANDLE ResourceManager::CreateShaderResourceView(ResourceMa
         else if (arraySize > 1)
         {
             shaderResourceViewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+            if (slot == 4) // skybox slot
+            {
+                shaderResourceViewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+            }
 
             shaderResourceViewDesc.Texture2DArray.MostDetailedMip = 0;
             shaderResourceViewDesc.Texture2DArray.MipLevels = resource.variant.texDescr.MipLevels;

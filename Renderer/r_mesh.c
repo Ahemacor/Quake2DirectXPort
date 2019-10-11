@@ -119,7 +119,7 @@ void R_InitMesh (void)
 
     State meshState;
     meshState.inputLayout = INPUT_LAYOUT_MESH;
-    meshState.BS = BSAlphaBlend;
+    meshState.BS = BSNone;
     meshState.DS = DSFullDepth;
     meshState.RS = RSFullCull;
     meshState.topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -128,6 +128,8 @@ void R_InitMesh (void)
     meshState.PS = SHADER_MODEL_MESH_FULLBRIGHT_PS;
     d3d_MeshFullbrightShader = DX12_CreateRenderState(&meshState);
 
+    meshState.BS = BSNone;
+    meshState.DS = DSFullDepth;
     meshState.VS = SHADER_MODEL_MESH_LIGHTMAP_VS;
     meshState.PS = SHADER_MODEL_MESH_LIGHTMAP_PS;
     d3d_MeshLightmapShader = DX12_CreateRenderState(&meshState);
@@ -139,6 +141,8 @@ void R_InitMesh (void)
     meshState.PS = SHADER_MODEL_GENERIC_DYNAMIC_PS;
     d3d_MeshDynamicShader = DX12_CreateRenderState(&meshState);
 
+    meshState.BS = BSNone;
+    meshState.DS = DSFullDepth;
     meshState.VS = SHADER_MODEL_MESH_POWERSUIT_VS;
     meshState.PS = SHADER_MODEL_MESH_POWERSUIT_PS;
     d3d_MeshPowersuitShader = DX12_CreateRenderState(&meshState);

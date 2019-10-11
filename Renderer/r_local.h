@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define R_LOCAL_H
 
 // Enable render features
-#define FEATURE_SKY_CUBEMAP 0
+#define FEATURE_SKY_CUBEMAP 1
 #define FEATURE_WATER_WARP 0
 #define FEATURE_PARTICLES 1
 #define FEATURE_SCREENSHOT 0
@@ -39,7 +39,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define FEATURE_DRAW_PICTURES 1
 
 #define DX11_IMPL 0
-
 
 #include <windows.h>
 #include <stdio.h>
@@ -504,6 +503,10 @@ typedef enum ShaderTypeEnum
     SHADER_PARTICLE_CIRCLE_PS,
     SHADER_PARTICLE_SQUARE_GS,
     SHADER_PARTICLE_SQUARE_PS,
+
+    SHADER_SKY_VS,
+    SHADER_SKY_PS,
+    SHADER_NO_SKY_PS,
 
     SHADER_TYPE_COUNT
 } ShaderType;

@@ -51,6 +51,9 @@
     <Filter Include="Shaders\Particles">
       <UniqueIdentifier>{c1974c77-f05c-426a-ba58-df095fe92472}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Sky">
+      <UniqueIdentifier>{96276222-17a0-483e-8099-d6f785881cd2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glw_imp.c">
@@ -358,6 +361,15 @@
     </FxCompile>
     <FxCompile Include="ParticleSquarePS.hlsl">
       <Filter>Shaders\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="SurfDrawSkyVS.hlsl">
+      <Filter>Shaders\Sky</Filter>
+    </FxCompile>
+    <FxCompile Include="SurfDrawSkyPS.hlsl">
+      <Filter>Shaders\Sky</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyNoSkyPS.hlsl">
+      <Filter>Shaders\Sky</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>
