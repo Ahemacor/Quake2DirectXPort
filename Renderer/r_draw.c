@@ -839,8 +839,6 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame, const unsigned 
 		Draw_Flush ();
 	}
 #else // DX12
-    DX12_ClearRTVandDSV();
-
     // we only need to refresh the texture if the frame changes
     static int r_rawframe = -1;
 
@@ -881,7 +879,13 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame, const unsigned 
     // free any memory we may have used for loading it
     ri.Load_FreeMemory();
 
-    R_BindTexture(r_CinematicPic.Id);
+    //R_BindTexture(r_CinematicPic.Id);
+    static int OldRes;
+    if (OldRes != r_CinematicPic.Id)
+    {
+        DX12_BindTexture(10, r_CinematicPic.Id);
+        OldRes = r_CinematicPic.Id;
+    }
 
     //SLBindShaderBundle(d3d_DrawCinematicShader);
     DX12_SetRenderState(d3d_DrawCinematicShader);

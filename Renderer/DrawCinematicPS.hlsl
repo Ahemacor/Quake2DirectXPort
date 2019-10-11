@@ -5,7 +5,7 @@ cbuffer cbDrawPerFrame : register(b0) {
     float2 ConScale : packoffset(c4.z);
 };
 
-Texture2D<float4> mainTexture : register(t0);
+Texture2D<float4> cineTexture : register(t10);
 
 sampler cineSampler : register(s4);
 
@@ -22,5 +22,5 @@ float4 GetGamma(float4 colorin)
 
 float4 DrawCinematicPS(PS_DRAWTEXTURED ps_in) : SV_TARGET0
 {
-    return GetGamma(mainTexture.Sample(cineSampler, ps_in.TexCoord));
+    return GetGamma(cineTexture.Sample(cineSampler, ps_in.TexCoord));
 }

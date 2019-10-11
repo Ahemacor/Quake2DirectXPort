@@ -307,6 +307,7 @@ void GLimp_BeginFrame (viddef_t *vd, int scrflags)
     SLBindConstantBuffers();
 #else // DX12
     //DX12_SetPrimitiveTopologyTriangleList();
+    DX12_ClearRTVandDSV();
 #endif // DX11_IMPL
 }
 

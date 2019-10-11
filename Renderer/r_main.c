@@ -601,7 +601,7 @@ void R_SetupGL (void)
     // clear out the portion of the screen that the NOWORLDMODEL defines
     if (r_newrefdef.rdflags & RDF_NOWORLDMODEL)
     {
-        DX12_ClearRTVandDSV();
+       // DX12_ClearRTVandDSV();
     }
 #endif // DX11_IMPL
 }
@@ -637,7 +637,7 @@ void R_Clear (ID3D11RenderTargetView *RTV, ID3D11DepthStencilView *DSV)
 	//d3d_Context->lpVtbl->ClearDepthStencilView (d3d_Context, DSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 1);
     RWGetDeviceContext()->lpVtbl->ClearDepthStencilView(RWGetDeviceContext(), DSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 1);
 #else // DX12
-        DX12_ClearRTVandDSV();
+        //DX12_ClearRTVandDSV();
 #endif // DX11_IMPL
 }
 
