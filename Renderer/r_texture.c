@@ -897,7 +897,7 @@ void R_ReleaseTBuffer (tbuffer_t *tb)
 #else
 int R_CreateTBuffer(void* data, int NumElements, int ElementSize)
 {
-    return DX12_CreateTextureBuffer(NumElements, ElementSize, data);
+    return DX12_CreateTextureBuffer(D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, NumElements, ElementSize, data);
 }
 #endif // DX11_IMPL
 

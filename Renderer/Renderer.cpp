@@ -76,7 +76,21 @@ void Renderer::CommonDraw(ID3D12GraphicsCommandList* commandList)
         commandList->SetGraphicsRootConstantBufferView(ParameterIdx::CB0_IDX + pair.first, pair.second);
     }
 
-    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    if (stateManager.GetStateDescr(psoId).topology == D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE)
+    {
+        commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    }
+    else if (stateManager.GetStateDescr(psoId).topology == D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT)
+    {
+        commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+    }
+
+    for (const auto vbPair : vertexBuffers)
+    {
+        const auto& vbSlot = vbPair.first;
+        const auto& vbView = vbPair.second;
+        commandList->IASetVertexBuffers(vbSlot, 1, &vbView);
+    }
 }
 
 void Renderer::Draw(UINT numOfVertices, UINT firstVertexToDraw)
@@ -101,14 +115,6 @@ void Renderer::DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLoca
     auto commandList = pRenderEnv->GetRenderCommandList();
 
     CommonDraw(commandList.Get());
-
-    //commandList->IASetVertexBuffers(vertexBufferToBind.slot, 1, &vertexBufferToBind.view);
-    for (const auto vbPair : vertexBuffers)
-    {
-        const auto& vbSlot = vbPair.first;
-        const auto& vbView = vbPair.second;
-        commandList->IASetVertexBuffers(vbSlot, 1, &vbView);
-    }
 
     commandList->IASetIndexBuffer(&indexBufferView);
 
@@ -149,14 +155,14 @@ ResourceManager::Resource::Id Renderer::CreateTextureResource(const CD3DX12_RESO
     return resId;
 }
 
-ResourceManager::Resource::Id Renderer::CreateTextureBuffer(int numOfElements, int elementSize, const void* pSrcData)
+ResourceManager::Resource::Id Renderer::CreateTextureBuffer(D3D12_RESOURCE_STATES resState, int numOfElements, int elementSize, const void* pSrcData)
 {
     ResourceManager::Resource resource;
     resource.type = ResourceManager::Resource::Type::TB;
     resource.variant.srvBuffer.FirstElement = 0;
     resource.variant.srvBuffer.NumElements = numOfElements;
     resource.variant.srvBuffer.StructureByteStride = elementSize;
-    resource.variant.srvBuffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;//D3D12_BUFFER_SRV_FLAG_RAW;
+    resource.variant.srvBuffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
     const CD3DX12_RESOURCE_DESC descr = CD3DX12_RESOURCE_DESC::Buffer(numOfElements * elementSize);
     resource.d12resource = resourceManager.CreateDx12Resource(&descr);
@@ -165,7 +171,7 @@ ResourceManager::Resource::Id Renderer::CreateTextureBuffer(int numOfElements, i
     {
         resourceManager.UpdateBufferData(resource.d12resource.Get(), pSrcData, numOfElements * elementSize);
     }
-    resourceManager.UpdateResourceState(resource.d12resource.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    resourceManager.UpdateResourceState(resource.d12resource.Get(), D3D12_RESOURCE_STATE_COPY_DEST, resState);
     return resourceManager.AddResource(resource);
 }
 
@@ -227,10 +233,10 @@ void Renderer::UpdateTextureResource(ResourceManager::Resource::Id resourceId, D
     resourceManager.UpdateSRVBuffer(resourceId, pSrcData, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 }
 
-void Renderer::UpdateTextureBuffer(ResourceManager::Resource::Id resourceId, const void* pSrcData, int numOfElements, int elementSize)
+void Renderer::UpdateTextureBuffer(D3D12_RESOURCE_STATES resState, ResourceManager::Resource::Id resourceId, const void* pSrcData, int numOfElements, int elementSize)
 {
     ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
-    resourceManager.UpdateBufferData(resource.d12resource.Get(), pSrcData, numOfElements * elementSize, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    resourceManager.UpdateBufferData(resource.d12resource.Get(), pSrcData, numOfElements * elementSize, resState);
     resource.variant.cbHandle = resource.d12resource.Get()->GetGPUVirtualAddress();
 }
 
@@ -274,8 +280,11 @@ void Renderer::BindVertexBuffer(UINT Slot, ResourceManager::Resource::Id resourc
     ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
     ASSERT(resource.type == ResourceManager::Resource::Type::VB);
     D3D12_VERTEX_BUFFER_VIEW vbView = resource.variant.vbView;
-    vbView.SizeInBytes -= Offset;
-    vbView.BufferLocation += Offset;
+    if (Offset > 0)
+    {
+        vbView.SizeInBytes -= Offset;
+        vbView.BufferLocation += Offset;
+    }
     vertexBuffers[Slot] = vbView;
 }
 

@@ -317,7 +317,29 @@ void R_InitLight (void)
 
     d3d_LightStyles = R_CreateTBuffer(NULL, MAX_LIGHTSTYLES, sizeof(float));
     d3d_LightNormals = R_CreateTBuffer(r_avertexnormals, NUMVERTEXNORMALS, sizeof(r_avertexnormals[0]));
-    d3d_QuakePalette = R_CreateTBuffer(d_8to24table_solid, 256, sizeof(d_8to24table_solid[0]));
+
+    const int red   = 0;
+    const int green = 1;
+    const int blue  = 2;
+    const int apha  = 3;
+
+    union PaletteColor
+    {
+        unsigned int color_pack;
+        byte color[4];
+    }palette_color;
+
+    float color_buffer[256][3];
+
+    for (int colIdx = 0; colIdx < 256; ++colIdx)
+    {
+        palette_color.color_pack = d_8to24table_solid[colIdx];
+        color_buffer[colIdx][red] = palette_color.color[red] / 255.0f;
+        color_buffer[colIdx][green] = palette_color.color[green] / 255.0f;
+        color_buffer[colIdx][blue] = palette_color.color[blue] / 255.0f;
+    }
+
+    d3d_QuakePalette = R_CreateTBuffer(color_buffer, 256, sizeof(float) * 3);
 #endif // DX11_IMPL
 }
 
@@ -562,7 +584,7 @@ void R_BindLightmaps (void)
     // optionally update lightstyles (this can be NULL)
     if (r_newrefdef.lightstyles)
     {
-        DX12_UpdateTextureBuffer(d3d_LightStyles, r_newrefdef.lightstyles, MAX_LIGHTSTYLES, sizeof(float));
+        DX12_UpdateTextureBuffer(D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, d3d_LightStyles, r_newrefdef.lightstyles, MAX_LIGHTSTYLES, sizeof(float));
     }
 
     DX12_BindTexture(1, d3d_Lightmaps[0].Id);

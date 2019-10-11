@@ -48,6 +48,9 @@
     <Filter Include="Shaders\Beam">
       <UniqueIdentifier>{8220bf6c-97e8-4094-adbc-6b34a74e33af}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Particles">
+      <UniqueIdentifier>{c1974c77-f05c-426a-ba58-df095fe92472}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glw_imp.c">
@@ -340,6 +343,21 @@
     </FxCompile>
     <FxCompile Include="BeamPS.hlsl">
       <Filter>Shaders\Beam</Filter>
+    </FxCompile>
+    <FxCompile Include="ParticleVS.hlsl">
+      <Filter>Shaders\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="ParticleCircleGS.hlsl">
+      <Filter>Shaders\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="ParticleCirclePS.hlsl">
+      <Filter>Shaders\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="ParticleSquareGS.hlsl">
+      <Filter>Shaders\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="ParticleSquarePS.hlsl">
+      <Filter>Shaders\Particles</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

@@ -321,6 +321,26 @@ std::wstring PipelineStateManager::GetShaderFilepath(ShaderType shaderType)
         shaderFilename = L"BeamPS.cso";
         break;
 
+    case ShaderType::SHADER_PARTICLE_VS:
+        shaderFilename = L"ParticleVS.cso";
+        break;
+
+    case ShaderType::SHADER_PARTICLE_CIRCLE_GS:
+        shaderFilename = L"ParticleCircleGS.cso";
+        break;
+
+    case ShaderType::SHADER_PARTICLE_CIRCLE_PS:
+        shaderFilename = L"ParticleCirclePS.cso";
+        break;
+
+    case ShaderType::SHADER_PARTICLE_SQUARE_GS:
+        shaderFilename = L"ParticleSquareGS.cso";
+        break;
+
+    case ShaderType::SHADER_PARTICLE_SQUARE_PS:
+        shaderFilename = L"ParticleSquarePS.cso";
+        break;
+
     default:
         shaderFilename = L"";
         break;

@@ -261,14 +261,14 @@ void DX12_BindTexture(UINT slot, int resourceId)
     g_renderer->BindTextureResource(resourceId, slot);
 }
 
-int DX12_CreateTextureBuffer(int numOfElements, int elementSize, const void* pSrcData)
+int DX12_CreateTextureBuffer(D3D12_RESOURCE_STATES resState, int numOfElements, int elementSize, const void* pSrcData)
 {
-    return g_renderer->CreateTextureBuffer(numOfElements, elementSize, pSrcData);
+    return g_renderer->CreateTextureBuffer(resState, numOfElements, elementSize, pSrcData);
 }
 
-void DX12_UpdateTextureBuffer(int resourceId, const void* pSrcData, int numOfElements, int elementSize)
+void DX12_UpdateTextureBuffer(D3D12_RESOURCE_STATES resState, int resourceId, const void* pSrcData, int numOfElements, int elementSize)
 {
-    g_renderer->UpdateTextureBuffer(resourceId, pSrcData, numOfElements, elementSize);
+    g_renderer->UpdateTextureBuffer(resState, resourceId, pSrcData, numOfElements, elementSize);
 }
 
 void DX12_SetViewport(const D3D12_VIEWPORT* pViewport)

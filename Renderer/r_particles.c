@@ -21,19 +21,30 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "r_local.h"
 
 #if FEATURE_PARTICLES
+#if DX11_IMPL
 #include "CppWrapper.h"
+#else // DX12
+#include "TestDirectX12.h"
+#endif // DX11_IMPL
 
 static int d3d_ParticleCircleShader;
 static int d3d_ParticleSquareShader;
 static int d3d_ParticleShader = 0;
 
-static ID3D11Buffer *d3d_ParticleVertexes = NULL;
-
-static const int MAX_GPU_PARTICLES = (MAX_PARTICLES * 10);
+//static const int MAX_GPU_PARTICLES = (MAX_PARTICLES * 10);
+#define MAX_GPU_PARTICLES (MAX_PARTICLES * 10)
 static int r_FirstParticle = 0;
+
+#if DX11_IMPL
+static ID3D11Buffer *d3d_ParticleVertexes = NULL;
+#else // DX12
+particle_t particle_buffer[MAX_GPU_PARTICLES];
+static int d3d_ParticleVertexes;
+#endif // DX11_IMPL
 
 void R_InitParticles (void)
 {
+#if DX11_IMPL
 	D3D11_INPUT_ELEMENT_DESC layout[] = {
 		VDECL ("ORIGIN", 0, DXGI_FORMAT_R32G32B32_FLOAT, 6, 0),
 		VDECL ("VELOCITY", 0, DXGI_FORMAT_R32G32B32_FLOAT, 6, 0),
@@ -58,11 +69,34 @@ void R_InitParticles (void)
 	d3d_ParticleCircleShader = SLCreateShaderBundle(IDR_PARTSHADER, "ParticleVS", "ParticleCircleGS", "ParticleCirclePS", DEFINE_LAYOUT (layout));
 	d3d_ParticleSquareShader = SLCreateShaderBundle(IDR_PARTSHADER, "ParticleVS", "ParticleSquareGS", "ParticleSquarePS", DEFINE_LAYOUT (layout));
 	d3d_ParticleShader = d3d_ParticleCircleShader;
+#else // DX12
+    d3d_ParticleVertexes = DX12_CreateVertexBuffer(MAX_GPU_PARTICLES, sizeof(particle_t), NULL);
+
+    State particleState;
+    particleState.inputLayout = INPUT_LAYOUT_PARTICLES;
+    particleState.topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;//D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    particleState.BS = BSAlphaBlend;
+    particleState.DS = DSDepthNoWrite;
+    particleState.RS = RSFullCull;
+
+    particleState.VS = SHADER_PARTICLE_VS;
+    particleState.GS = SHADER_PARTICLE_CIRCLE_GS; // SHADER_UNDEFINED;
+    particleState.PS = SHADER_PARTICLE_CIRCLE_PS;
+    d3d_ParticleCircleShader = DX12_CreateRenderState(&particleState);
+
+    /*particleState.GS = SHADER_PARTICLE_SQUARE_GS;
+    particleState.PS = SHADER_PARTICLE_SQUARE_PS;
+    d3d_ParticleSquareShader = DX12_CreateRenderState(&particleState);*/
+
+    d3d_ParticleShader = d3d_ParticleCircleShader;
+
+#endif // DX11_IMPL
 }
 
 
 void R_DrawParticles (void)
 {
+#if DX11_IMPL
 	D3D11_MAP mode = D3D11_MAP_WRITE_NO_OVERWRITE;
 	D3D11_MAPPED_SUBRESOURCE msr;
 
@@ -107,6 +141,16 @@ void R_DrawParticles (void)
 	}
 
 	r_newrefdef.num_particles = 0;
+#else // DX12
+    if (!r_newrefdef.num_particles)
+        return;
+
+    DX12_UpdateVertexBuffer(d3d_ParticleVertexes, r_newrefdef.particles, r_newrefdef.num_particles, sizeof(particle_t));
+    DX12_SetRenderState(d3d_ParticleShader);
+    DX12_BindVertexBuffer(6, d3d_ParticleVertexes, 0);
+    DX12_Draw(r_newrefdef.num_particles, 0);
+
+#endif // DX11_IMPL
 }
 #else
 void R_InitParticles(void) {}
