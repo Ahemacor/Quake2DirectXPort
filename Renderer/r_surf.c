@@ -122,6 +122,9 @@ void R_InitSurfaces (void)
     surfState.PS = SHADER_MODEL_SURFACE_LIGHTMAP_PS;
     d3d_SurfLightmapShader = DX12_CreateRenderState(&surfState);
 
+    surfState.BS = BSAlphaBlend;
+    surfState.DS = DSDepthNoWrite;
+    surfState.RS = RSFullCull;
     surfState.VS = SHADER_MODEL_SURFACE_DRAWTURB_VS;
     surfState.PS = SHADER_MODEL_SURFACE_DRAWTURB_PS;
     d3d_SurfDrawTurbShader = DX12_CreateRenderState(&surfState);

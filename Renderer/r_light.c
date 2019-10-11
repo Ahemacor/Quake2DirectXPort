@@ -330,7 +330,6 @@ void R_InitLight (void)
     }palette_color;
 
     float color_buffer[256][3];
-
     for (int colIdx = 0; colIdx < 256; ++colIdx)
     {
         palette_color.color_pack = d_8to24table_solid[colIdx];
@@ -338,7 +337,6 @@ void R_InitLight (void)
         color_buffer[colIdx][green] = palette_color.color[green] / 255.0f;
         color_buffer[colIdx][blue] = palette_color.color[blue] / 255.0f;
     }
-
     d3d_QuakePalette = R_CreateTBuffer(color_buffer, 256, sizeof(float) * 3);
 #endif // DX11_IMPL
 }
