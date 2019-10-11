@@ -404,13 +404,14 @@ void Draw_Flush (void)
         d_drawverts = NULL;
     }
 
+    DX12_BindVertexBuffer(0, d3d_DrawVertexes, 0);
+
     if (d_numdrawverts == 3)
     {
         DX12_Draw(d_numdrawverts, d_firstdrawvert);
     }
     else if (d_numdrawverts > 3)
     {
-        DX12_BindVertexBuffer(0, d3d_DrawVertexes, 0);
         DX12_BindIndexBuffer(d3d_DrawIndexes);
         DX12_DrawIndexed((d_numdrawverts >> 2) * 6, 0, d_firstdrawvert);
     }
@@ -763,9 +764,13 @@ void Draw_ShutdownRawImage (void)
 #endif // #if FEATURE_CINEMATIC
 }
 
-
+#if DX11_IMPL
 void R_TexSubImage32 (ID3D11Texture2D *tex, int level, int x, int y, int w, int h, unsigned *data);
 void R_TexSubImage8 (ID3D11Texture2D *tex, int level, int x, int y, int w, int h, byte *data, unsigned *palette);
+#else // DX12
+int R_TexSubImage32(int level, int x, int y, int w, int h, unsigned* data);
+int R_TexSubImage8(int level, int x, int y, int w, int h, byte* data, unsigned* palette);
+#endif // DX11_IMPL
 
 void Draw_StretchRaw (int cols, int rows, byte *data, int frame, const unsigned char *palette)
 {
@@ -834,7 +839,74 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame, const unsigned 
 		Draw_Flush ();
 	}
 #else // DX12
-    assert(0);
+    DX12_ClearRTVandDSV();
+
+    // we only need to refresh the texture if the frame changes
+    static int r_rawframe = -1;
+
+    // if the dimensions change the texture needs to be recreated
+    if (r_CinematicPic.Desc.Width != cols || r_CinematicPic.Desc.Height != rows)
+        Draw_ShutdownRawImage();
+
+    if (!r_CinematicPic.Id)
+    {
+        // ensure in case we got a partial creation
+        Draw_ShutdownRawImage();
+
+        // and create it
+        R_CreateTexture(&r_CinematicPic, NULL, cols, rows, 1, TEX_RGBA8 | TEX_MUTABLE);
+
+        // load the image
+        r_rawframe = -1;
+    }
+
+    // only reload the texture if the frame changes
+    // in *theory* the original code allowed the palette to be changed independently of the texture, in practice the .cin format doesn't support this
+    if (r_rawframe != frame)
+    {
+        unsigned r_rawpalette[256];
+        Image_QuakePalFromPCXPal(r_rawpalette, palette, TEX_RGBA8);
+
+        unsigned* trans = GL_Image8To32(data, cols, rows, (palette) ? r_rawpalette : d_8to24table_solid);
+
+        D3D12_SUBRESOURCE_DATA srd;
+        srd.pData = trans;
+        srd.RowPitch = cols << 2;
+        srd.SlicePitch = 0;
+        DX12_UpdateTexture(r_CinematicPic.Id, &srd);
+
+        r_rawframe = frame;
+    }
+
+    // free any memory we may have used for loading it
+    ri.Load_FreeMemory();
+
+    R_BindTexture(r_CinematicPic.Id);
+
+    //SLBindShaderBundle(d3d_DrawCinematicShader);
+    DX12_SetRenderState(d3d_DrawCinematicShader);
+    //SMSetRenderStates(BSNone, DSNoDepth, RSNoCull);
+
+    if (Draw_EnsureBufferSpace())
+    {
+        // matrix transform for positioning the cinematic correctly
+        // sampler state should be set to clamp-to-border with a border color of black
+        float strans = 0.5f, ttrans = -0.5f;
+
+        // derive the texture matrix for the cinematic pic
+        if (vid.conwidth > vid.conheight)
+            strans *= ((float)rows / (float)cols) * ((float)vid.conwidth / (float)vid.conheight);
+        else
+            ttrans *= ((float)cols / (float)rows) * ((float)vid.conheight / (float)vid.conwidth);
+
+        // drawn without projection, full-screen triangle coords
+        Draw_TexturedVertex(&d_drawverts[d_numdrawverts++], -1, -1, 0xffffffff, strans, ttrans);
+        Draw_TexturedVertex(&d_drawverts[d_numdrawverts++], 3, -1, 0xffffffff, strans, ttrans);
+        Draw_TexturedVertex(&d_drawverts[d_numdrawverts++], -1, 3, 0xffffffff, strans, ttrans);
+
+        // always flush
+        Draw_Flush();
+    }
 #endif // DX11_IMPL
 #endif // #if FEATURE_CINEMATIC
 }

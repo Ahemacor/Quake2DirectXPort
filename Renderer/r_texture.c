@@ -249,28 +249,42 @@ void R_CreateTexture8 (image_t *image, byte *data, unsigned *palette)
 	R_CreateTexture32 (image, trans);
 }
 
-
+#if DX11_IMPL
 void R_TexSubImage32 (ID3D11Texture2D *tex, int level, int x, int y, int w, int h, unsigned *data)
 {
-#if DX11_IMPL
 	D3D11_BOX texbox = {x, y, 0, x + w, y + h, 1};
     RWGetDeviceContext()->lpVtbl->UpdateSubresource(RWGetDeviceContext(), (ID3D11Resource*)tex, level, &texbox, data, w << 2, 0);
-#else // DX12
-    assert(0);
-#endif // DX11_IMPL
 }
-
 
 void R_TexSubImage8 (ID3D11Texture2D *tex, int level, int x, int y, int w, int h, byte *data, unsigned *palette)
 {
-#if DX11_IMPL
 	unsigned *trans = GL_Image8To32 (data, w, h, palette);
 	R_TexSubImage32 (tex, level, x, y, w, h, trans);
 	ri.Load_FreeMemory ();
-#else // DX12
-    assert(0);
-#endif // DX11_IMPL
 }
+#else // DX12
+int R_TexSubImage32(int level, int x, int y, int w, int h, unsigned* data)
+{
+    D3D12_BOX texbox = { x, y, 0, x + w, y + h, 1 };
+    //RWGetDeviceContext()->lpVtbl->UpdateSubresource(RWGetDeviceContext(), (ID3D11Resource*)tex, level, &texbox, data, w << 2, 0);
+
+    D3D12_RESOURCE_DESC  Desc;
+    R_DescribeTexture(&Desc, w, h, 1, 0);
+
+    D3D12_SUBRESOURCE_DATA srd;
+    srd.pData = data;
+    srd.RowPitch = w << 2;
+    srd.SlicePitch = 0;
+    
+    return DX12_CreateTexture(&Desc, &srd);
+}
+
+int R_TexSubImage8(int level, int x, int y, int w, int h, byte* data, unsigned* palette)
+{
+    unsigned* trans = GL_Image8To32(data, w, h, palette);
+    return R_TexSubImage32(level, x, y, w, h, trans);
+}
+#endif // DX11_IMPL
 
 
 void GL_TexEnv (int mode)

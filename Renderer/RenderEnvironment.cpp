@@ -369,6 +369,8 @@ void RenderEnvironment::InitializeRenderTargetViews()
         renderTargets[i] = backBuffer;
         rtvHandle.Offset(rtvDescriptorSize);
     }
+
+    renderState = RenderState::RENDER_PRESENT;
 }
 
 void RenderEnvironment::InitializeAllocatorsAndCommandList()
@@ -495,33 +497,43 @@ void RenderEnvironment::BarrierFromPresentToTarget()
 
 void RenderEnvironment::ClearScreen()
 {
-    if (renderCommandListState != CommandListState::CL_RESETED) ResetRenderCommandList();
+    if (renderState == RenderState::RENDER_PRESENT)
+    {
+        renderState = RenderState::RENDER_TARGET;
 
-    BarrierFromPresentToTarget();
+        if (renderCommandListState != CommandListState::CL_RESETED) ResetRenderCommandList();
 
-    // Record commands.
-    float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+        BarrierFromPresentToTarget();
 
-    auto rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-    D3D12_CPU_DESCRIPTOR_HANDLE renderTargetHandle;
-    CD3DX12_CPU_DESCRIPTOR_HANDLE::InitOffsetted(renderTargetHandle, rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), GetCurrentBufferIndex(), rtvDescriptorSize);
+        // Record commands.
+        float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
-    renderCommandList->ClearRenderTargetView(renderTargetHandle, clearColor, 0, nullptr);
-    renderCommandList->ClearDepthStencilView(dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+        auto rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+        D3D12_CPU_DESCRIPTOR_HANDLE renderTargetHandle;
+        CD3DX12_CPU_DESCRIPTOR_HANDLE::InitOffsetted(renderTargetHandle, rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), GetCurrentBufferIndex(), rtvDescriptorSize);
 
-    ExecuteRenderCommandList();
+        renderCommandList->ClearRenderTargetView(renderTargetHandle, clearColor, 0, nullptr);
+        renderCommandList->ClearDepthStencilView(dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+
+        ExecuteRenderCommandList();
+    }
 }
 
 void RenderEnvironment::Present()
 {
-    if (renderCommandListState != CommandListState::CL_RESETED) ResetRenderCommandList();
-    BarrierFromTargetToPresent();
-    ExecuteRenderCommandList();
+    if (renderState == RenderState::RENDER_TARGET)
+    {
+        renderState = RenderState::RENDER_PRESENT;
 
-    // Present
-    ENSURE_RESULT(swapChain->Present(vSynch, 0));
+        if (renderCommandListState != CommandListState::CL_RESETED) ResetRenderCommandList();
+        BarrierFromTargetToPresent();
+        ExecuteRenderCommandList();
 
-    Synchronize();
+        // Present
+        ENSURE_RESULT(swapChain->Present(vSynch, 0));
+
+        Synchronize();
+    }
 }
 
 void RenderEnvironment::SetupRenderingCommandList()
@@ -571,7 +583,7 @@ void RenderEnvironment::ExecuteRenderCommandList()
 
     ENSURE_RESULT(renderCommandList->Close());
     ID3D12CommandList* ppCommandLists[] = { renderCommandList.Get() };
-    commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+       commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
     Synchronize();
 
     renderCommandListState = CommandListState::CL_EXECUTED;

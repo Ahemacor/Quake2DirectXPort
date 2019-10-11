@@ -112,5 +112,8 @@ private:
     std::vector<DXGI_MODE_DESC> videoModeDescriptions;
 
     bool isInitialized = false;
+
+    enum class RenderState { RENDER_TARGET, RENDER_PRESENT };
+    RenderState renderState = RenderState::RENDER_PRESENT;
 };
 
