@@ -49,11 +49,6 @@ ID3D12RootSignature* PipelineStateManager::GetRootSignature()
 
 D3D12_GPU_DESCRIPTOR_HANDLE PipelineStateManager::GetSamplerHandle()
 {
-    /*const UINT descrHandleSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
-    CD3DX12_GPU_DESCRIPTOR_HANDLE samplerHandle(samplerDescriptorHeap->GetGPUDescriptorHandleForHeapStart(),
-                                                currentState.sampler,
-                                                descrHandleSize);
-    return samplerHandle;*/
     return samplerDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
 }
 

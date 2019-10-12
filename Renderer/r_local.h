@@ -25,7 +25,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <stdio.h>
 #include <math.h>
 
-#include <d3d11.h>
 #include <d3d12.h>
 
 #define RENDERER
@@ -84,23 +83,11 @@ void R_InitNull (void);
 #endif
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // helper macros
-#define VDECL(name, index, fmt, slot, steprate) { \
-	name, \
-	index, \
-	fmt, \
-	slot, \
-	D3D11_APPEND_ALIGNED_ELEMENT, \
-	((steprate > 0) ? D3D11_INPUT_PER_INSTANCE_DATA : D3D11_INPUT_PER_VERTEX_DATA), \
-	steprate \
-}
 
 #define DEFINE_LAYOUT(lo) lo, sizeof (lo) / sizeof (lo[0])
 #define SAFE_RELEASE(obj) {if (obj) {obj->lpVtbl->Release (obj); obj = NULL;}}
 
-
-
 #define	REF_VERSION	"D3D 12"
-
 
 extern	viddef_t	vid;
 

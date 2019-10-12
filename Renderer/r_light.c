@@ -29,7 +29,7 @@ int	r_dlightframecount = 1;
 #define	LIGHTMAP_SIZE		256
 
 // using a texture array we must constrain MAX_LIGHTMAPS to this value
-#define	MAX_LIGHTMAPS	D3D11_REQ_TEXTURE2D_ARRAY_AXIS_DIMENSION
+#define	MAX_LIGHTMAPS	D3D12_REQ_TEXTURE2D_ARRAY_AXIS_DIMENSION
 
 
 /*
@@ -455,7 +455,7 @@ void R_BeginBuildingLightmaps (model_t *m)
 
 void R_CreateLightmapTexture (int ch)
 {
-    D3D12_SUBRESOURCE_DATA* srd = ri.Load_AllocMemory(sizeof(D3D11_SUBRESOURCE_DATA) * r_currentlightmap);
+    D3D12_SUBRESOURCE_DATA* srd = ri.Load_AllocMemory(sizeof(D3D12_SUBRESOURCE_DATA) * r_currentlightmap);
     for (int i = 0; i < r_currentlightmap; i++)
     {
         srd[i].pData = lm_data[ch][i];
