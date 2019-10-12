@@ -75,6 +75,9 @@ public:
     void BindVertexBuffer(UINT Slot, ResourceManager::Resource::Id resourceId, UINT Offset = 0);
     void BindIndexBuffer(ResourceManager::Resource::Id resourceId);
 
+    // RELEASE:
+    void ReleaseResource(ResourceManager::Resource::Id resourceId);
+
     ScopedStateManager GetStateManager(bool isScoped = false) { return ScopedStateManager(isScoped, stateManager, *pRenderEnv); }
 
     UINT CreatePSO(const State* psoState);

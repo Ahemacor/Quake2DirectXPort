@@ -298,6 +298,12 @@ void Renderer::BindIndexBuffer(ResourceManager::Resource::Id resourceId)
     indexBufferView = resource.variant.ibView;
 }
 
+// RELEASE:
+void Renderer::ReleaseResource(ResourceManager::Resource::Id resourceId)
+{
+    resourceManager.ReleaseResource(resourceId);
+}
+
 UINT Renderer::CreatePSO(const State* psoState)
 {
     return stateManager.CreatePipelineStateObject(*psoState);

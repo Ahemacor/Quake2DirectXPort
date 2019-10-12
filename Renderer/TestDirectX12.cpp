@@ -268,6 +268,11 @@ void DX12_UpdateTextureBuffer(D3D12_RESOURCE_STATES resState, int resourceId, co
     g_renderer->UpdateTextureBuffer(resState, resourceId, pSrcData, numOfElements, elementSize);
 }
 
+void DX12_ReleaseResource(int resourceId)
+{
+    g_renderer->ReleaseResource(resourceId);
+}
+
 void DX12_SetViewport(const D3D12_VIEWPORT* pViewport)
 {
     g_renderEnv->SetViewport(*pViewport);
