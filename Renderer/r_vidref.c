@@ -179,9 +179,12 @@ void R_Shutdown (void)
 	Mod_FreeAll ();
 
 	R_ShutdownImages ();
-
+#if DX11_IMPL
 	// shut down OS specific OpenGL stuff like contexts, etc.
     RWClose();
+#else DX12
+    DX12_CloseWindow();
+#endif // DX11_IMPL
 }
 
 

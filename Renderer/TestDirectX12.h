@@ -57,7 +57,7 @@ extern "C" {
     void DX12_DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLocation);
 
     void DX12_ClearRTVandDSV();
-    void DX12_Present();
+    void DX12_Present(UINT SyncInterval, UINT Flags);
 #ifdef __cplusplus
 }
 #endif

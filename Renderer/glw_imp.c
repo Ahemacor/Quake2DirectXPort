@@ -49,6 +49,7 @@ GLimp_Shutdown
 #define GET_MODE RWGetMode
 #define GET_HANDLE RWGetHandle
 #define INIT_WINDOW RWInitWindow
+#define PRESENT(SyncInterval, Flags) RWGetSwapchain()->lpVtbl->Present(RWGetSwapchain(), SyncInterval, Flags)
 #else // DX12
 #include "TestDirectX12.h"
 
@@ -56,6 +57,7 @@ GLimp_Shutdown
 #define GET_MODE DX12_GetVideoMode
 #define GET_HANDLE DX12_GetOsWindowHandle
 #define INIT_WINDOW DX12_InitWindow
+#define PRESENT(SyncInterval, Flags) DX12_Present(SyncInterval, Flags)
 #endif // DX11_IMPL
 
 HANDLE hRefHeap;
@@ -306,7 +308,6 @@ void GLimp_BeginFrame (viddef_t *vd, int scrflags)
     SMBindSamplers();
     SLBindConstantBuffers();
 #else // DX12
-    //DX12_SetPrimitiveTopologyTriangleList();
     DX12_ClearRTVandDSV();
 #endif // DX11_IMPL
 }
@@ -325,21 +326,18 @@ void GLimp_EndFrame (int scrflags)
 {
 	// free any loading memory that may have been used during the frame
 	ri.Load_FreeMemory ();
-#if DX11_IMPL
+
 	// perform the buffer swap with or without vsync as appropriate
 	if (scrflags & SCR_NO_PRESENT)
 		return;
 	else if (scrflags & SCR_NO_VSYNC)
 		//d3d_SwapChain->lpVtbl->Present (d3d_SwapChain, 0, 0);
-        RWGetSwapchain()->lpVtbl->Present(RWGetSwapchain(), 0, 0);
+        PRESENT(0, 0);
 	else if (vid_vsync->value)
 		//d3d_SwapChain->lpVtbl->Present (d3d_SwapChain, 1, 0);
-        RWGetSwapchain()->lpVtbl->Present(RWGetSwapchain(), 1, 0);
+        PRESENT(1, 0);
 	else //d3d_SwapChain->lpVtbl->Present (d3d_SwapChain, 0, 0);
-        RWGetSwapchain()->lpVtbl->Present(RWGetSwapchain(), 0, 0);
-#else // !DX11_IMPL
-    DX12_Present();
-#endif // DX11_IMPL
+        PRESENT(0, 0);
 }
 
 

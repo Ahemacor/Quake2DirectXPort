@@ -30,7 +30,7 @@ public:
     void Release();
 
     void ClearScreen();
-    void Present();
+    void Present(UINT SyncInterval, UINT Flags);
 
     void Synchronize();
 

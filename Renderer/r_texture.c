@@ -696,22 +696,19 @@ R_ShutdownImages
 */
 void R_ShutdownImages (void)
 {
-#if DX11_IMPL
 	int		i;
 	image_t	*image;
 
 	for (i = 0, image = gltextures; i < MAX_GLTEXTURES; i++, image++)
 	{
+#if DX11_IMPL
 		SAFE_RELEASE (image->Texture);
 		SAFE_RELEASE (image->SRV);
-
+#endif // DX11_IMPL
 		memset (image, 0, sizeof (*image));
 	}
 
 	Draw_ShutdownRawImage ();
-#else // DX12
-    assert(0);
-#endif // DX11_IMPL
 }
 
 

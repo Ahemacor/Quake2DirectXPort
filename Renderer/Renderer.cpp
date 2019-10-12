@@ -37,14 +37,17 @@ bool Renderer::Init(RenderEnvironment* environment)
 
 void Renderer::Release()
 {
-    pRenderEnv = nullptr;
+    if (isInitialized)
+    {
+        pRenderEnv = nullptr;
 
-    stateManager.Release();
-    resourceManager.Release();
-    cbArguments.clear();
-    vertexBuffers.clear();
-    indexBufferView = {};
-    isInitialized = false;
+        stateManager.Release();
+        resourceManager.Release();
+        cbArguments.clear();
+        vertexBuffers.clear();
+        indexBufferView = {};
+        isInitialized = false;
+    }
 }
 
 void Renderer::CommonDraw(ID3D12GraphicsCommandList* commandList)

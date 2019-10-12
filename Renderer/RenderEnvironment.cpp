@@ -48,22 +48,25 @@ bool RenderEnvironment::Initialize(HWND handle, std::size_t width, std::size_t h
 
 void RenderEnvironment::Release()
 {
-    Synchronize();
+    if (isInitialized)
+    {
+        Synchronize();
 
-    commandQueue.Reset();
-    swapChain.Reset();
-    rtvDescriptorHeap.Reset();
-    dsvDescriptorHeap.Reset();
-    depthStencil.Reset();
-    for (auto rt : renderTargets) rt.Reset();
-    for (auto ca : commandAllocators) ca.Reset();
-    updateCommandAllocator.Reset();
-    renderCommandList.Reset();
-    renderCommandListState = CommandListState::CL_RESETED;
-    updateCommandListState = CommandListState::CL_RESETED;
-    CloseHandle(fenceEvent);
+        commandQueue.Reset();
+        swapChain.Reset();
+        rtvDescriptorHeap.Reset();
+        dsvDescriptorHeap.Reset();
+        depthStencil.Reset();
+        for (auto rt : renderTargets) rt.Reset();
+        for (auto ca : commandAllocators) ca.Reset();
+        updateCommandAllocator.Reset();
+        renderCommandList.Reset();
+        renderCommandListState = CommandListState::CL_RESETED;
+        updateCommandListState = CommandListState::CL_RESETED;
+        CloseHandle(fenceEvent);
 
-    isInitialized = false;
+        isInitialized = false;
+    }
 }
 
 void RenderEnvironment::InitializeFactory()
@@ -519,7 +522,7 @@ void RenderEnvironment::ClearScreen()
     }
 }
 
-void RenderEnvironment::Present()
+void RenderEnvironment::Present(UINT SyncInterval, UINT Flags)
 {
     if (renderState == RenderState::RENDER_TARGET)
     {
@@ -529,8 +532,7 @@ void RenderEnvironment::Present()
         BarrierFromTargetToPresent();
         ExecuteRenderCommandList();
 
-        // Present
-        ENSURE_RESULT(swapChain->Present(vSynch, 0));
+        ENSURE_RESULT(swapChain->Present(SyncInterval, Flags));
 
         Synchronize();
     }

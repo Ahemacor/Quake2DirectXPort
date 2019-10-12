@@ -165,10 +165,6 @@ int DX12_InitWindow(int width, int height, int mode, int fullscreen)
 
 void DX12_CloseWindow()
 {
-    g_renderer->Release();
-    g_renderEnv->Release();
-    g_window->Hide();
-
     // handle special objects
     //SLShutdownShaders();
     R_ShutdownSurfaces();
@@ -178,6 +174,10 @@ void DX12_CloseWindow()
     R_ShutdownMesh();
     R_ShutdownBeam();
     R_ShutdownSprites();
+
+    g_renderer->Release();
+    g_renderEnv->Release();
+    g_window->Hide();
 }
 
 void DX12_InitDefaultStates()
@@ -321,7 +321,7 @@ void DX12_ClearRTVandDSV()
     g_renderEnv->ClearScreen();
 }
 
-void DX12_Present()
+void DX12_Present(UINT SyncInterval, UINT Flags)
 {
-    g_renderEnv->Present();
+    g_renderEnv->Present(SyncInterval, Flags);
 }

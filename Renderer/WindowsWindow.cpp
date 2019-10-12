@@ -1,4 +1,5 @@
 #include "WindowsWindow.h"
+#include "Utils.h"
 #include <cassert>
 
 WindowsWindow::WindowsWindow() {}
@@ -51,9 +52,9 @@ void WindowsWindow::Hide()
         ShowWindow(windowHandle, SW_HIDE);
         DestroyWindow(windowHandle);
         windowHandle = nullptr;
-    }
 
-    UnregisterClass(CLASS_NAME.c_str(), appInstance);
+        UnregisterClass(CLASS_NAME.c_str(), appInstance);
+    }
 }
 
 HWND WindowsWindow::GetHandle()
@@ -89,7 +90,7 @@ HWND WindowsWindow::CreateOSWindow(RECT rect, bool isFullscreen, const std::stri
                                  NULL,
                                  appInstance,
                                  NULL);
-    assert(handle != nullptr);
+    ASSERT(handle != nullptr);
 
     return handle;
 }
@@ -112,9 +113,7 @@ bool WindowsWindow::RegisterWindowClass()
     windowClass.hbrBackground = (HBRUSH)COLOR_GRAYTEXT;
     windowClass.lpszMenuName = 0;
     windowClass.lpszClassName = CLASS_NAME.c_str();
+    ENSURE_RESULT(::RegisterClassExA(&windowClass));
 
-    static HRESULT hr = ::RegisterClassExA(&windowClass);
-    assert(SUCCEEDED(hr) && "RegisterWindowClass() failed");
-
-    return SUCCEEDED(hr);
+    return true;
 }
