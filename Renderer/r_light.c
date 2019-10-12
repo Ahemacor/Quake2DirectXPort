@@ -20,12 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // r_light.c
 
 #include "r_local.h"
-
-#if DX11_IMPL
-#include "CppWrapper.h"
-#else // DX12
 #include "TestDirectX12.h"
-#endif // DX11_IMPL
 
 // starting the count at 1 so that a memset-0 doesn't mark surfaces
 int	r_dlightframecount = 1;
@@ -272,17 +267,10 @@ static texture_t d3d_Lightmaps[3];
 
 static lighttexel_t **lm_data[3];
 
-#if DX11_IMPL
-static ID3D11Buffer *d3d_DLightConstants = NULL;
-static tbuffer_t d3d_QuakePalette; // this is a stupid place to do this
-static tbuffer_t d3d_LightNormals; // lightnormals are read on the GPU so that we can use a skinnier vertex format and save loads of memory
-static tbuffer_t d3d_LightStyles;
-#else // DX12
 static int d3d_DLightConstants;
 static int d3d_QuakePalette;
 static int d3d_LightNormals;
 static int d3d_LightStyles;
-#endif // DX11_IMPL
 
 #define NUMVERTEXNORMALS	162
 
@@ -294,23 +282,6 @@ static float r_avertexnormals[NUMVERTEXNORMALS][4] = {
 
 void R_InitLight (void)
 {
-#if DX11_IMPL
-	D3D11_BUFFER_DESC cbDLightDesc = {
-		sizeof (dlight_t),
-		D3D11_USAGE_DEFAULT,
-		D3D11_BIND_CONSTANT_BUFFER,
-		0,
-		0,
-		0
-	};
-
-    RWCreateBuffer(&cbDLightDesc, NULL, &d3d_DLightConstants);
-    SLRegisterConstantBuffer(d3d_DLightConstants, 4);
-
-	R_CreateTBuffer (&d3d_LightStyles, NULL, MAX_LIGHTSTYLES, sizeof (float), DXGI_FORMAT_R32_FLOAT, D3D11_USAGE_DEFAULT);
-	R_CreateTBuffer (&d3d_LightNormals, r_avertexnormals, NUMVERTEXNORMALS, sizeof (r_avertexnormals[0]), DXGI_FORMAT_R32G32B32A32_FLOAT, D3D11_USAGE_IMMUTABLE);
-	R_CreateTBuffer (&d3d_QuakePalette, d_8to24table_solid, 256, sizeof (d_8to24table_solid[0]), DXGI_FORMAT_R8G8B8A8_UNORM, D3D11_USAGE_IMMUTABLE); // this is a stupid place to do this
-#else // DX12
     d3d_DLightConstants = DX12_CreateConstantBuffer(NULL, sizeof(dlight_t));
     DX12_BindConstantBuffer(d3d_DLightConstants, 4);
 
@@ -337,7 +308,6 @@ void R_InitLight (void)
         color_buffer[colIdx][blue] = palette_color.color[blue] / 255.0f;
     }
     d3d_QuakePalette = R_CreateTBuffer(color_buffer, 256, sizeof(float) * 3);
-#endif // DX11_IMPL
 }
 
 
@@ -351,15 +321,9 @@ void R_ShutdownLightmaps (void)
 
 void R_ShutdownLight (void)
 {
-#if DX11_IMPL
-	R_ReleaseTBuffer (&d3d_LightStyles);
-	R_ReleaseTBuffer (&d3d_LightNormals);
-	R_ReleaseTBuffer (&d3d_QuakePalette); // this is a stupid place to do this
-#else // DX12
     d3d_LightStyles = 0;
     d3d_LightNormals = 0;
     d3d_QuakePalette = 0;
-#endif // DX11_IMPL
 
 	R_ShutdownLightmaps ();
 }
@@ -491,16 +455,6 @@ void R_BeginBuildingLightmaps (model_t *m)
 
 void R_CreateLightmapTexture (int ch)
 {
-#if DX11_IMPL
-	D3D11_SUBRESOURCE_DATA *srd = ri.Load_AllocMemory (sizeof (D3D11_SUBRESOURCE_DATA) * r_currentlightmap);
-	// set up the SRDs
-	for (int i = 0; i < r_currentlightmap; i++)
-	{
-		srd[i].pSysMem = lm_data[ch][i];
-		srd[i].SysMemPitch = LIGHTMAP_SIZE << 2;
-		srd[i].SysMemSlicePitch = 0;
-	}
-#else // DX12
     D3D12_SUBRESOURCE_DATA* srd = ri.Load_AllocMemory(sizeof(D3D11_SUBRESOURCE_DATA) * r_currentlightmap);
     for (int i = 0; i < r_currentlightmap; i++)
     {
@@ -508,7 +462,6 @@ void R_CreateLightmapTexture (int ch)
         srd[i].RowPitch = LIGHTMAP_SIZE << 2;
         srd[i].SlicePitch = 0;
     }
-#endif // DX11_IMPL
 
 	// and create it
 	R_CreateTexture (&d3d_Lightmaps[ch], srd, LIGHTMAP_SIZE, LIGHTMAP_SIZE, r_currentlightmap, TEX_RGBA8);
@@ -559,25 +512,6 @@ void R_SetupLightmapTexCoords (msurface_t *surf, float *vec, unsigned short *lm)
 
 void R_BindLightmaps (void)
 {
-#if DX11_IMPL
-	// VS tbuffers go to VS slots 0/1/2
-	ID3D11ShaderResourceView *VertexSRVs[3] = {d3d_LightStyles.SRV, d3d_LightNormals.SRV, d3d_QuakePalette.SRV};
-
-	// lightmap textures go to PS slots 1/2/3
-	ID3D11ShaderResourceView *LightmapSRVs[3] = {d3d_Lightmaps[0].SRV, d3d_Lightmaps[1].SRV, d3d_Lightmaps[2].SRV};
-
-	// optionally update lightstyles (this can be NULL)
-	if (r_newrefdef.lightstyles)
-        RWGetDeviceContext()->lpVtbl->UpdateSubresource(RWGetDeviceContext(), (ID3D11Resource*)d3d_LightStyles.Buffer, 0, NULL, r_newrefdef.lightstyles, 0, 0);
-		//d3d_Context->lpVtbl->UpdateSubresource (d3d_Context, (ID3D11Resource *) d3d_LightStyles.Buffer, 0, NULL, r_newrefdef.lightstyles, 0, 0);
-
-	// and set them all
-	//d3d_Context->lpVtbl->VSSetShaderResources (d3d_Context, 0, 3, VertexSRVs);
-    RWGetDeviceContext()->lpVtbl->VSSetShaderResources(RWGetDeviceContext(), 0, 3, VertexSRVs);
-	//d3d_Context->lpVtbl->PSSetShaderResources (d3d_Context, 1, 3, LightmapSRVs);
-    RWGetDeviceContext()->lpVtbl->PSSetShaderResources(RWGetDeviceContext(), 1, 3, LightmapSRVs);
-#else // DX12
-
     // optionally update lightstyles (this can be NULL)
     if (r_newrefdef.lightstyles)
     {
@@ -591,8 +525,6 @@ void R_BindLightmaps (void)
     DX12_BindTexture(7, d3d_LightStyles);
     DX12_BindTexture(8, d3d_LightNormals);
     DX12_BindTexture(9, d3d_QuakePalette);
-
-#endif // DX11_IMPL
 }
 
 
@@ -616,9 +548,6 @@ void D_SetupDynamicLight (dlight_t *dl, float *transformedorigin, int rflags)
 		consts.color[0] = -dl->color[0];
 		consts.color[1] = -dl->color[1];
 		consts.color[2] = -dl->color[2];
-#if DX11_IMPL
-		SMSetRenderStates(BSRevSubtract, DSEqualDepthNoWrite, SELECT_RASTERIZER(rflags));
-#endif // DX11_IMPL
 	}
 	else
 	{
@@ -626,17 +555,10 @@ void D_SetupDynamicLight (dlight_t *dl, float *transformedorigin, int rflags)
 		consts.color[0] = dl->color[0];
 		consts.color[1] = dl->color[1];
 		consts.color[2] = dl->color[2];
-#if DX11_IMPL
-		SMSetRenderStates(BSAdditive, DSEqualDepthNoWrite, SELECT_RASTERIZER(rflags));
-#endif // DX11_IMPL
 	}
 
 	// and update it
-#if DX11_IMPL
-    RWGetDeviceContext()->lpVtbl->UpdateSubresource(RWGetDeviceContext(), (ID3D11Resource*)d3d_DLightConstants, 0, NULL, &consts, 0, 0);
-#else // DX12
     DX12_UpdateConstantBuffer(d3d_DLightConstants, &consts, sizeof(dlight_t));
-#endif // DX11_IMPL
 }
 
 

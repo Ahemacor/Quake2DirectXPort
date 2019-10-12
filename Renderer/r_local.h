@@ -21,9 +21,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifndef R_LOCAL_H
 #define R_LOCAL_H
 
-// Enable render features
-#define DX11_IMPL 0
-
 #include <windows.h>
 #include <stdio.h>
 #include <math.h>
@@ -102,7 +99,7 @@ void R_InitNull (void);
 
 
 
-#define	REF_VERSION	"D3D 11"
+#define	REF_VERSION	"D3D 12"
 
 
 extern	viddef_t	vid;
@@ -142,13 +139,7 @@ typedef struct image_s {
 	// chained surfaces for drawing
 	// the same image_t may be used by multiple texinfo, so by storing the chain here we can get larger batches == fewer draw calls
 	struct msurface_s	*texturechain;
-#if DX11_IMPL
-	// D3D texture object
-	ID3D11Texture2D *Texture;
-	ID3D11ShaderResourceView *SRV;
-#else // DX12
     int textureId;
-#endif // DX11_IMPL
 } image_t;
 
 #define	TEXNUM_LIGHTMAPS	1024
@@ -235,11 +226,7 @@ extern	cvar_t	*vid_vsync;
 
 extern	cvar_t	*intensity;
 
-
 void R_RegeneratePVS (void);
-
-void R_TranslatePlayerSkin (int playernum);
-void GL_TexEnv (int value);
 
 void R_LightPoint (vec3_t p, vec3_t color);
 void R_DynamicLightPoint (vec3_t p, vec3_t color);
@@ -254,9 +241,6 @@ extern	unsigned	d_8to24table_trans33[256];
 extern	unsigned	d_8to24table_trans66[256];
 
 extern	int		r_registration_sequence;
-
-
-void V_AddBlend (float r, float g, float b, float a, float *v_blend);
 
 int R_Init (void *hinstance, void *wndproc);
 void R_Shutdown (void);
@@ -348,8 +332,6 @@ IMPLEMENTATION SPECIFIC FUNCTIONS
 
 void GLimp_BeginFrame (viddef_t *vd, int scrflags);
 void GLimp_EndFrame (int scrflags);
-//int GLimp_Init (void *hinstance, void *wndproc);
-//void GLimp_Shutdown (void);
 int GLimp_SetMode (int *pwidth, int *pheight, int mode, qboolean fullscreen);
 void GLimp_AppActivate (qboolean active);
 
@@ -362,14 +344,6 @@ void Draw_Flush (void);
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // shaders
-//int D_CreateShaderBundle (int resourceID, const char *vsentry, const char *gsentry, const char *psentry, D3D11_INPUT_ELEMENT_DESC *layout, int numlayout);
-
-//void D_BindShaderBundle (int sb);
-//void D_RegisterConstantBuffer (ID3D11Buffer *cBuffer, int slot);
-//void D_BindConstantBuffers (void);
-#if !DX11_IMPL
-void R_UpdateEntityShader(int stateId, int rflags);
-#endif
 void R_PrepareEntityForRendering (QMATRIX *localMatrix, float *color, float alpha, int rflags);
 
 
@@ -564,13 +538,8 @@ typedef struct State
 // textures marked disposable may be flushed on map changes
 #define TEX_DISPOSABLE		(1 << 30)
 
-#if DX11_IMPL
-void R_BindTexture (ID3D11ShaderResourceView *SRV);
-void R_BindTexArray (ID3D11ShaderResourceView *SRV);
-#else // DX12
 void R_BindTexture(int resId);
 void R_BindTexArray(int resId);
-#endif // DX11_IMPL
 image_t *R_LoadTexArray (char *base);
 
 
@@ -657,37 +626,7 @@ void R_PrepareNullModel (entity_t *e, QMATRIX *localmatrix);
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // more texture stuff
-typedef struct rendertarget_s {
-	ID3D11Texture2D *Texture;
-	ID3D11ShaderResourceView *SRV;
-	ID3D11RenderTargetView *RTV;
-	D3D11_TEXTURE2D_DESC Desc;
-} rendertarget_t;
 
-void R_CreateRenderTarget (rendertarget_t *rt);
-void R_ReleaseRenderTarget (rendertarget_t *rt);
-
-#if DX11_IMPL
-typedef struct texture_s {
-	ID3D11Texture2D *Texture;
-	ID3D11ShaderResourceView *SRV;
-	D3D11_TEXTURE2D_DESC Desc;
-} texture_t;
-
-void R_CreateTexture (texture_t *t, D3D11_SUBRESOURCE_DATA *srd, int width, int height, int arraysize, int flags);
-void R_ReleaseTexture (texture_t *t);
-
-typedef struct tbuffer_s {
-    ID3D11Buffer* Buffer;
-    ID3D11ShaderResourceView* SRV;
-} tbuffer_t;
-
-void R_CreateTBuffer(tbuffer_t* tb, void* data, int NumElements, int ElementSize, DXGI_FORMAT Format, D3D11_USAGE Usage);
-void R_ReleaseTBuffer(tbuffer_t* t);
-
-void R_CopyScreen(rendertarget_t* dst);
-
-#else // DX12
 typedef struct texture_s {
     int Id;
     D3D12_RESOURCE_DESC Desc;
@@ -697,6 +636,5 @@ void R_CreateTexture(texture_t* t, D3D12_SUBRESOURCE_DATA* srd, int width, int h
 void R_ReleaseTexture(texture_t* t);
 
 int R_CreateTBuffer(void* data, int NumElements, int ElementSize);
-#endif // DX11_IMPL
 
 #endif // R_LOCAL_H

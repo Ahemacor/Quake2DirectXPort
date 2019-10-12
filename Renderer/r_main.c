@@ -19,11 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // r_main.c
 #include "r_local.h"
-#if DX11_IMPL
-#include "CppWrapper.h"
-#else // DX12
 #include "TestDirectX12.h"
-#endif // DX11_IMPL
 
 void R_DrawParticles (void);
 void R_SetupSky (QMATRIX *SkyMatrix);
@@ -60,47 +56,13 @@ __declspec(align(16)) typedef struct entityconstants_s {
 	float alphaval;
 } entityconstants_t;
 
-
-#if DX11_IMPL
-ID3D11Buffer *d3d_MainConstants = NULL;
-ID3D11Buffer *d3d_EntityConstants = NULL;
-#else // DX12
 int d3d_MainConstants;
 int d3d_EntityConstants;
-#endif // DX11_IMPL
-
 
 int d3d_PolyblendShader = -1;
 
 void R_InitMain (void)
 {
-#if DX11_IMPL
-	D3D11_BUFFER_DESC cbMainDesc = {
-		sizeof (mainconstants_t),
-		D3D11_USAGE_DEFAULT,
-		D3D11_BIND_CONSTANT_BUFFER,
-		0,
-		0,
-		0
-	};
-
-	D3D11_BUFFER_DESC cbEntityDesc = {
-		sizeof (entityconstants_t),
-		D3D11_USAGE_DEFAULT,
-		D3D11_BIND_CONSTANT_BUFFER,
-		0,
-		0,
-		0
-	};
-
-    RWCreateBuffer(&cbMainDesc, NULL, &d3d_MainConstants);
-    RWCreateBuffer(&cbEntityDesc, NULL, &d3d_EntityConstants);
-
-    SLRegisterConstantBuffer(d3d_MainConstants, 1);
-    SLRegisterConstantBuffer(d3d_EntityConstants, 2);
-
-	d3d_PolyblendShader = SLCreateShaderBundle(IDR_DRAWSHADER, "DrawPolyblendVS", NULL, "DrawPolyblendPS", NULL, 0);
-#else // DX12
     d3d_MainConstants = DX12_CreateConstantBuffer(NULL, sizeof(mainconstants_t));
     d3d_EntityConstants = DX12_CreateConstantBuffer(NULL, sizeof(entityconstants_t));
 
@@ -118,7 +80,6 @@ void R_InitMain (void)
     polyblendState.PS = SHADER_DRAW_POLYBLEND_PS;
 
     d3d_PolyblendShader = DX12_CreateRenderState(&polyblendState);
-#endif // DX11_IMPL
 }
 
 
@@ -191,26 +152,6 @@ cvar_t	*vid_width;
 cvar_t	*vid_height;
 cvar_t	*vid_vsync;
 
-#if !DX11_IMPL
-void R_UpdateEntityShader(int stateId, int rflags)
-{
-    State state = DX12_GetRenderState(stateId);
-    if (rflags & RF_TRANSLUCENT)
-    {
-        state.BS = BSAlphaBlend;
-        state.DS = DSDepthNoWrite;
-    }
-    else
-    {
-        state.BS = BSNone;
-        state.DS = DSFullDepth;
-    }
-    state.RS = SELECT_RASTERIZER(rflags);
-    DX12_UpdateRenderState(&state, stateId);
-}
-#endif // DX12
-
-
 void R_PrepareEntityForRendering (QMATRIX *localMatrix, float *color, float alpha, int rflags)
 {
 	entityconstants_t consts;
@@ -247,18 +188,7 @@ void R_PrepareEntityForRendering (QMATRIX *localMatrix, float *color, float alph
 		consts.alphaval = alpha;
 	else consts.alphaval = 1.0f;
 
-#if DX11_IMPL
-	// and update to the cbuffer
-    RWGetDeviceContext()->lpVtbl->UpdateSubresource(RWGetDeviceContext(), (ID3D11Resource*)d3d_EntityConstants, 0, NULL, &consts, 0, 0);
-
-	// and set the correct states
-	if (rflags & RF_TRANSLUCENT)
-		SMSetRenderStates(BSAlphaBlend, DSDepthNoWrite, SELECT_RASTERIZER(rflags));
-	else SMSetRenderStates(BSNone, DSFullDepth, SELECT_RASTERIZER(rflags));
-#else // DX12
     DX12_UpdateConstantBuffer(d3d_EntityConstants, &consts, sizeof(entityconstants_t));
-    // R_UpdateEntityShader(DX12_GetCurrentRenderStateId(), rflags);
-#endif // DX11_IMPL
 }
 
 
@@ -514,12 +444,8 @@ void R_SetupGL (void)
 	float r_farclip = R_GetFarClip ();
 
 	// set up the viewport that we'll use for the entire refresh
-	D3D11_VIEWPORT vp = {r_newrefdef.x, r_newrefdef.y, r_newrefdef.width, r_newrefdef.height, 0, 1};
-#if DX11_IMPL
-    RWGetDeviceContext()->lpVtbl->RSSetViewports(RWGetDeviceContext(), 1, &vp);
-#else // DX12
+	D3D12_VIEWPORT vp = {r_newrefdef.x, r_newrefdef.y, r_newrefdef.width, r_newrefdef.height, 0, 1};
     DX12_SetViewport(&vp);
-#endif // DX11_IMPL
 
 	// the projection matrix may be only updated when the refdef changes but we do it every frame so that we can do waterwarp
 	R_MatrixIdentity (&r_proj_matrix);
@@ -583,27 +509,8 @@ void R_SetupGL (void)
 		consts.desaturation = 1;
 	else consts.desaturation = r_desaturatelighting->value;
 
-#if DX11_IMPL
-	// and update to the cbuffer
-    RWGetDeviceContext()->lpVtbl->UpdateSubresource(RWGetDeviceContext(), (ID3D11Resource*)d3d_MainConstants, 0, NULL, &consts, 0, 0);
-
-	// clear out the portion of the screen that the NOWORLDMODEL defines
-	if (r_newrefdef.rdflags & RDF_NOWORLDMODEL)
-	{
-		// we can't clear subrects in D3D11 so just clear the entire thing
-		//d3d_Context->lpVtbl->ClearDepthStencilView (d3d_Context, d3d_DepthBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 1);
-        RWGetDeviceContext()->lpVtbl->ClearDepthStencilView(RWGetDeviceContext(), RWGetDSV(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 1);
-	}
-#else // DX12
     // and update to the cbuffer
     DX12_UpdateConstantBuffer(d3d_MainConstants, &consts, sizeof(mainconstants_t));
-
-    // clear out the portion of the screen that the NOWORLDMODEL defines
-    if (r_newrefdef.rdflags & RDF_NOWORLDMODEL)
-    {
-       // DX12_ClearRTVandDSV();
-    }
-#endif // DX11_IMPL
 }
 
 /*
@@ -615,16 +522,8 @@ void R_PolyBlend (void)
 {
 	if (v_blend[3] > 0)
 	{
-#if DX11_IMPL
-        SMSetRenderStates(BSAlphaBlend, DSDepthNoWrite, RSNoCull);
-        SLBindShaderBundle(d3d_PolyblendShader);
-
-		// full-screen triangle
-        RWGetDeviceContext()->lpVtbl->Draw(RWGetDeviceContext(), 3, 0);
-#else // DX12
         DX12_SetRenderState(d3d_PolyblendShader);
         DX12_Draw(3, 0);
-#endif // DX11_IMPL
 	}
 }
 

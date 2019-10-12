@@ -19,14 +19,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // GL_RSURF.C: surface-related refresh code
 #include <assert.h>
-
 #include "r_local.h"
-
-#if DX11_IMPL
-#include "CppWrapper.h"
-#else // DX12
 #include "TestDirectX12.h"
-#endif // DX11_IMPL
 
 #define MAX_SURF_INDEXES	0x100000
 
@@ -38,13 +32,8 @@ msurface_t	*r_alpha_surfaces;
 void R_DrawSkyChain (msurface_t *surf);
 void R_SetupLightmapTexCoords (msurface_t *surf, float *vec, unsigned short *lm);
 
-#if DX11_IMPL
-ID3D11Buffer *d3d_SurfVertexes = NULL;
-ID3D11Buffer *d3d_SurfIndexes = NULL;
-#else // DX12
 int d3d_SurfVertexes = 0;
 int d3d_SurfIndexes = 0;
-#endif // DX11_IMPL
 
 static int d3d_SurfBasicShader;
 static int d3d_SurfAlphaShader;
@@ -66,34 +55,6 @@ typedef struct brushpolyvert_s {
 
 void R_InitSurfaces (void)
 {
-#if DX11_IMPL
-	// compressing the vertex struct down to 32 bytes
-	D3D11_INPUT_ELEMENT_DESC layout[] = {
-		VDECL ("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 4, 0),
-		VDECL ("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 4, 0),
-		VDECL ("LIGHTMAP", 0, DXGI_FORMAT_R16G16_UNORM, 4, 0),
-		VDECL ("STYLES", 0, DXGI_FORMAT_R8G8B8A8_UINT, 4, 0),
-		VDECL ("MAPNUM", 0, DXGI_FORMAT_R16_UINT, 4, 0),
-		VDECL ("SCROLL", 0, DXGI_FORMAT_R16_UNORM, 4, 0)
-	};
-
-	D3D11_BUFFER_DESC ibDesc = {
-		MAX_SURF_INDEXES * sizeof (unsigned int),
-		D3D11_USAGE_DYNAMIC,
-		D3D11_BIND_INDEX_BUFFER,
-		D3D11_CPU_ACCESS_WRITE,
-		0,
-		0
-	};
-
-    RWCreateBuffer(&ibDesc, NULL, &d3d_SurfIndexes);
-
-	d3d_SurfBasicShader = SLCreateShaderBundle(IDR_SURFSHADER, "SurfBasicVS", NULL, "SurfBasicPS", DEFINE_LAYOUT (layout));
-	d3d_SurfAlphaShader = SLCreateShaderBundle(IDR_SURFSHADER, "SurfAlphaVS", NULL, "SurfAlphaPS", DEFINE_LAYOUT (layout));
-	d3d_SurfLightmapShader = SLCreateShaderBundle(IDR_SURFSHADER, "SurfLightmapVS", NULL, "SurfLightmapPS", DEFINE_LAYOUT (layout));
-	d3d_SurfDrawTurbShader = SLCreateShaderBundle(IDR_SURFSHADER, "SurfDrawTurbVS", NULL, "SurfDrawTurbPS", DEFINE_LAYOUT (layout));
-	d3d_SurfDynamicShader = SLCreateShaderBundle(IDR_SURFSHADER, "SurfDynamicVS", "SurfDynamicGS", "GenericDynamicPS", DEFINE_LAYOUT (layout));
-#else // DX12
     d3d_SurfIndexes = DX12_CreateIndexBuffer(MAX_SURF_INDEXES, NULL, sizeof(unsigned int));
 
     State surfState;
@@ -135,16 +96,12 @@ void R_InitSurfaces (void)
     surfState.GS = SHADER_MODEL_SURFACE_DYNAMIC_GS;
     surfState.PS = SHADER_MODEL_GENERIC_DYNAMIC_PS;
     d3d_SurfDynamicShader = DX12_CreateRenderState(&surfState);
-#endif // DX11_IMPL
 }
 
 
 void R_ShutdownSurfaces (void)
 {
-#if DX11_IMPL
-	SAFE_RELEASE (d3d_SurfVertexes);
-	SAFE_RELEASE (d3d_SurfIndexes);
-#endif // DX11_IMPL
+
 }
 
 
@@ -185,9 +142,7 @@ image_t *R_TextureAnimation (mtexinfo_t *tex, int frame)
 DrawTextureChains
 ================
 */
-#if !DX11_IMPL
 static unsigned int surf_index_buffer[MAX_SURF_INDEXES];
-#endif // DX12
 
 static unsigned int *r_SurfIndexes = NULL;
 static int r_NumSurfIndexes = 0;
@@ -205,18 +160,7 @@ void R_AddSurfaceToBatch (const msurface_t *surf)
 
 	if (!r_SurfIndexes)
 	{
-#if DX11_IMPL
-		// first index is only reset to 0 if the buffer must wrap so this is valid to do
-		D3D11_MAP mode = (r_FirstSurfIndex > 0) ? D3D11_MAP_WRITE_NO_OVERWRITE : D3D11_MAP_WRITE_DISCARD;
-		D3D11_MAPPED_SUBRESOURCE msr;
-
-		//if (FAILED (d3d_Context->lpVtbl->Map (d3d_Context, (ID3D11Resource *) d3d_SurfIndexes, 0, mode, 0, &msr)))
-        if (FAILED(RWGetDeviceContext()->lpVtbl->Map(RWGetDeviceContext(), (ID3D11Resource*)d3d_SurfIndexes, 0, mode, 0, &msr)))
-			return;
-		else r_SurfIndexes = (unsigned int *) msr.pData + r_FirstSurfIndex;
-#else // DX12
         r_SurfIndexes = (unsigned int*)surf_index_buffer + r_FirstSurfIndex;
-#endif // DX11_IMPL
 	}
 
 	// these should always be valid coming in here....
@@ -242,22 +186,6 @@ void R_AddSurfaceToBatch (const msurface_t *surf)
 
 void R_EndSurfaceBatch (void)
 {
-#if DX11_IMPL
-	if (r_SurfIndexes)
-	{
-        RWGetDeviceContext()->lpVtbl->Unmap(RWGetDeviceContext(), (ID3D11Resource*)d3d_SurfIndexes, 0);
-		r_SurfIndexes = NULL;
-	}
-
-	if (r_NumSurfIndexes)
-	{
-		//d3d_Context->lpVtbl->DrawIndexed (d3d_Context, r_NumSurfIndexes, r_FirstSurfIndex, 0);
-        RWGetDeviceContext()->lpVtbl->DrawIndexed(RWGetDeviceContext(), r_NumSurfIndexes, r_FirstSurfIndex, 0);
-
-		r_FirstSurfIndex += r_NumSurfIndexes;
-		r_NumSurfIndexes = 0;
-	}
-#else // DX12
     if (r_SurfIndexes)
     {
         DX12_UpdateIndexBuffer(d3d_SurfIndexes, surf_index_buffer, MAX_SURF_INDEXES, sizeof(unsigned int));
@@ -271,7 +199,6 @@ void R_EndSurfaceBatch (void)
         r_FirstSurfIndex += r_NumSurfIndexes;
         r_NumSurfIndexes = 0;
     }
-#endif // DX11_IMPL
 }
 
 
@@ -296,18 +223,6 @@ image_t *R_SelectSurfaceTexture (mtexinfo_t *ti, int frame)
 
 void R_SelectSurfaceShader (const mtexinfo_t *ti, qboolean alpha)
 {
-#if DX11_IMPL
-	if (ti->flags & SURF_WARP)
-        SLBindShaderBundle(d3d_SurfDrawTurbShader);
-	else if (alpha)
-        SLBindShaderBundle(d3d_SurfAlphaShader);
-	else
-	{
-		if (!r_worldmodel->lightdata || r_fullbright->value)
-            SLBindShaderBundle(d3d_SurfBasicShader);
-		else SLBindShaderBundle(d3d_SurfLightmapShader);
-	}
-#else // DX12
     if (ti->flags & SURF_WARP)
         DX12_SetRenderState(d3d_SurfDrawTurbShader);
     else if (alpha)
@@ -318,20 +233,14 @@ void R_SelectSurfaceShader (const mtexinfo_t *ti, qboolean alpha)
             DX12_SetRenderState(d3d_SurfBasicShader);
         else DX12_SetRenderState(d3d_SurfLightmapShader);
     }
-#endif // DX11_IMPL
 }
 
 
 void R_SetupSurfaceState (QMATRIX *localmatrix, float alphaval, int flags)
 {
 	R_PrepareEntityForRendering (localmatrix, NULL, alphaval, flags);
-#if DX11_IMPL
-	SMBindVertexBuffer (4, d3d_SurfVertexes, sizeof (brushpolyvert_t), 0);
-	SMBindIndexBuffer (d3d_SurfIndexes, DXGI_FORMAT_R32_UINT);
-#else // DX12
     DX12_BindVertexBuffer(4, d3d_SurfVertexes, 0);
     DX12_BindIndexBuffer(d3d_SurfIndexes);
-#endif // DX11_IMPL
 }
 
 
@@ -353,12 +262,7 @@ void R_DrawTextureChains (entity_t *e, model_t *mod, QMATRIX *localmatrix, float
 		// select the correct shader
 		R_SelectSurfaceShader (ti, e->flags & RF_TRANSLUCENT);
 		// select the correct texture
-#if DX11_IMPL
-		R_BindTexture (R_SelectSurfaceTexture (ti, e->currframe)->SRV);
-#else // DX12
-       // R_UpdateEntityShader(DX12_GetCurrentRenderStateId(), e->flags);
         R_BindTexture(R_SelectSurfaceTexture(ti, e->currframe)->textureId);
-#endif // DX11_IMPL
         
 		// and draw the texture chain
 		for (; surf; surf = surf->texturechain)
@@ -403,15 +307,8 @@ void R_DrawDlightChains (entity_t *e, model_t *mod, QMATRIX *localmatrix)
 		// no surfaces
 		if ((surf = ti->image->texturechain) == NULL) continue;
 
-#if DX11_IMPL
-        SLBindShaderBundle(d3d_SurfDynamicShader);
-
-		// select the correct texture
-		R_BindTexture (R_SelectSurfaceTexture (ti, e->currframe)->SRV);
-#else // DX12 
         DX12_SetRenderState(d3d_SurfDynamicShader);
         R_BindTexture(R_SelectSurfaceTexture(ti, e->currframe)->textureId);
-#endif // DX11_IMPL
 
 		for (; surf; surf = surf->texturechain)
 			R_AddSurfaceToBatch (surf);
@@ -456,16 +353,8 @@ void R_DrawAlphaSurfaces (void)
 			R_EndSurfaceBatch ();
 
 			// switch texture and shader
-#if DX11_IMPL
-			R_BindTexture (R_SelectSurfaceTexture (s->texinfo, 0)->SRV);
-			R_SelectSurfaceShader (s->texinfo, true);
-#else // DX12
-            //R_BindTexArray(R_SelectSurfaceTexture(s->texinfo, 0)->textureId);
-            //R_SelectSurfaceShader(s->texinfo, true);
-            //R_UpdateEntityShader(DX12_GetCurrentRenderStateId(), RF_TRANSLUCENT);
             R_BindTexture(R_SelectSurfaceTexture(s->texinfo, 0)->textureId);
             R_SelectSurfaceShader(s->texinfo, true);
-#endif // DX11_IMPL
 
 			// cache back
 			lasttexinfo = s->texinfo;
@@ -819,11 +708,7 @@ void R_BuildPolygonFromSurface (msurface_t *surf, model_t *mod, brushpolyvert_t 
 
 void R_BeginBuildingSurfaces (model_t *mod)
 {
-#if DX11_IMPL
-	SAFE_RELEASE (d3d_SurfVertexes);
-#else // DX12
     d3d_SurfVertexes = 0;
-#endif // DX11_IMPL
 	r_NumSurfVertexes = 0;
 }
 
@@ -838,38 +723,6 @@ void R_RegisterSurface (msurface_t *surf)
 
 void R_EndBuildingSurfaces (model_t *mod, dbsp_t *bsp)
 {
-#if DX11_IMPL
-	int i;
-
-	// create the vertex buffer sized as appropriate for all surface vertexes that will be needed
-	D3D11_BUFFER_DESC vbDesc = {
-		sizeof (brushpolyvert_t) * r_NumSurfVertexes,
-		D3D11_USAGE_IMMUTABLE,
-		D3D11_BIND_VERTEX_BUFFER,
-		0,
-		0,
-		0
-	};
-
-	// alloc a buffer to write the verts to and create the VB from
-	brushpolyvert_t *verts = (brushpolyvert_t *) ri.Load_AllocMemory (sizeof (brushpolyvert_t) * r_NumSurfVertexes);
-
-	// fill in the verts
-	for (i = 0; i < mod->numsurfaces; i++)
-	{
-		msurface_t *surf = &mod->surfaces[i];
-		R_BuildPolygonFromSurface (surf, mod, &verts[surf->firstvertex], bsp);
-	}
-
-	// create the new vertex buffer
-    RWCreateBuffer(&vbDesc, verts, &d3d_SurfVertexes);
-
-	// for the next map
-	ri.Load_FreeMemory ();
-
-	r_NumSurfVertexes = 0;
-	r_FirstSurfIndex = 0; // force a buffer discard on the first draw call to flush all indexes from the previous map
-#else // DX12
     brushpolyvert_t* verts = (brushpolyvert_t*)malloc(sizeof(brushpolyvert_t) * r_NumSurfVertexes);
 
     // fill in the verts
@@ -885,5 +738,4 @@ void R_EndBuildingSurfaces (model_t *mod, dbsp_t *bsp)
 
     r_NumSurfVertexes = 0;
     r_FirstSurfIndex = 0; // force a buffer discard on the first draw call to flush all indexes from the previous map
-#endif // DX11_IMPL
 }

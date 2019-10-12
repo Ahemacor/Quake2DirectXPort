@@ -37,28 +37,7 @@ GLimp_Shutdown
 #include <assert.h>
 #include <windows.h>
 
-#if DX11_IMPL
-#include "CppWrapper.h"
-#pragma comment (lib, "d3d11.lib")
-#pragma comment (lib, "dxgi.lib")
-
-// this just needs to be included anywhere....
-#pragma comment (lib, "dxguid.lib")
-
-#define GET_MODES_NUMBER RWGetModesNumber
-#define GET_MODE RWGetMode
-#define GET_HANDLE RWGetHandle
-#define INIT_WINDOW RWInitWindow
-#define PRESENT(SyncInterval, Flags) RWGetSwapchain()->lpVtbl->Present(RWGetSwapchain(), SyncInterval, Flags)
-#else // DX12
 #include "TestDirectX12.h"
-
-#define GET_MODES_NUMBER DX12_GetModesNumber
-#define GET_MODE DX12_GetVideoMode
-#define GET_HANDLE DX12_GetOsWindowHandle
-#define INIT_WINDOW DX12_InitWindow
-#define PRESENT(SyncInterval, Flags) DX12_Present(SyncInterval, Flags)
-#endif // DX11_IMPL
 
 HANDLE hRefHeap;
 
@@ -101,15 +80,16 @@ char *M_VideoGetScaling (DXGI_MODE_DESC *mode)
 
 void D_EnumerateVideoModes (void)
 {
-    if (GET_MODES_NUMBER() == 0)
+    const int numberOfModes = DX12_GetModesNumber();
+    if (numberOfModes == 0)
 		ri.Sys_Error (ERR_FATAL, "Failed to enumerate any usable video modes!");
 
 	// init the video mode data - add 1 to windowed modes for the current values of vid_width and vid_height if required (they may not be)
-	vid_modedata.widths = (int *) HeapAlloc (hRefHeap, HEAP_ZERO_MEMORY, sizeof (int) * (GET_MODES_NUMBER() + 1));
-	vid_modedata.heights = (int *) HeapAlloc (hRefHeap, HEAP_ZERO_MEMORY, sizeof (int) * (GET_MODES_NUMBER() + 1));
+	vid_modedata.widths = (int *) HeapAlloc (hRefHeap, HEAP_ZERO_MEMORY, sizeof (int) * (numberOfModes + 1));
+	vid_modedata.heights = (int *) HeapAlloc (hRefHeap, HEAP_ZERO_MEMORY, sizeof (int) * (numberOfModes + 1));
 
 	// add 1 to fullscreen modes to NULL-terminate the list
-	vid_modedata.fsmodes = (char **) HeapAlloc (hRefHeap, HEAP_ZERO_MEMORY, sizeof (char *) * (GET_MODES_NUMBER() + 1));
+	vid_modedata.fsmodes = (char **) HeapAlloc (hRefHeap, HEAP_ZERO_MEMORY, sizeof (char *) * (numberOfModes + 1));
 
 	vid_modedata.numwidths = 0;
 	vid_modedata.numheights = 0;
@@ -118,33 +98,33 @@ void D_EnumerateVideoModes (void)
 	// set up widths
 	int biggest = 0;
 
-	for (int i = 0; i < GET_MODES_NUMBER(); i++)
+	for (int i = 0; i < numberOfModes; i++)
 	{
-		if (GET_MODE(i).Width > biggest)
+		if (DX12_GetVideoMode(i).Width > biggest)
 		{
-			vid_modedata.widths[vid_modedata.numwidths] = GET_MODE(i).Width;
+			vid_modedata.widths[vid_modedata.numwidths] = DX12_GetVideoMode(i).Width;
 			vid_modedata.numwidths++;
-			biggest = GET_MODE(i).Width;
+			biggest = DX12_GetVideoMode(i).Width;
 		}
 	}
 
 	// set up heights
 	biggest = 0;
 
-	for (int i = 0; i < GET_MODES_NUMBER(); i++)
+	for (int i = 0; i < numberOfModes; i++)
 	{
-		if (GET_MODE(i).Height > biggest)
+		if (DX12_GetVideoMode(i).Height > biggest)
 		{
-			vid_modedata.heights[vid_modedata.numheights] = GET_MODE(i).Height;
+			vid_modedata.heights[vid_modedata.numheights] = DX12_GetVideoMode(i).Height;
 			vid_modedata.numheights++;
-			biggest = GET_MODE(i).Height;
+			biggest = DX12_GetVideoMode(i).Height;
 		}
 	}
 
 	// set up fullscreen modes
-	for (int i = 0; i < GET_MODES_NUMBER(); i++)
+	for (int i = 0; i < numberOfModes; i++)
 	{
-        DXGI_MODE_DESC mode = GET_MODE(i);
+        DXGI_MODE_DESC mode = DX12_GetVideoMode(i);
 		char *modedesc = va (
 			"[%i %i] %0.1fHz\n%s/%s",
             mode.Width,
@@ -190,11 +170,11 @@ rserr_t GLimp_SetMode (int *pwidth, int *pheight, int mode, qboolean fullscreen)
 	ri.Con_Printf (PRINT_ALL, "Initializing display\n");
 	ri.Con_Printf (PRINT_ALL, "...setting mode %d:", mode);
 
-    DXGI_MODE_DESC modeDesc = GET_MODE(mode);
+    DXGI_MODE_DESC modeDesc = DX12_GetVideoMode(mode);
 	ri.Con_Printf (PRINT_ALL, " %d %d %s\n", modeDesc.Width, modeDesc.Height, win_fs[fullscreen]);
 
 	// destroy the existing window
-	if (GET_HANDLE() != NULL)
+	if (DX12_GetOsWindowHandle() != NULL)
 	{
         DX12_CloseWindow();
 	}
@@ -205,8 +185,7 @@ rserr_t GLimp_SetMode (int *pwidth, int *pheight, int mode, qboolean fullscreen)
 		ri.Con_Printf (PRINT_ALL, "...setting fullscreen mode\n");
 
 		// if we fail to create a fullscreen mode call recursively to create a windowed mode
-		//if (!VID_CreateWindow (modeDesc.Width, modeDesc.Height, true))
-        if (!INIT_WINDOW(modeDesc.Width, modeDesc.Height, mode, true))
+        if (!DX12_InitWindow(modeDesc.Width, modeDesc.Height, mode, true))
 			return GLimp_SetMode (pwidth, pheight, mode, false);
 	}
 	else
@@ -221,8 +200,7 @@ rserr_t GLimp_SetMode (int *pwidth, int *pheight, int mode, qboolean fullscreen)
         modeDesc.Height = vid_height->value;
 
 		// if we fail to create a windowed mode it's an error
-		//if (!VID_CreateWindow (modeDesc.Width, modeDesc.Height, false))
-        if (!INIT_WINDOW(modeDesc.Width, modeDesc.Height, mode, false))
+        if (!DX12_InitWindow(modeDesc.Width, modeDesc.Height, mode, false))
 			return rserr_invalid_mode;
 	}
 
@@ -279,7 +257,7 @@ void GLimp_BeginFrame (viddef_t *vd, int scrflags)
 {
 	// get client dimensions
 	RECT cr;
-	GetClientRect (GET_HANDLE(), &cr);
+	GetClientRect (DX12_GetOsWindowHandle(), &cr);
 
 	// setup dimensions for the refresh
 	vid.width = cr.right - cr.left;
@@ -294,22 +272,10 @@ void GLimp_BeginFrame (viddef_t *vd, int scrflags)
 	vd->conwidth = vid.conwidth;
 	vd->conheight = vid.conheight;
 
-
 	// set up the 2D ortho view, brightness and contrast
 	Draw_UpdateConstants (scrflags);
 
-#if DX11_IMPL
-	// everything in all draws is drawn as an indexed triangle list, even if it's ultimately a strip or a single tri, so this can be set-and-forget once per frame
-	//d3d_Context->lpVtbl->IASetPrimitiveTopology (d3d_Context, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    RWSetPrimitiveTopologyTriangleList();
-
-	// bind buffers and samplers that will remain bound for the duration of the frame
-	//D_BindSamplers ();
-    SMBindSamplers();
-    SLBindConstantBuffers();
-#else // DX12
     DX12_ClearRTVandDSV();
-#endif // DX11_IMPL
 }
 
 
@@ -331,13 +297,10 @@ void GLimp_EndFrame (int scrflags)
 	if (scrflags & SCR_NO_PRESENT)
 		return;
 	else if (scrflags & SCR_NO_VSYNC)
-		//d3d_SwapChain->lpVtbl->Present (d3d_SwapChain, 0, 0);
-        PRESENT(0, 0);
+        DX12_Present(0, 0);
 	else if (vid_vsync->value)
-		//d3d_SwapChain->lpVtbl->Present (d3d_SwapChain, 1, 0);
-        PRESENT(1, 0);
-	else //d3d_SwapChain->lpVtbl->Present (d3d_SwapChain, 0, 0);
-        PRESENT(0, 0);
+        DX12_Present(1, 0);
+	else DX12_Present(0, 0);
 }
 
 
@@ -348,15 +311,14 @@ GLimp_AppActivate
 */
 void GLimp_AppActivate (qboolean active)
 {
-	// does DXGI not do this for us????
 	if (active)
 	{
-		SetForegroundWindow (GET_HANDLE());
-		ShowWindow (GET_HANDLE(), SW_RESTORE);
+		SetForegroundWindow (DX12_GetOsWindowHandle());
+		ShowWindow (DX12_GetOsWindowHandle(), SW_RESTORE);
 	}
 	else
 	{
 		if (vid_fullscreen->value)
-			ShowWindow (GET_HANDLE(), SW_MINIMIZE);
+			ShowWindow (DX12_GetOsWindowHandle(), SW_MINIMIZE);
 	}
 }
