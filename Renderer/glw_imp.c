@@ -196,7 +196,7 @@ rserr_t GLimp_SetMode (int *pwidth, int *pheight, int mode, qboolean fullscreen)
 	// destroy the existing window
 	if (GET_HANDLE() != NULL)
 	{
-        RWClose();
+        DX12_CloseWindow();
 	}
 
 	// do a CDS if needed

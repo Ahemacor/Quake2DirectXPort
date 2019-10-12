@@ -2,7 +2,6 @@
 #include "WindowsWindow.h"
 #include "RenderEnvironment.h"
 #include "Renderer.h"
-#include "ImageIO/ImageIO.h"
 #include <cassert>
 
 struct Vertex

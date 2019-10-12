@@ -100,6 +100,8 @@ bool WindowsWindow::RegisterWindowClass()
     assert(procedure != nullptr);
     assert(appInstance != nullptr);
 
+    static constexpr const char* ICO_FILENAME = "q2.ico";
+
     // Register a window class for creating our render window with.
     WNDCLASSEXA windowClass = {};
     windowClass.cbSize = sizeof(WNDCLASSEXW);
@@ -108,7 +110,7 @@ bool WindowsWindow::RegisterWindowClass()
     windowClass.cbClsExtra = 0;
     windowClass.cbWndExtra = 0;
     windowClass.hInstance = appInstance;
-    windowClass.hIcon = 0;
+    windowClass.hIcon = (HICON)LoadImage(appInstance, ICO_FILENAME, IMAGE_ICON, 32, 32, LR_LOADFROMFILE | LR_LOADTRANSPARENT);
     windowClass.hCursor = ::LoadCursor(NULL, IDC_ARROW);
     windowClass.hbrBackground = (HBRUSH)COLOR_GRAYTEXT;
     windowClass.lpszMenuName = 0;

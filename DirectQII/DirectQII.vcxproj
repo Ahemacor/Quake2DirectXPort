@@ -211,18 +211,11 @@
     <ClInclude Include="qmenu.h" />
     <ClInclude Include="q_shared.h" />
     <ClInclude Include="ref.h" />
-    <ClInclude Include="resource.h" />
     <ClInclude Include="screen.h" />
     <ClInclude Include="server.h" />
     <ClInclude Include="snd_loc.h" />
     <ClInclude Include="sound.h" />
     <ClInclude Include="vid.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="q2.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="q2.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

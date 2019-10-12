@@ -254,9 +254,6 @@
     <ClInclude Include="ref.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="screen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -275,15 +272,5 @@
     <ClInclude Include="qmenu.h">
       <Filter>Menus</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="q2.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="q2.rc">
-      <Filter>Resource Files</Filter>
-    </ResourceCompile>
   </ItemGroup>
 </Project>
