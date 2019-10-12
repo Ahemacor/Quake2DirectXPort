@@ -22,7 +22,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "r_local.h"
 
-#if FEATURE_BRUSH_MODEL
 #if DX11_IMPL
 #include "CppWrapper.h"
 #else // DX12
@@ -297,7 +296,6 @@ image_t *R_SelectSurfaceTexture (mtexinfo_t *ti, int frame)
 
 void R_SelectSurfaceShader (const mtexinfo_t *ti, qboolean alpha)
 {
-#if FEATURE_LIGHT
 #if DX11_IMPL
 	if (ti->flags & SURF_WARP)
         SLBindShaderBundle(d3d_SurfDrawTurbShader);
@@ -321,13 +319,6 @@ void R_SelectSurfaceShader (const mtexinfo_t *ti, qboolean alpha)
         else DX12_SetRenderState(d3d_SurfLightmapShader);
     }
 #endif // DX11_IMPL
-#else
-#if DX11_IMPL
-    SLBindShaderBundle(d3d_SurfBasicShader);
-#else // DX12
-    DX12_SetRenderState(d3d_SurfBasicShader);
-#endif // DX11_IMPL
-#endif // #if FEATURE_LIGHT
 }
 
 
@@ -896,14 +887,3 @@ void R_EndBuildingSurfaces (model_t *mod, dbsp_t *bsp)
     r_FirstSurfIndex = 0; // force a buffer discard on the first draw call to flush all indexes from the previous map
 #endif // DX11_IMPL
 }
-#else
-void R_RegeneratePVS(void) { r_oldviewleaf = NULL; }
-void R_PrepareBrushModel(entity_t* e, QMATRIX* localmatrix) {}
-void R_DrawBrushModel(entity_t* e, QMATRIX* localmatrix) {}
-void R_DrawWorld(void) {}
-void R_DrawAlphaSurfaces(void) {}
-void R_MarkLeaves(void){}
-void R_InitSurfaces(void) {}
-void R_ShutdownSurfaces(void) {}
-void R_DrawDlightChains(entity_t* e, model_t* mod, QMATRIX* localmatrix) {}
-#endif // FEATURE_BRUSH_MODEL

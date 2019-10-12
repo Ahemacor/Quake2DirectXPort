@@ -22,22 +22,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define R_LOCAL_H
 
 // Enable render features
-#define FEATURE_SKY_CUBEMAP 1
-#define FEATURE_WATER_WARP 0
-#define FEATURE_PARTICLES 1
-#define FEATURE_SCREENSHOT 0
-#define FEATURE_BEAM 1
-#define FEATURE_LIGHT 1
-#define FEATURE_ALIAS_MODEL 1
-#define FEATURE_BRUSH_MODEL 1
-#define FEATURE_SPRITE_MODEL 1
-#define FEATURE_NULL 1
-#define FEATURE_FADE_SCREEN 1
-#define FEATURE_CINEMATIC 1
-#define FEATURE_DRAW_FILL 1
-#define FEATURE_DRAW_TEXT 1
-#define FEATURE_DRAW_PICTURES 1
-
 #define DX11_IMPL 0
 
 #include <windows.h>
@@ -91,7 +75,6 @@ void R_InitSprites (void);
 void R_ShutdownSprites (void);
 void R_InitLight (void);
 void R_ShutdownLight (void);
-void R_InitWarp (void);
 void R_InitSky (void);
 void R_ShutdownWarp (void);
 void R_ShutdownSky (void);
@@ -649,14 +632,6 @@ extern int	r_dlightframecount;
 // surfaces
 void R_AddSurfaceToBatch (const msurface_t *surf);
 void R_EndSurfaceBatch (void);
-
-
-// -----------------------------------------------------------------------------------------------------------------------------------------------------------------
-// underwater warp
-qboolean D_BeginWaterWarp (void);
-void D_DoWaterWarp (void);
-void R_Clear (ID3D11RenderTargetView *RTV, ID3D11DepthStencilView *DSV);
-
 
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // mesh

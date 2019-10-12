@@ -154,7 +154,6 @@ int DX12_InitWindow(int width, int height, int mode, int fullscreen)
     R_InitParticles();
     R_InitSprites();
     R_InitLight();
-    R_InitWarp();
     R_InitSky();
     R_InitMesh();
     R_InitBeam();
@@ -169,7 +168,6 @@ void DX12_CloseWindow()
     //SLShutdownShaders();
     R_ShutdownSurfaces();
     R_ShutdownLight();
-    R_ShutdownWarp();
     R_ShutdownSky();
     R_ShutdownMesh();
     R_ShutdownBeam();

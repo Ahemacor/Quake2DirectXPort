@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include "r_local.h"
-#if FEATURE_NULL
+
 #if DX11_IMPL
 #include "CppWrapper.h"
 
@@ -77,7 +77,7 @@ void R_InitNull(void)
 
 void R_DrawNullModel(entity_t* e, QMATRIX* localmatrix)
 {
-    /*float shadelight[3];
+    float shadelight[3];
 
     float mins[3] = { -16, -16, -16 };
     float maxs[3] = { 16, 16, 16 };
@@ -96,7 +96,7 @@ void R_DrawNullModel(entity_t* e, QMATRIX* localmatrix)
     R_PrepareEntityForRendering(localmatrix, shadelight, e->alpha, e->flags);
     DX12_SetRenderState(d3d_NullShader);
 
-    DX12_Draw(24, 0);*/
+    DX12_Draw(24, 0);
 }
 
 void R_PrepareNullModel(entity_t* e, QMATRIX* localmatrix)
@@ -106,9 +106,3 @@ void R_PrepareNullModel(entity_t* e, QMATRIX* localmatrix)
     R_MatrixRotate(localmatrix, -e->angles[0], e->angles[1], -e->angles[2]);
 }
 #endif // DX11_IMPL
-
-#else 
-void R_InitNull(void) {}
-void R_DrawNullModel(entity_t* e, QMATRIX* localmatrix) {}
-void R_PrepareNullModel(entity_t* e, QMATRIX* localmatrix) {}
-#endif // #if FEATURE_NULL

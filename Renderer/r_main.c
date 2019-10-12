@@ -427,11 +427,11 @@ R_SetupFrame
 void R_SetupFrame (void)
 {
 	r_framecount++;
-#if FEATURE_BRUSH_MODEL
+
 	// current viewcluster
 	if (!(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
 		r_viewleaf = Mod_PointInLeaf (r_newrefdef.vieworg, r_worldmodel);
-#endif // FEATURE_BRUSH_MODEL
+
 	// scale for value of gl_polyblend
 	Vector4Copy (v_blend, r_newrefdef.blend);
 	v_blend[3] *= gl_polyblend->value;
@@ -606,41 +606,6 @@ void R_SetupGL (void)
 #endif // DX11_IMPL
 }
 
-
-/*
-=============
-R_Clear
-=============
-*/
-void R_Clear (ID3D11RenderTargetView *RTV, ID3D11DepthStencilView *DSV)
-{
-#if DX11_IMPL
-#if FEATURE_BRUSH_MODEL
-	mleaf_t *leaf = Mod_PointInLeaf (r_newrefdef.vieworg, r_worldmodel);
-
-	if (leaf->contents & CONTENTS_SOLID)
-	{
-		// if the view is inside solid it's probably because we're noclipping so we need to clear so as to not get HOM effects
-		float clear[4] = {0.1f, 0.1f, 0.1f, 0.0f};
-		//d3d_Context->lpVtbl->ClearRenderTargetView (d3d_Context, RTV, clear);
-        RWGetDeviceContext()->lpVtbl->ClearRenderTargetView(RWGetDeviceContext(), RTV, clear);
-	}
-	else if (gl_clear->value)
-#endif // FEATURE_BRUSH_MODEL
-	{
-		float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-		//d3d_Context->lpVtbl->ClearRenderTargetView (d3d_Context, RTV, clear);
-        RWGetDeviceContext()->lpVtbl->ClearRenderTargetView(RWGetDeviceContext(), RTV, clear);
-	}
-
-	// standard depth clear
-	//d3d_Context->lpVtbl->ClearDepthStencilView (d3d_Context, DSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 1);
-    RWGetDeviceContext()->lpVtbl->ClearDepthStencilView(RWGetDeviceContext(), DSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 1);
-#else // DX12
-        //DX12_ClearRTVandDSV();
-#endif // DX11_IMPL
-}
-
 /*
 ============
 R_PolyBlend
@@ -765,16 +730,9 @@ void R_RenderFrame (refdef_t *fd)
 
 	R_PrepareEntities ();
 
-	if (D_BeginWaterWarp ())
-	{
-		R_RenderScene ();
-		D_DoWaterWarp ();
-	}
-	else
-	{
-		R_RenderScene ();
-		R_PolyBlend ();
-	}
+    R_RenderScene ();
+
+	R_PolyBlend ();
 
 	R_SetLightLevel ();
 }

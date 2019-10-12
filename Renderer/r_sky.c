@@ -20,7 +20,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "r_local.h"
 
-#if FEATURE_SKY_CUBEMAP
 #if DX11_IMPL
 #include "CppWrapper.h"
 #else // DX12
@@ -227,10 +226,3 @@ void R_SetSky (char *name, float rotate, vec3_t axis)
 	// throw away memory used for loading
 	ri.Load_FreeMemory ();
 }
-#else
-void R_SetSky(char* name, float rotate, vec3_t axis) {}
-void R_DrawSkyChain(msurface_t* surf) {}
-void R_SetupSky(QMATRIX* SkyMatrix) {}
-void R_InitSky(void) {}
-void R_ShutdownSky(void) {}
-#endif // FEATURE_SKY_CUBEMAP

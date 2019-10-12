@@ -20,7 +20,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "r_local.h"
 
-#if FEATURE_PARTICLES
 #if DX11_IMPL
 #include "CppWrapper.h"
 #else // DX12
@@ -152,8 +151,3 @@ void R_DrawParticles (void)
 
 #endif // DX11_IMPL
 }
-#else
-void R_InitParticles(void) {}
-void R_DrawParticles(void) {}
-#endif // FEATURE_PARTICLES
-

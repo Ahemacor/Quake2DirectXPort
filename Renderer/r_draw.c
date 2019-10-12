@@ -68,25 +68,11 @@ static int d_numdrawverts = 0;
 static image_t	*draw_chars;
 static image_t	*sb_nums[2];
 
-#if FEATURE_DRAW_PICTURES
 static int d3d_DrawTexturedShader;
-#endif // #if FEATURE_DRAW_PICTURES
-
-#if FEATURE_CINEMATIC
 static int d3d_DrawCinematicShader;
-#endif // FEATURE_CINEMATIC
-
-#if FEATURE_DRAW_FILL
 static int d3d_DrawColouredShader;
-#endif // FEATURE_DRAW_FILL
-
-#if FEATURE_DRAW_TEXT
 static int d3d_DrawTexArrayShader;
-#endif // #if FEATURE_DRAW_TEXT
-
-#if FEATURE_FADE_SCREEN
 static int d3d_DrawFadescreenShader;
-#endif // FEATURE_FADE_SCREEN
 
 #if DX11_IMPL
 static ID3D11Buffer *d3d_DrawConstants = NULL;
@@ -255,7 +241,6 @@ void Draw_InitLocal (void)
 #endif // DX11_IMPL
 
 	// shaders
-#if FEATURE_DRAW_PICTURES
 #if DX11_IMPL
 	d3d_DrawTexturedShader = SLCreateShaderBundle(IDR_DRAWSHADER, "DrawTexturedVS", NULL, "DrawTexturedPS", DEFINE_LAYOUT (layout_standard));
 #else // DX12
@@ -270,9 +255,7 @@ void Draw_InitLocal (void)
     TexturedState.RS = RSNoCull;
     d3d_DrawTexturedShader = DX12_CreateRenderState(&TexturedState);
 #endif // DX11_IMPL
-#endif // #if FEATURE_DRAW_PICTURES
 
-#if FEATURE_DRAW_FILL
 #if DX11_IMPL
 	d3d_DrawColouredShader = SLCreateShaderBundle(IDR_DRAWSHADER, "DrawColouredVS", NULL, "DrawColouredPS", DEFINE_LAYOUT (layout_standard));
 #else // DX12
@@ -287,9 +270,7 @@ void Draw_InitLocal (void)
     ColouredState.RS = RSNoCull;
     d3d_DrawColouredShader = DX12_CreateRenderState(&ColouredState);
 #endif //DX11_IMPL
-#endif // #if FEATURE_DRAW_FILL
 
-#if FEATURE_DRAW_TEXT
 #if DX11_IMPL
 	d3d_DrawTexArrayShader = SLCreateShaderBundle(IDR_DRAWSHADER, "DrawTexArrayVS", NULL, "DrawTexArrayPS", DEFINE_LAYOUT (layout_texarray));
 #else // DX12
@@ -304,9 +285,7 @@ void Draw_InitLocal (void)
     TextState.RS = RSNoCull;
     d3d_DrawTexArrayShader = DX12_CreateRenderState(&TextState);
 #endif // DX11_IMPL
-#endif // #if FEATURE_DRAW_TEXT
 
-#if FEATURE_CINEMATIC
 #if DX11_IMPL
 	d3d_DrawCinematicShader = SLCreateShaderBundle(IDR_DRAWSHADER, "DrawCinematicVS", NULL, "DrawCinematicPS", DEFINE_LAYOUT (layout_standard));
 #else // DX12
@@ -321,10 +300,8 @@ void Draw_InitLocal (void)
     CinematicState.RS = RSNoCull;
     d3d_DrawCinematicShader = DX12_CreateRenderState(&CinematicState);
 #endif // DX11_IMPL
-#endif // FEATURE_CINEMATIC
 
 	// shaders for use without buffers
-#if FEATURE_FADE_SCREEN
 #if DX11_IMPL
 	d3d_DrawFadescreenShader = SLCreateShaderBundle(IDR_DRAWSHADER, "DrawFadescreenVS", NULL, "DrawFadescreenPS", NULL, 0);
 #else // DX12
@@ -339,7 +316,6 @@ void Draw_InitLocal (void)
     FadeScreenState.RS = RSNoCull;
     d3d_DrawFadescreenShader = DX12_CreateRenderState(&FadeScreenState);
 #endif // DX11_IMPL
-#endif // FEATURE_FADE_SCREEN
 
 	// vertex and index buffers
 	Draw_CreateBuffers ();
@@ -489,7 +465,6 @@ void Draw_CharacterVertex (drawpolyvert_t *vert, float x, float y, float s, floa
 
 void Draw_TexturedQuad (image_t *image, int x, int y, int w, int h, unsigned color)
 {
-#if FEATURE_DRAW_PICTURES
 #if DX11_IMPL
     R_BindTexture(image->SRV);
     SLBindShaderBundle(d3d_DrawTexturedShader);
@@ -508,8 +483,6 @@ void Draw_TexturedQuad (image_t *image, int x, int y, int w, int h, unsigned col
 
 		Draw_Flush ();
 	}
-
-#endif // #if FEATURE_DRAW_PICTURES
 }
 
 
@@ -529,7 +502,6 @@ void Draw_CharacterQuad (int x, int y, int w, int h, int slice)
 
 void Draw_Field (int x, int y, int color, int width, int value)
 {
-#if FEATURE_DRAW_TEXT
     char	num[16], * ptr;
     int		l;
     int		frame;
@@ -573,7 +545,6 @@ void Draw_Field (int x, int y, int color, int width, int value)
     }
 
     Draw_Flush();
-#endif // #if FEATURE_DRAW_TEXT
 }
 
 
@@ -588,7 +559,6 @@ smoothly scrolled off.
 */
 void Draw_Char (int x, int y, int num)
 {
-#if FEATURE_DRAW_TEXT
 	// totally off screen
 	if (y <= -8) return;
 
@@ -606,7 +576,6 @@ void Draw_Char (int x, int y, int num)
 #endif // DX11_IMPL
 
 	Draw_CharacterQuad (x, y, 8, 8, num & 255);
-#endif // #if FEATURE_DRAW_TEXT
 }
 
 
@@ -698,7 +667,6 @@ void Draw_ConsoleBackground (int x, int y, int w, int h, char *pic, int alpha)
 
 void Draw_Fill (int x, int y, int w, int h, int c)
 {
-#if FEATURE_DRAW_FILL
 	// this is a quad filled with a single solid colour so it doesn't need to blend
 #if DX11_IMPL
     SLBindShaderBundle(d3d_DrawColouredShader);
@@ -716,7 +684,6 @@ void Draw_Fill (int x, int y, int w, int h, int c)
 
 		Draw_Flush ();
 	}
-#endif // #if FEATURE_DRAW_FILL
 }
 
 
@@ -730,7 +697,6 @@ Draw_FadeScreen
 */
 void Draw_FadeScreen (void)
 {
-#if FEATURE_FADE_SCREEN
     // full-screen triangle
 #if DX11_IMPL
     SMSetRenderStates(BSAlphaPreMult, DSDepthNoWrite, RSNoCull);
@@ -740,7 +706,6 @@ void Draw_FadeScreen (void)
     DX12_SetRenderState(d3d_DrawFadescreenShader);
     DX12_Draw(3, 0);
 #endif // DX11_IMPL
-#endif // FEATURE_FADE_SCREEN
 }
 
 
@@ -752,16 +717,12 @@ void Draw_FadeScreen (void)
 Draw_StretchRaw
 =============
 */
-#if FEATURE_CINEMATIC
 texture_t r_CinematicPic;
-#endif // #if FEATURE_CINEMATIC
 
 
 void Draw_ShutdownRawImage (void)
 {
-#if FEATURE_CINEMATIC
 	R_ReleaseTexture (&r_CinematicPic);
-#endif // #if FEATURE_CINEMATIC
 }
 
 #if DX11_IMPL
@@ -774,7 +735,6 @@ int R_TexSubImage8(int level, int x, int y, int w, int h, byte* data, unsigned* 
 
 void Draw_StretchRaw (int cols, int rows, byte *data, int frame, const unsigned char *palette)
 {
-#if FEATURE_CINEMATIC
 #if DX11_IMPL
 	// we only need to refresh the texture if the frame changes
 	static int r_rawframe = -1;
@@ -912,7 +872,6 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame, const unsigned 
         Draw_Flush();
     }
 #endif // DX11_IMPL
-#endif // #if FEATURE_CINEMATIC
 }
 
 void R_Set2D (void)

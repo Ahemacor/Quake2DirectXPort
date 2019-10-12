@@ -21,7 +21,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "r_local.h"
 
-#if FEATURE_LIGHT
 #if DX11_IMPL
 #include "CppWrapper.h"
 #else // DX12
@@ -823,25 +822,3 @@ void R_PrepareDlights (void)
 		// other stuff may follow...
 	}
 }
-#else
-int	r_dlightframecount = 1;
-int R_RecursiveLightPoint(mnode_t* node, vec3_t start, vec3_t end) { return 0; }
-void R_LightPoint(vec3_t p, vec3_t color) {}
-void R_DynamicLightPoint(vec3_t p, vec3_t color) {}
-void R_InitLight(void) {}
-void R_ShutdownLightmaps(void) {}
-void R_ShutdownLight(void) {}
-void R_BuildLightMap(msurface_t* surf, int ch, int smax, int tmax) {}
-void R_CreateSurfaceLightmap(msurface_t* surf) {}
-void R_BeginBuildingLightmaps(model_t* m) {}
-void R_CreateLightmapTexture(int ch) {}
-void R_EndBuildingLightmaps(void) {}
-void R_SetupLightmapTexCoords(msurface_t* surf, float* vec, unsigned short* lm) {}
-void R_BindLightmaps(void) {}
-void D_SetupDynamicLight(dlight_t* dl, float* transformedorigin, int rflags) {}
-qboolean R_SurfaceDLImpact(msurface_t* surf, dlight_t* dl, float* transformedorigin, float dist) { return false; }
-void R_MarkLights(dlight_t* dl, float* transformedorigin, mnode_t* node, int visframe) {}
-void R_PushDlights(mnode_t* headnode, entity_t* e, model_t* mod, QMATRIX* localmatrix, int visframe) {}
-void R_SetLightLevel(void) {}
-void R_PrepareDlights(void) {}
-#endif // FEATURE_LIGHT

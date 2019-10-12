@@ -20,7 +20,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "r_local.h"
 
-#if FEATURE_SPRITE_MODEL
 #if DX11_IMPL
 #include "CppWrapper.h"
 #else // DX12
@@ -264,7 +263,7 @@ void R_ShutdownSprites (void)
 
 void R_DrawSpriteModel (entity_t *e, QMATRIX *localmatrix)
 {
-	/*model_t *mod = e->model;
+	model_t *mod = e->model;
 
 	// don't even bother culling, because it's just a single polygon without a surface cache
 	// (note - with hardware it might make sense to cull)
@@ -302,10 +301,10 @@ void R_DrawSpriteModel (entity_t *e, QMATRIX *localmatrix)
     R_BindTexture(mod->skins[framenum]->textureId);
     R_PrepareEntityForRendering(localmatrix, NULL, e->alpha, e->flags);
 
-    DX12_BindVertexBuffer(5, d3d_SpriteBuffers[mod->bufferset].PolyVertsId);
+    DX12_BindVertexBuffer(5, d3d_SpriteBuffers[mod->bufferset].PolyVertsId, 0);
     DX12_BindIndexBuffer(d3d_SpriteIndexes);
     DX12_DrawIndexed(6, 0, framenum * 4);
-#endif // DX11_IMPL*/
+#endif // DX11_IMPL
 }
 
 
@@ -315,12 +314,3 @@ void R_PrepareSpriteModel (entity_t *e, QMATRIX *localmatrix)
 	R_MatrixIdentity (localmatrix);
 	R_MatrixTranslate (localmatrix, e->currorigin[0], e->currorigin[1], e->currorigin[2]);
 }
-
-#else 
-void R_FreeUnusedSpriteBuffers(void) {}
-void R_PrepareSpriteModel(entity_t* e, QMATRIX* localmatrix) {}
-void R_DrawSpriteModel(entity_t* e, QMATRIX* localmatrix) {}
-void R_InitSprites(void) {}
-void R_ShutdownSprites(void) {}
-#endif // FEATURE_SPRITE_MODEL
-

@@ -101,9 +101,6 @@
     <ClCompile Include="r_particles.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="r_screen.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="r_sky.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -120,9 +117,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="r_vidref.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="r_warp.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CppWrapper.cpp">

@@ -21,7 +21,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "r_local.h"
 
-#if FEATURE_ALIAS_MODEL
 #if DX11_IMPL
 #include "CppWrapper.h"
 #else // DX12
@@ -542,8 +541,6 @@ image_t *R_SelectAliasTexture (entity_t *e, model_t *mod)
 void R_SelectAliasShader (int eflags)
 {
 #if DX11_IMPL
-
-#if FEATURE_LIGHT
 	// figure the correct shaders to use
 	if (eflags & (RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM))
         SLBindShaderBundle(d3d_MeshPowersuitShader);
@@ -552,13 +549,9 @@ void R_SelectAliasShader (int eflags)
 	else if (!r_worldmodel->lightdata || r_fullbright->value)
         SLBindShaderBundle(d3d_MeshFullbrightShader);
 	else SLBindShaderBundle(d3d_MeshLightmapShader);
-#else
-    SLBindShaderBundle(d3d_MeshFullbrightShader);
-#endif // FEATURE_LIGHT
 
 #else // DX12
 
-#if FEATURE_LIGHT
     // figure the correct shaders to use
     if (eflags & (RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM))
         DX12_SetRenderState(d3d_MeshPowersuitShader);
@@ -567,9 +560,6 @@ void R_SelectAliasShader (int eflags)
     else if (!r_worldmodel->lightdata || r_fullbright->value)
         DX12_SetRenderState(d3d_MeshFullbrightShader);
     else DX12_SetRenderState(d3d_MeshLightmapShader);
-#else // !FEATURE_LIGHT
-    DX12_SetRenderState(d3d_MeshFullbrightShader);
-#endif // FEATURE_LIGHT
 
 #endif // DX11_IMPL
 }
@@ -934,10 +924,8 @@ void R_DrawAliasModel (entity_t *e, QMATRIX *localmatrix)
 	// no dlights unless it's flagged for them
 	if (!(e->flags & RF_DYNAMICLIGHT)) return;
 
-#if FEATURE_LIGHT
 	// add dynamic lighting to the entity
 	R_AliasDlights (e, mod, hdr, localmatrix);
-#endif // FEATURE_LIGHT
 }
 
 
@@ -967,11 +955,3 @@ void R_PrepareAliasModel (entity_t *e, QMATRIX *localmatrix)
 	R_MatrixRotate (localmatrix, e->angles[0], e->angles[1], -e->angles[2]);
 }
 
-#else
-void R_FreeUnusedAliasBuffers(void) {}
-void D_RegisterAliasBuffers(model_t* mod) {}
-void R_PrepareAliasModel(entity_t* e, QMATRIX* localmatrix) {}
-void R_DrawAliasModel(entity_t* e, QMATRIX* localmatrix) {}
-void R_InitMesh(void) {}
-void R_ShutdownMesh(void) {}
-#endif // FEATURE_ALIAS

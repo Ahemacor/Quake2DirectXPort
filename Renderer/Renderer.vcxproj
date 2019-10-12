@@ -103,14 +103,12 @@
     <ClCompile Include="r_model.c" />
     <ClCompile Include="r_null.c" />
     <ClCompile Include="r_particles.c" />
-    <ClCompile Include="r_screen.c" />
     <ClCompile Include="r_sky.c" />
     <ClCompile Include="r_sprite.c" />
     <ClCompile Include="r_surf.c" />
     <ClCompile Include="r_texture.c" />
     <ClCompile Include="r_vcache.c" />
     <ClCompile Include="r_vidref.c" />
-    <ClCompile Include="r_warp.c" />
     <ClCompile Include="ShaderLoader.cpp" />
     <ClCompile Include="StateManager.cpp" />
     <ClCompile Include="TestDirectX12.cpp" />

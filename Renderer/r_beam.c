@@ -19,7 +19,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include "r_local.h"
-#if FEATURE_BEAM
 #if DX11_IMPL
 #include "CppWrapper.h"
 #else // DX12
@@ -259,9 +258,3 @@ void R_PrepareBeam (entity_t *e, QMATRIX *localmatrix)
 	R_MatrixRotateAxis (localmatrix, (180.0f / M_PI) * acos ((Vector3Dot (upvec, dir) / len)), axis[0], axis[1], axis[2]);
 	R_MatrixScale (localmatrix, e->currframe, e->currframe, len);
 }
-#else
-void R_PrepareBeam(entity_t* e, QMATRIX* localmatrix) {}
-void R_DrawBeam(entity_t* e, QMATRIX* localmatrix) {}
-void R_InitBeam(void) {}
-void R_ShutdownBeam(void) {}
-#endif // FEATURE_BEAM

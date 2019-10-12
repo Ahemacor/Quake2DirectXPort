@@ -207,8 +207,6 @@ void Draw_Char (int x, int y, int c);
 void Draw_Fill (int x, int y, int w, int h, int c);
 void Draw_FadeScreen (void);
 void D_EnumerateVideoModes (void);
-void D_CaptureScreenshot (char *checkname);
-void R_ClearToBlack (void);
 
 /*
 ===============
@@ -239,7 +237,6 @@ refexport_t GetRefAPI (refimport_t rimp)
 	re.DrawPic = Draw_Pic; // Draw_TexturedQuad
 	re.DrawFill = Draw_Fill; // Some drawing for menu
 	re.DrawFadeScreen = Draw_FadeScreen; // Draw darkened menu background
-	re.Clear = R_ClearToBlack; // Seems not used
 
 	re.DrawChar = Draw_Char; // Draw_CharacterQuad
 	re.DrawString = Draw_Flush; // (sprite staff) D_BindVertexBuffer and draw or draw indexed
@@ -256,7 +253,7 @@ refexport_t GetRefAPI (refimport_t rimp)
 
 	re.AppActivate = GLimp_AppActivate; // minimize/restore
 	re.EnumerateVideoModes = D_EnumerateVideoModes;
-	re.CaptureScreenshot = D_CaptureScreenshot;
+	re.CaptureScreenshot = NULL;
 
 	Swap_Init ();
 

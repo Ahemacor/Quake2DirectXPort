@@ -335,7 +335,6 @@ bool RenderWindow::InitDirectX()
     R_InitParticles();
     R_InitSprites();
     R_InitLight();
-    R_InitWarp();
     R_InitSky();
     R_InitMesh();
     R_InitBeam();

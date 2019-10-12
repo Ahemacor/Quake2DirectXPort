@@ -21,7 +21,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "r_local.h"
 
-#if FEATURE_SPRITE_MODEL
 extern model_t	*loadmodel;
 extern int		modfilelen;
 
@@ -75,6 +74,3 @@ void Mod_LoadSpriteModel (model_t *mod, void *buffer)
 	// and create buffers for it
 	D_MakeSpriteBuffers (mod);
 }
-#else
-void Mod_LoadSpriteModel(model_t* mod, void* buffer) { mod->type == mod_sprite; }
-#endif // FEATURE_SPRITE_MODEL
