@@ -100,7 +100,7 @@ Draw_InitLocal
 void Draw_InitLocal (void)
 {
     d3d_DrawConstants = DX12_CreateConstantBuffer(NULL, sizeof(drawconstants_t));
-    DX12_BindConstantBuffer(d3d_DrawConstants, 0);
+    DX12_BindConstantBuffer(d3d_DrawConstants, CB_SLOT_DRAW_PER_FRAME);
 
     State TexturedState;
     TexturedState.inputLayout = INPUT_LAYOUT_STANDART;

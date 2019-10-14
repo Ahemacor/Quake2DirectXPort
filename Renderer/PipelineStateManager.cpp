@@ -393,14 +393,14 @@ void PipelineStateManager::CreateRootSignature()
     CD3DX12_ROOT_PARAMETER rootParameters[ParameterIdx::ROOT_PARAMS_COUNT] = {};
     rootParameters[ParameterIdx::SRV_TABLE_IDX].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[ParameterIdx::SAMPLERS_TABLE_IDX].InitAsDescriptorTable(1, &samplerRange, D3D12_SHADER_VISIBILITY_ALL);
-    rootParameters[ParameterIdx::CB0_IDX].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_ALL);
-    rootParameters[ParameterIdx::CB1_IDX].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL);
-    rootParameters[ParameterIdx::CB2_IDX].InitAsConstantBufferView(2, 0, D3D12_SHADER_VISIBILITY_ALL);
-    rootParameters[ParameterIdx::CB3_IDX].InitAsConstantBufferView(3, 0, D3D12_SHADER_VISIBILITY_ALL);
-    rootParameters[ParameterIdx::CB4_IDX].InitAsConstantBufferView(4, 0, D3D12_SHADER_VISIBILITY_ALL);
-    rootParameters[ParameterIdx::CB5_IDX].InitAsConstantBufferView(5, 0, D3D12_SHADER_VISIBILITY_ALL);
-    rootParameters[ParameterIdx::CB6_IDX].InitAsConstantBufferView(6, 0, D3D12_SHADER_VISIBILITY_ALL);
-    rootParameters[ParameterIdx::CB7_IDX].InitAsConstantBufferView(7, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[ParameterIdx::CB0_IDX].InitAsConstantBufferView(CB_SLOT_DRAW_PER_FRAME, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[ParameterIdx::CB1_IDX].InitAsConstantBufferView(CB_SLOT_MAIN_PER_FRAME, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[ParameterIdx::CB2_IDX].InitAsConstantBufferView(CB_SLOT_PER_OBJECT, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[ParameterIdx::CB3_IDX].InitAsConstantBufferView(CB_SLOT_PER_MESH, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[ParameterIdx::CB4_IDX].InitAsConstantBufferView(CB_SLOT_PER_LIGHT, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[ParameterIdx::CB5_IDX].InitAsConstantBufferView(CB_SLOT_QUAKE_PALETTE, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[ParameterIdx::CB6_IDX].InitAsConstantBufferView(CB_SLOT_LIGHT_STYLES, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[ParameterIdx::CB7_IDX].InitAsConstantBufferView(CB_SLOT_LIGHT_NORMALS, 0, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[ParameterIdx::CB8_IDX].InitAsConstantBufferView(8, 0, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[ParameterIdx::CB9_IDX_MAX].InitAsConstantBufferView(9, 0, D3D12_SHADER_VISIBILITY_ALL);
 

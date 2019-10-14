@@ -289,13 +289,13 @@ static int quakePaletteBuffer;
 void R_InitLight (void)
 {
     d3d_DLightConstants = DX12_CreateConstantBuffer(NULL, sizeof(dlight_t));
-    DX12_BindConstantBuffer(d3d_DLightConstants, 4);
+    DX12_BindConstantBuffer(d3d_DLightConstants, CB_SLOT_PER_LIGHT);
 
     lightStylesBuffer = DX12_CreateConstantBuffer(NULL, MAX_LIGHTSTYLES * sizeof(float));
-    DX12_BindConstantBuffer(lightStylesBuffer, 6);
+    DX12_BindConstantBuffer(lightStylesBuffer, CB_SLOT_LIGHT_STYLES);
 
     lightNormalsBuffer = DX12_CreateConstantBuffer(r_avertexnormals, NUMVERTEXNORMALS * sizeof(r_avertexnormals[0]));
-    DX12_BindConstantBuffer(lightNormalsBuffer, 7);
+    DX12_BindConstantBuffer(lightNormalsBuffer, CB_SLOT_LIGHT_NORMALS);
 
     union PaletteColor
     {
@@ -317,7 +317,7 @@ void R_InitLight (void)
         palette_buffer[colIdx].color[blue] = palette_color.color[blue] / 255.0f;
     }
     quakePaletteBuffer = DX12_CreateConstantBuffer(palette_buffer, sizeof(palette_buffer));
-    DX12_BindConstantBuffer(quakePaletteBuffer, 5);
+    DX12_BindConstantBuffer(quakePaletteBuffer, CB_SLOT_QUAKE_PALETTE);
 
 }
 

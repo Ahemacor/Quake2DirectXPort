@@ -63,7 +63,7 @@ static int d3d_MeshConstants;
 void R_InitMesh (void)
 {
     d3d_MeshConstants = DX12_CreateConstantBuffer(NULL, sizeof(meshconstants_t));
-    DX12_BindConstantBuffer(d3d_MeshConstants, 3);
+    DX12_BindConstantBuffer(d3d_MeshConstants, CB_SLOT_PER_MESH);
 
     State meshState;
     meshState.inputLayout = INPUT_LAYOUT_MESH;

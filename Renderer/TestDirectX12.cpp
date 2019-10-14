@@ -4,36 +4,6 @@
 #include "Renderer.h"
 #include <cassert>
 
-struct Vertex
-{
-    float position[2];
-    float uv[3];
-};
-
-static const Vertex vertices[4] = {
-    // Upper Left
-    { { -1.0f, 1.0f }, { 0, 0, 0 } },
-    // Upper Right
-    { { 1.0f, 1.0f }, { 1, 0, 0 } },
-    // Bottom right
-    { { 1.0f, -1.0f }, { 1, 1, 0 } },
-    // Bottom left
-    { { -1.0f, -1.0f }, { 0, 1, 0 } }
-};
-
-static const int indices[6] = {
-    0, 1, 2, 2, 3, 0
-};
-
-const char* imageFilePath = "ruby.jpg";
-
-struct ConstantBuffer { float x, y, z, w; };
-
-static const ConstantBuffer cb = { 0, 0, 0, 0 };
-
-static float shortCb = 0.9f;
-int cbId = -1;
-
 HINSTANCE hInstance = nullptr;
 WNDPROC winproc = nullptr;
 
@@ -45,38 +15,6 @@ int DX12_CreateConstantBuffer(const void* pSrcData, int bufferSize);
 void DX12_UpdateConstantBuffer(int resourceId, const void* pSrcData, int bufferSize);
 void DX12_BindConstantBuffer(int resourceId, int slot);
 
-static void TestInit()
-{
-    /*int width = 0, height = 0;
-    std::vector<std::uint8_t> imageData = LoadImageFromFile(imageFilePath, 1, &width, &height);
-    
-    int cbId = DX12_CreateConstantBuffer(nullptr, sizeof(shortCb));
-    DX12_UpdateConstantBuffer(cbId, &shortCb, sizeof(shortCb));
-    DX12_BindConstantBuffer(cbId, 0);
-
-    ScopedStateManager SM = g_renderer->GetStateManager(true);
-    SM->SetInputLayout(InputLayout::INPUT_LAYOUT_TEXARRAY);
-    SM->SetVertexShader(ShaderType::SHADER_TEST_VS);
-    SM->SetPixelShader(ShaderType::SHADER_TEST_PS);
-    SM->SetBlendState(BlendState::BSNone);
-    SM->SetDepthState(DepthStencilState::DSDepthNoWrite);
-    SM->SetRasterizerState(RasterizerState::RSNoCull);
-    SM->SetPrimitiveTopology();
-
-    ResourceManager::Resource::Id srvId = g_renderer->CreateTextureResource(width, height, imageData.data());
-    g_renderer->BindTextureResource(srvId, 0);
-
-    ResourceManager::Resource::Id vbId = g_renderer->CreateVertexBuffer(ARRAYSIZE(vertices), sizeof(Vertex), vertices);
-    DX12_BindVertexBuffer(0, vbId);
-
-    ResourceManager::Resource::Id ibId = g_renderer->CreateIndexBuffer(ARRAYSIZE(indices), indices);
-    g_renderer->BindIndexBuffer(ibId);*/
-}
-
-static void TestRender()
-{
-    DX12_DrawIndexed(6, 0, 0);
-}
 
 void DX12_Init()
 {
@@ -116,13 +54,12 @@ void DX12_Release()
 
 void DX12_Render_Begin()
 {
-    //g_renderEnv->ClearScreen();
-    //TestRender();
+
 }
 
 void DX12_Render_End()
 {
-    //g_renderEnv->Present();
+
 }
 
 void DX12_SetAppProps(HINSTANCE hInstance, WNDPROC winproc)
@@ -179,7 +116,7 @@ void DX12_CloseWindow()
 
 void DX12_InitDefaultStates()
 {
-    //TestInit();
+
 }
 
 UINT DX12_GetModesNumber()

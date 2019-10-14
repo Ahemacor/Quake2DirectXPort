@@ -495,6 +495,20 @@ typedef struct State
     D3D12_PRIMITIVE_TOPOLOGY_TYPE topology;
 } State;
 
+typedef enum CBSlotEnum
+{
+    CB_SLOT_DRAW_PER_FRAME = 0,
+    CB_SLOT_MAIN_PER_FRAME = 1,
+    CB_SLOT_PER_OBJECT = 2,
+    CB_SLOT_PER_MESH = 3,
+    CB_SLOT_PER_LIGHT = 4,
+    CB_SLOT_QUAKE_PALETTE = 5,
+    CB_SLOT_LIGHT_STYLES = 6,
+    CB_SLOT_LIGHT_NORMALS = 7,
+
+    CS_SLOT_COUNT
+} CBSlot;
+
 #ifndef __cplusplus
 #define SELECT_RASTERIZER( FLAGS ) ((((FLAGS) & RF_WEAPONMODEL) && r_lefthand->value) ? RSReverseCull : RSFullCull )
 #endif // __cplusplus

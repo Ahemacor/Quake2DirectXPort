@@ -66,8 +66,8 @@ void R_InitMain (void)
     d3d_MainConstants = DX12_CreateConstantBuffer(NULL, sizeof(mainconstants_t));
     d3d_EntityConstants = DX12_CreateConstantBuffer(NULL, sizeof(entityconstants_t));
 
-    DX12_BindConstantBuffer(d3d_MainConstants, 1);
-    DX12_BindConstantBuffer(d3d_EntityConstants, 2);
+    DX12_BindConstantBuffer(d3d_MainConstants, CB_SLOT_MAIN_PER_FRAME);
+    DX12_BindConstantBuffer(d3d_EntityConstants, CB_SLOT_PER_OBJECT);
 
     State polyblendState;
     polyblendState.inputLayout = INPUT_LAYOUT_STANDART;
