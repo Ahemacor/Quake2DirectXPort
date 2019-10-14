@@ -216,11 +216,11 @@ void Renderer::UpdateTextureResource(ResourceManager::Resource::Id resourceId, D
     resourceManager.UpdateSRVBuffer(resourceId, pSrcData, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 }
 
-void Renderer::UpdateVertexBuffer(ResourceManager::Resource::Id resourceId, const void* pVertexData, const std::size_t numOfVertices, const std::size_t vertexSize)
+void Renderer::UpdateVertexBuffer(ResourceManager::Resource::Id resourceId, const void* pVertexData, const std::size_t numOfVertices, const std::size_t firstVertex, const std::size_t vertexSize)
 {
     ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
     const std::size_t dataSize = vertexSize * numOfVertices;
-    resourceManager.UpdateBufferData(resource.d12resource.Get(), pVertexData, dataSize, 0, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+    resourceManager.UpdateBufferData(resource.d12resource.Get(), pVertexData, dataSize, firstVertex * vertexSize, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
     resource.variant.vbView = resourceManager.CreateVertexBufferView(resource.d12resource.Get(), dataSize, vertexSize);
 }
 

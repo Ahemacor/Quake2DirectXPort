@@ -193,7 +193,7 @@ void Draw_Flush (void)
 {
     if (d_drawverts)
     {
-        DX12_UpdateVertexBuffer(d3d_DrawVertexes, vertex_buffer, MAX_DRAW_VERTS, sizeof(drawpolyvert_t));
+        DX12_UpdateVertexBuffer(d3d_DrawVertexes, vertex_buffer, d_numdrawverts, d_firstdrawvert, sizeof(drawpolyvert_t));
         d_drawverts = NULL;
     }
 

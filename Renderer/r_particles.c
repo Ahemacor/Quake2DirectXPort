@@ -59,7 +59,7 @@ void R_DrawParticles (void)
     if (!r_newrefdef.num_particles)
         return;
 
-    DX12_UpdateVertexBuffer(d3d_ParticleVertexes, r_newrefdef.particles, r_newrefdef.num_particles, sizeof(particle_t));
+    DX12_UpdateVertexBuffer(d3d_ParticleVertexes, r_newrefdef.particles, r_newrefdef.num_particles, 0, sizeof(particle_t));
     DX12_SetRenderState(d3d_ParticleShader);
     DX12_BindVertexBuffer(6, d3d_ParticleVertexes, 0);
     DX12_Draw(r_newrefdef.num_particles, 0);

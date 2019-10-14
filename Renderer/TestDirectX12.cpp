@@ -11,11 +11,6 @@ WindowsWindow* g_window = nullptr;
 RenderEnvironment* g_renderEnv = nullptr;
 Renderer* g_renderer = nullptr;
 
-int DX12_CreateConstantBuffer(const void* pSrcData, int bufferSize);
-void DX12_UpdateConstantBuffer(int resourceId, const void* pSrcData, int bufferSize);
-void DX12_BindConstantBuffer(int resourceId, int slot);
-
-
 void DX12_Init()
 {
     assert(g_window == nullptr);
@@ -154,9 +149,9 @@ int DX12_CreateVertexBuffer(int numOfVertices, int vertexSize, const void* pVert
     return g_renderer->CreateVertexBuffer(numOfVertices, vertexSize, pVertexData);
 }
 
-void DX12_UpdateVertexBuffer(int resourceId, const void* pVertexData, int numOfVertices, int vertexSize)
+void DX12_UpdateVertexBuffer(int resourceId, const void* pVertexData, int numOfVertices, int firstVertex, int vertexSize)
 {
-    g_renderer->UpdateVertexBuffer(resourceId, pVertexData, numOfVertices, vertexSize);
+    g_renderer->UpdateVertexBuffer(resourceId, pVertexData, numOfVertices, firstVertex, vertexSize);
 }
 
 void DX12_BindVertexBuffer(UINT Slot, int resourceId, UINT Offset)
