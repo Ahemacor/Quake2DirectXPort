@@ -188,7 +188,7 @@ void R_EndSurfaceBatch (void)
 {
     if (r_SurfIndexes)
     {
-        DX12_UpdateIndexBuffer(d3d_SurfIndexes, surf_index_buffer, MAX_SURF_INDEXES, sizeof(unsigned int));
+        DX12_UpdateIndexBuffer(d3d_SurfIndexes, surf_index_buffer, r_NumSurfIndexes, r_FirstSurfIndex, sizeof(unsigned int));
         r_SurfIndexes = NULL;
     }
 

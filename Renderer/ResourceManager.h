@@ -68,6 +68,7 @@ public:
     void UpdateBufferData(ID3D12Resource* resourceBuffer,
                           const void* pSrcData,
                           const std::size_t dataSize,
+                          const std::size_t offset = 0,
                           const D3D12_RESOURCE_STATES origState = D3D12_RESOURCE_STATE_COPY_DEST);
 
 

@@ -159,7 +159,7 @@ void ResourceManager::UpdateSRVBuffer(Resource::Id resourceId, D3D12_SUBRESOURCE
     pRenderEnv->ExecuteUpdateCommandList();
 }
 
-void ResourceManager::UpdateBufferData(ID3D12Resource* resourceBuffer, const void* pSrcData, const std::size_t dataSize, const D3D12_RESOURCE_STATES origState)
+void ResourceManager::UpdateBufferData(ID3D12Resource* resourceBuffer, const void* pSrcData, const std::size_t dataSize, const std::size_t offset, const D3D12_RESOURCE_STATES origState)
 {
     ASSERT(resourceBuffer != nullptr);
     ASSERT(pSrcData != nullptr);
@@ -175,12 +175,15 @@ void ResourceManager::UpdateBufferData(ID3D12Resource* resourceBuffer, const voi
 
     ID3D12Resource* uploadBuffer = CreateUploadBuffer(dataSize);
 
+    char* srcDataWithOffset = (char*)pSrcData;
+    srcDataWithOffset += offset;
+
     void* p;
     uploadBuffer->Map(0, nullptr, &p);
-    ::memcpy(p, pSrcData, dataSize);
+    ::memcpy(p, srcDataWithOffset, dataSize);
     uploadBuffer->Unmap(0, nullptr);
 
-    commandList->CopyBufferRegion(resourceBuffer, 0, uploadBuffer, 0, dataSize);
+    commandList->CopyBufferRegion(resourceBuffer, offset, uploadBuffer, 0, dataSize);
 
     if (origState != D3D12_RESOURCE_STATE_COPY_DEST)
     {

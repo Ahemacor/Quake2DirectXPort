@@ -35,7 +35,7 @@ extern "C" {
     void DX12_BindVertexBuffer(UINT Slot, int resourceId, UINT Offset);
 
     int DX12_CreateIndexBuffer(int numOfIndices, const void* pIndexData, int indexSize);
-    void DX12_UpdateIndexBuffer(int resourceId, const void* pIndexData, int numOfIndices, int indexSize);
+    void DX12_UpdateIndexBuffer(int resourceId, const void* pIndexData, int numOfIndices, int firstIndex, int indexSize);
     void DX12_BindIndexBuffer(int resourceId);
 
     int DX12_CreateTexture(const D3D12_RESOURCE_DESC* descr, D3D12_SUBRESOURCE_DATA* pSrcData);

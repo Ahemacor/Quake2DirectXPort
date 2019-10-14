@@ -205,7 +205,7 @@ ResourceManager::Resource::Id Renderer::CreateIndexBuffer(const std::size_t numO
 void Renderer::UpdateConstantBuffer(ResourceManager::Resource::Id resourceId, const void* pSrcData, const std::size_t bufferSize)
 {
     ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
-    resourceManager.UpdateBufferData(resource.d12resource.Get(), pSrcData, bufferSize, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+    resourceManager.UpdateBufferData(resource.d12resource.Get(), pSrcData, bufferSize, 0, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
     resource.variant.cbHandle = resource.d12resource.Get()->GetGPUVirtualAddress();
 }
 
@@ -220,15 +220,15 @@ void Renderer::UpdateVertexBuffer(ResourceManager::Resource::Id resourceId, cons
 {
     ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
     const std::size_t dataSize = vertexSize * numOfVertices;
-    resourceManager.UpdateBufferData(resource.d12resource.Get(), pVertexData, dataSize, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+    resourceManager.UpdateBufferData(resource.d12resource.Get(), pVertexData, dataSize, 0, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
     resource.variant.vbView = resourceManager.CreateVertexBufferView(resource.d12resource.Get(), dataSize, vertexSize);
 }
 
-void Renderer::UpdateIndexBuffer(ResourceManager::Resource::Id resourceId, const void* pIndexData, const std::size_t numOfIndices, const std::size_t indexSize)
+void Renderer::UpdateIndexBuffer(ResourceManager::Resource::Id resourceId, const void* pIndexData, const std::size_t numOfIndices, const std::size_t firstIndex, const std::size_t indexSize)
 {
     const std::size_t dataSize = numOfIndices * indexSize;
     ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
-    resourceManager.UpdateBufferData(resource.d12resource.Get(), pIndexData, dataSize, D3D12_RESOURCE_STATE_INDEX_BUFFER);
+    resourceManager.UpdateBufferData(resource.d12resource.Get(), pIndexData, dataSize, firstIndex * indexSize, D3D12_RESOURCE_STATE_INDEX_BUFFER);
     resource.variant.ibView = resourceManager.CreateIndexBufferView(resource.d12resource.Get(), dataSize);
 }
 

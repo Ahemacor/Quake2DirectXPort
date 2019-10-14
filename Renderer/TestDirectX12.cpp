@@ -169,9 +169,9 @@ int DX12_CreateIndexBuffer(int numOfIndices, const void* pIndexData, int indexSi
     return g_renderer->CreateIndexBuffer(numOfIndices, pIndexData, indexSize);
 }
 
-void DX12_UpdateIndexBuffer(int resourceId, const void* pIndexData, int numOfIndices, int indexSize)
+void DX12_UpdateIndexBuffer(int resourceId, const void* pIndexData, int numOfIndices, int firstIndex, int indexSize)
 {
-    g_renderer->UpdateIndexBuffer(resourceId, pIndexData, numOfIndices, indexSize);
+    g_renderer->UpdateIndexBuffer(resourceId, pIndexData, numOfIndices, firstIndex, indexSize);
 }
 
 void DX12_BindIndexBuffer(int resourceId)
