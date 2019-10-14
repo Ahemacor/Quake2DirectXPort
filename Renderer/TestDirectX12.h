@@ -42,9 +42,6 @@ extern "C" {
     void DX12_UpdateTexture(int resourceId, D3D12_SUBRESOURCE_DATA* pSrcData);
     void DX12_BindTexture(UINT slot, int resourceId);
 
-    int DX12_CreateTextureBuffer(D3D12_RESOURCE_STATES resState, int numOfElements, int elementSize, const void* pSrcData);
-    void DX12_UpdateTextureBuffer(D3D12_RESOURCE_STATES resState, int resourceId, const void* pSrcData, int numOfElements, int elementSize);
-
     void DX12_ReleaseResource(int resourceId);
 
     void DX12_SetViewport(const D3D12_VIEWPORT* pViewport);

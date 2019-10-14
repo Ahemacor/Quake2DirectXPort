@@ -24,8 +24,7 @@ public:
             CB,
             SRV,
             VB,
-            IB,
-            TB
+            IB
         } type = Type::UNDEFINED;
 
         union

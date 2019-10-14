@@ -31,7 +31,11 @@ cbuffer cbPerObject : register(b2) {
     float AlphaVal : packoffset(c4.w);
 };
 
-Buffer<float> LightStyles : register(t7);
+struct Light
+{
+    float style[256];
+};
+ConstantBuffer<Light> lStyles : register(b6);
 
 struct PS_BASIC {
     float4 Position : SV_POSITION;
@@ -69,10 +73,10 @@ PS_LIGHTMAPPED SurfLightmapVS(VS_SURFCOMMON vs_in)
     vs_out.Lightmap = float3 (vs_in.Lightmap, vs_in.MapNum);
 
     vs_out.Styles = float4 (
-        LightStyles.Load(vs_in.Styles.x),
-        LightStyles.Load(vs_in.Styles.y),
-        LightStyles.Load(vs_in.Styles.z),
-        LightStyles.Load(vs_in.Styles.w)
+        lStyles.style[vs_in.Styles.x],
+        lStyles.style[vs_in.Styles.y],
+        lStyles.style[vs_in.Styles.z],
+        lStyles.style[vs_in.Styles.w]
         );
 
     return vs_out;

@@ -84,18 +84,12 @@ D3D12_INDEX_BUFFER_VIEW ResourceManager::CreateIndexBufferView(ID3D12Resource* i
 D3D12_GPU_DESCRIPTOR_HANDLE ResourceManager::CreateShaderResourceView(ResourceManager::Resource::Id resourceId, const std::size_t slot)
 {
     Resource resource = GetResource(resourceId);
-    ASSERT(resource.type == Resource::Type::SRV || resource.type == Resource::Type::TB);
+    ASSERT(resource.type == Resource::Type::SRV);
 
     D3D12_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc = {};
     shaderResourceViewDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
-    if (resource.type == Resource::Type::TB)
-    {
-        shaderResourceViewDesc.Format = DXGI_FORMAT_UNKNOWN;
-        shaderResourceViewDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-        shaderResourceViewDesc.Buffer = resource.variant.srvBuffer;
-    }
-    else if (resource.type == Resource::Type::SRV)
+    if (resource.type == Resource::Type::SRV)
     {
         shaderResourceViewDesc.Format = resource.variant.texDescr.Format;
 

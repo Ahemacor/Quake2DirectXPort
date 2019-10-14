@@ -268,9 +268,9 @@ static texture_t d3d_Lightmaps[3];
 static lighttexel_t **lm_data[3];
 
 static int d3d_DLightConstants;
-static int d3d_QuakePalette;
-static int d3d_LightNormals;
-static int d3d_LightStyles;
+
+static int lightNormalsBuffer;
+static int lightStylesBuffer;
 
 #define NUMVERTEXNORMALS	162
 
@@ -280,18 +280,22 @@ static float r_avertexnormals[NUMVERTEXNORMALS][4] = {
 #include "../DirectQII/anorms.h"
 };
 
+__declspec(align(16)) typedef struct palette_s{
+    float color[3];
+} palette_t;
+
+static int quakePaletteBuffer;
+
 void R_InitLight (void)
 {
     d3d_DLightConstants = DX12_CreateConstantBuffer(NULL, sizeof(dlight_t));
     DX12_BindConstantBuffer(d3d_DLightConstants, 4);
 
-    d3d_LightStyles = R_CreateTBuffer(NULL, MAX_LIGHTSTYLES, sizeof(float));
-    d3d_LightNormals = R_CreateTBuffer(r_avertexnormals, NUMVERTEXNORMALS, sizeof(r_avertexnormals[0]));
+    lightStylesBuffer = DX12_CreateConstantBuffer(NULL, MAX_LIGHTSTYLES * sizeof(float));
+    DX12_BindConstantBuffer(lightStylesBuffer, 6);
 
-    const int red   = 0;
-    const int green = 1;
-    const int blue  = 2;
-    const int apha  = 3;
+    lightNormalsBuffer = DX12_CreateConstantBuffer(r_avertexnormals, NUMVERTEXNORMALS * sizeof(r_avertexnormals[0]));
+    DX12_BindConstantBuffer(lightNormalsBuffer, 7);
 
     union PaletteColor
     {
@@ -299,15 +303,22 @@ void R_InitLight (void)
         byte color[4];
     }palette_color;
 
-    float color_buffer[256][3];
+    const int red = 0;
+    const int green = 1;
+    const int blue = 2;
+
+    palette_t palette_buffer[256];
     for (int colIdx = 0; colIdx < 256; ++colIdx)
     {
         palette_color.color_pack = d_8to24table_solid[colIdx];
-        color_buffer[colIdx][red] = palette_color.color[red] / 255.0f;
-        color_buffer[colIdx][green] = palette_color.color[green] / 255.0f;
-        color_buffer[colIdx][blue] = palette_color.color[blue] / 255.0f;
+
+        palette_buffer[colIdx].color[red] = palette_color.color[red] / 255.0f;
+        palette_buffer[colIdx].color[green] = palette_color.color[green] / 255.0f;
+        palette_buffer[colIdx].color[blue] = palette_color.color[blue] / 255.0f;
     }
-    d3d_QuakePalette = R_CreateTBuffer(color_buffer, 256, sizeof(float) * 3);
+    quakePaletteBuffer = DX12_CreateConstantBuffer(palette_buffer, sizeof(palette_buffer));
+    DX12_BindConstantBuffer(quakePaletteBuffer, 5);
+
 }
 
 
@@ -321,10 +332,9 @@ void R_ShutdownLightmaps (void)
 
 void R_ShutdownLight (void)
 {
-    d3d_LightStyles = 0;
-    d3d_LightNormals = 0;
-    d3d_QuakePalette = 0;
-
+    quakePaletteBuffer = 0;
+    lightStylesBuffer = 0;
+    lightNormalsBuffer = 0;
 	R_ShutdownLightmaps ();
 }
 
@@ -515,16 +525,12 @@ void R_BindLightmaps (void)
     // optionally update lightstyles (this can be NULL)
     if (r_newrefdef.lightstyles)
     {
-        DX12_UpdateTextureBuffer(D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, d3d_LightStyles, r_newrefdef.lightstyles, MAX_LIGHTSTYLES, sizeof(float));
+        DX12_UpdateConstantBuffer(lightStylesBuffer, r_newrefdef.lightstyles, MAX_LIGHTSTYLES * sizeof(float));
     }
 
     DX12_BindTexture(1, d3d_Lightmaps[0].Id);
     DX12_BindTexture(2, d3d_Lightmaps[1].Id);
     DX12_BindTexture(3, d3d_Lightmaps[2].Id);
-
-    DX12_BindTexture(7, d3d_LightStyles);
-    DX12_BindTexture(8, d3d_LightNormals);
-    DX12_BindTexture(9, d3d_QuakePalette);
 }
 
 

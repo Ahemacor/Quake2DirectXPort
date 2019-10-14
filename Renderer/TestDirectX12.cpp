@@ -258,16 +258,6 @@ void DX12_BindTexture(UINT slot, int resourceId)
     g_renderer->BindTextureResource(resourceId, slot);
 }
 
-int DX12_CreateTextureBuffer(D3D12_RESOURCE_STATES resState, int numOfElements, int elementSize, const void* pSrcData)
-{
-    return g_renderer->CreateTextureBuffer(resState, numOfElements, elementSize, pSrcData);
-}
-
-void DX12_UpdateTextureBuffer(D3D12_RESOURCE_STATES resState, int resourceId, const void* pSrcData, int numOfElements, int elementSize)
-{
-    g_renderer->UpdateTextureBuffer(resState, resourceId, pSrcData, numOfElements, elementSize);
-}
-
 void DX12_ReleaseResource(int resourceId)
 {
     g_renderer->ReleaseResource(resourceId);

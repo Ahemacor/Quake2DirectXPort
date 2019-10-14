@@ -14,7 +14,11 @@ cbuffer cbPerMesh : register(b3) {
     float BackLerp : packoffset(c5.y);
 };
 
-Buffer<float4> LightNormals : register(t8);
+struct LightNormal
+{
+    float4 normal[162];
+};
+ConstantBuffer<LightNormal> lNormals : register(b7);
 
 struct VS_MESH {
     uint4 PrevTriVertx: PREVTRIVERTX;
@@ -37,8 +41,8 @@ float3 MeshLerpNormal(VS_MESH vs_in)
 {
     // note: this is the correct order for normals; check the light on the hyperblaster v_ model, for example;
     // with the opposite order it flickers pretty badly as the model animates; with this order it's nice and solid
-    float3 n1 = LightNormals.Load(vs_in.CurrTriVertx.w).xyz;
-    float3 n2 = LightNormals.Load(vs_in.PrevTriVertx.w).xyz;
+    float3 n1 = lNormals.normal[vs_in.CurrTriVertx.w].xyz; //LightNormals.Load(vs_in.CurrTriVertx.w).xyz;
+    float3 n2 = lNormals.normal[vs_in.PrevTriVertx.w].xyz;//LightNormals.Load(vs_in.PrevTriVertx.w).xyz;
     return normalize(lerp(n1, n2, BackLerp));
 }
 

@@ -536,11 +536,6 @@ void R_ReleaseTexture (texture_t *t)
     memset(t, 0, sizeof(texture_t));
 }
 
-int R_CreateTBuffer(void* data, int NumElements, int ElementSize)
-{
-    return DX12_CreateTextureBuffer(D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, NumElements, ElementSize, data);
-}
-
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // special texture loading
 // -----------------------------------------------------------------------------------------------------------------------------------------------------------------

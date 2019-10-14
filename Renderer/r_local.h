@@ -622,6 +622,4 @@ typedef struct texture_s {
 void R_CreateTexture(texture_t* t, D3D12_SUBRESOURCE_DATA* srd, int width, int height, int arraysize, int flags);
 void R_ReleaseTexture(texture_t* t);
 
-int R_CreateTBuffer(void* data, int NumElements, int ElementSize);
-
 #endif // R_LOCAL_H

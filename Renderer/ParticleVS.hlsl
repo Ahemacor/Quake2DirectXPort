@@ -1,4 +1,9 @@
-Buffer<float3> QuakePalette : register(t9);
+struct Palette
+{
+    float3 color[256];
+};
+
+ConstantBuffer<Palette> qPalette : register(b5);
 
 struct VS_PARTICLE {
     float3 Origin : ORIGIN;
@@ -21,8 +26,7 @@ GS_PARTICLE ParticleVS(VS_PARTICLE vs_in)
     // move the particle in a framerate-independent manner
     vs_out.Origin = vs_in.Origin + (vs_in.Velocity + vs_in.Acceleration * vs_in.Time) * vs_in.Time;
 
-    // copy over colour
-    vs_out.Color = float4 (QuakePalette.Load(vs_in.Color), vs_in.Alpha);
+    vs_out.Color = float4 (qPalette.color[vs_in.Color], vs_in.Alpha);
 
     return vs_out;
 }
