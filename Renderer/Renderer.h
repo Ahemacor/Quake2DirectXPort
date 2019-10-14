@@ -13,34 +13,6 @@
 #include <map>
 #include <string>
 
-class ScopedStateManager
-{
-public:
-    ScopedStateManager(bool isScoped, PipelineStateManager& sm, RenderEnvironment& re)
-        : isScoped(isScoped)
-        , stateManager(sm)
-        , renderEnv(re)
-    {
-        if(isScoped) renderEnv.ResetRenderCommandList();
-    }
-
-    ~ScopedStateManager()
-    {
-        if (isScoped) renderEnv.ExecuteRenderCommandList();
-    }
-
-    PipelineStateManager* operator->()
-    {
-        return &stateManager;
-    }
-
-private:
-    const bool isScoped;
-    PipelineStateManager& stateManager;
-    RenderEnvironment& renderEnv;
-};
-
-
 class Renderer
 {
 public:
@@ -76,7 +48,7 @@ public:
     // RELEASE:
     void ReleaseResource(ResourceManager::Resource::Id resourceId);
 
-    ScopedStateManager GetStateManager(bool isScoped = false) { return ScopedStateManager(isScoped, stateManager, *pRenderEnv); }
+    PipelineStateManager* GetStateManager(bool isScoped = false) { return &stateManager; }
 
     UINT CreatePSO(const State* psoState);
     void CreatePSO(const State* psoState, int stateId);
