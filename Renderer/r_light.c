@@ -526,6 +526,7 @@ void R_BindLightmaps (void)
     if (r_newrefdef.lightstyles)
     {
         DX12_UpdateConstantBuffer(lightStylesBuffer, r_newrefdef.lightstyles, MAX_LIGHTSTYLES * sizeof(float));
+        DX12_Execute();
     }
 
     DX12_BindTexture(1, d3d_Lightmaps[0].Id);

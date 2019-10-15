@@ -191,7 +191,7 @@ void Draw_UpdateConstants (int scrflags)
 
 void Draw_Flush (void)
 {
-    if (d_drawverts)
+    if (d_drawverts != NULL && d_numdrawverts > 0)
     {
         DX12_UpdateVertexBuffer(d3d_DrawVertexes, vertex_buffer, d_numdrawverts, d_firstdrawvert, sizeof(drawpolyvert_t));
         d_drawverts = NULL;
@@ -209,8 +209,12 @@ void Draw_Flush (void)
         DX12_DrawIndexed((d_numdrawverts >> 2) * 6, 0, d_firstdrawvert);
     }
 
-	d_firstdrawvert += d_numdrawverts;
-	d_numdrawverts = 0;
+    if (d_numdrawverts > 0)
+    {
+        DX12_Execute();
+        d_firstdrawvert += d_numdrawverts;
+        d_numdrawverts = 0;
+    }
 }
 
 

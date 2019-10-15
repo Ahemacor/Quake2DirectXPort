@@ -546,7 +546,12 @@ void RenderEnvironment::SetupRenderingCommandList()
 
 Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> RenderEnvironment::GetRenderCommandList()
 {
-    ASSERT(renderCommandListState == CommandListState::CL_RESETED);
+    //ASSERT(renderCommandListState == CommandListState::CL_RESETED);
+    if (renderCommandListState == CommandListState::CL_EXECUTED)
+    {
+        ResetRenderCommandList();
+        SetupRenderingCommandList();
+    }
 
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> grphCmdLst;
     ENSURE_RESULT(renderCommandList.As(&grphCmdLst));

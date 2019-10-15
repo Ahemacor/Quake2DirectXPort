@@ -210,6 +210,11 @@ void DX12_DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLocation)
     g_renderer->DrawIndexed(indexCount, firstIndex, baseVertexLocation);
 }
 
+void DX12_Execute()
+{
+    g_renderEnv->ExecuteRenderCommandList();
+}
+
 void DX12_SetRenderState(UINT stateId)
 {
     g_renderer->SetPSO(stateId);

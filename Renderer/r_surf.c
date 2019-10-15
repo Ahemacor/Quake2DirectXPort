@@ -186,15 +186,16 @@ void R_AddSurfaceToBatch (const msurface_t *surf)
 
 void R_EndSurfaceBatch (void)
 {
-    if (r_SurfIndexes)
+    if (r_SurfIndexes && r_NumSurfIndexes > 0)
     {
         DX12_UpdateIndexBuffer(d3d_SurfIndexes, surf_index_buffer, r_NumSurfIndexes, r_FirstSurfIndex, sizeof(unsigned int));
         r_SurfIndexes = NULL;
     }
 
-    if (r_NumSurfIndexes)
+    if (r_NumSurfIndexes > 0)
     {
         DX12_DrawIndexed(r_NumSurfIndexes, r_FirstSurfIndex, 0);
+        DX12_Execute();
 
         r_FirstSurfIndex += r_NumSurfIndexes;
         r_NumSurfIndexes = 0;

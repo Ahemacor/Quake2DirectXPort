@@ -56,11 +56,11 @@ ResourceManager::Resource ResourceManager::GetResource(Resource::Id resourceId)
 
 void ResourceManager::UpdateResourceState(ID3D12Resource* resource, const D3D12_RESOURCE_STATES prev, const D3D12_RESOURCE_STATES next)
 {
-    pRenderEnv->ResetRenderCommandList();
+    //pRenderEnv->ResetRenderCommandList();
     auto commandList = pRenderEnv->GetRenderCommandList();
     const CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(resource, prev, next);
     commandList->ResourceBarrier(1, &barrier);
-    pRenderEnv->ExecuteRenderCommandList();
+    //pRenderEnv->ExecuteRenderCommandList();
 }
 
 D3D12_VERTEX_BUFFER_VIEW ResourceManager::CreateVertexBufferView(ID3D12Resource* vertexBuffer, const std::size_t bufferSize, const std::size_t elementSize)
@@ -136,7 +136,7 @@ void ResourceManager::UpdateSRVBuffer(Resource::Id resourceId, D3D12_SUBRESOURCE
     Resource resource = GetResource(resourceId);
     ID3D12Resource* imageResource = resource.d12resource.Get();
 
-    pRenderEnv->ResetRenderCommandList();
+    //pRenderEnv->ResetRenderCommandList();
     auto commandList = pRenderEnv->GetRenderCommandList();
 
     if (origState != D3D12_RESOURCE_STATE_COPY_DEST)
@@ -156,7 +156,7 @@ void ResourceManager::UpdateSRVBuffer(Resource::Id resourceId, D3D12_SUBRESOURCE
         commandList->ResourceBarrier(1, &barrier);
     }
 
-    pRenderEnv->ExecuteRenderCommandList();
+    //pRenderEnv->ExecuteRenderCommandList();
 }
 
 void ResourceManager::UpdateBufferData(ID3D12Resource* resourceBuffer, const void* pSrcData, const std::size_t dataSize, const std::size_t offset, const D3D12_RESOURCE_STATES origState)
@@ -164,7 +164,7 @@ void ResourceManager::UpdateBufferData(ID3D12Resource* resourceBuffer, const voi
     ASSERT(resourceBuffer != nullptr);
     ASSERT(pSrcData != nullptr);
 
-    pRenderEnv->ResetRenderCommandList();
+    //pRenderEnv->ResetRenderCommandList();
     auto commandList = pRenderEnv->GetRenderCommandList();
 
     if (origState != D3D12_RESOURCE_STATE_COPY_DEST)
@@ -191,7 +191,7 @@ void ResourceManager::UpdateBufferData(ID3D12Resource* resourceBuffer, const voi
         commandList->ResourceBarrier(1, &barrier);
     }
 
-    pRenderEnv->ExecuteRenderCommandList();
+    //pRenderEnv->ExecuteRenderCommandList();
 }
 
 void ResourceManager::RebuildDescriptorHeap()

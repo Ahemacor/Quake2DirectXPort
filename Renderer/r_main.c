@@ -524,6 +524,7 @@ void R_PolyBlend (void)
 	{
         DX12_SetRenderState(d3d_PolyblendShader);
         DX12_Draw(3, 0);
+        DX12_Execute();
 	}
 }
 

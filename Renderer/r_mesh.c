@@ -409,6 +409,7 @@ void R_DrawAliasPolySet (model_t *mod)
 	mmdl_t *hdr = mod->md2header;
 
     DX12_DrawIndexed(hdr->num_indexes, 0, 0);
+    DX12_Execute();
 }
 
 

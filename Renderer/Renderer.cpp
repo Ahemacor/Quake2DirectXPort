@@ -98,8 +98,8 @@ void Renderer::CommonDraw(ID3D12GraphicsCommandList* commandList)
 
 void Renderer::Draw(UINT numOfVertices, UINT firstVertexToDraw)
 {
-    pRenderEnv->ResetRenderCommandList();
-    pRenderEnv->SetupRenderingCommandList();
+    //pRenderEnv->ResetRenderCommandList();
+    //pRenderEnv->SetupRenderingCommandList();
 
     auto commandList = pRenderEnv->GetRenderCommandList();
 
@@ -107,13 +107,13 @@ void Renderer::Draw(UINT numOfVertices, UINT firstVertexToDraw)
 
     commandList->DrawInstanced(numOfVertices, 1, firstVertexToDraw, 0);
 
-    pRenderEnv->ExecuteRenderCommandList();
+    //pRenderEnv->ExecuteRenderCommandList();
 }
 
 void Renderer::DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLocation)
 {
-    pRenderEnv->ResetRenderCommandList();
-    pRenderEnv->SetupRenderingCommandList();
+    //pRenderEnv->ResetRenderCommandList();
+    //pRenderEnv->SetupRenderingCommandList();
 
     auto commandList = pRenderEnv->GetRenderCommandList();
 
@@ -123,7 +123,7 @@ void Renderer::DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLoca
 
     commandList->DrawIndexedInstanced(indexCount, 1, firstIndex, baseVertexLocation, 0);
 
-    pRenderEnv->ExecuteRenderCommandList();
+    //pRenderEnv->ExecuteRenderCommandList();
 }
 
 // CREATE METHODS:
@@ -155,6 +155,9 @@ ResourceManager::Resource::Id Renderer::CreateTextureResource(const CD3DX12_RESO
         resourceManager.UpdateSRVBuffer(resId, pSrcData);
     }
     resourceManager.UpdateResourceState(resource.d12resource.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+    pRenderEnv->ExecuteRenderCommandList();
+
     return resId;
 }
 
