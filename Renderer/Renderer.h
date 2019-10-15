@@ -67,6 +67,9 @@ private:
     std::map<Slot, D3D12_VERTEX_BUFFER_VIEW> vertexBuffers;
     std::map<Slot, ResourceManager::Resource::Id> srvArguments;
     std::map<Slot, D3D12_GPU_VIRTUAL_ADDRESS> cbArguments;
+
+    std::unordered_map<Slot, ResourceManager::Resource::Id> mappedSrv;
+
     D3D12_INDEX_BUFFER_VIEW indexBufferView;
 
     bool isInitialized = false;

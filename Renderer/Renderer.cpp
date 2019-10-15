@@ -44,6 +44,8 @@ void Renderer::Release()
         stateManager.Release();
         resourceManager.Release();
         cbArguments.clear();
+        srvArguments.clear();
+        mappedSrv.clear();
         vertexBuffers.clear();
         indexBufferView = {};
         isInitialized = false;
@@ -58,7 +60,13 @@ void Renderer::CommonDraw(ID3D12GraphicsCommandList* commandList)
         const auto& slot = srvPair.first;
         const auto& srvResId = srvPair.second;
         ASSERT(slot < ResourceManager::DESCR_HEAP_MAX);
-        resourceManager.CreateShaderResourceView(srvResId, slot);
+
+        auto findIt = mappedSrv.find(slot);
+        if (findIt == mappedSrv.cend() || findIt->second != srvResId)
+        {
+            mappedSrv[slot] = srvResId;
+            resourceManager.CreateShaderResourceView(srvResId, slot);
+        }
     }
 
     commandList->SetPipelineState(stateManager.GetPSO(psoId));
