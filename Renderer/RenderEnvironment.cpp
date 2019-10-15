@@ -499,7 +499,7 @@ void RenderEnvironment::ClearScreen()
     {
         renderState = RenderState::RENDER_TARGET;
 
-        if (renderCommandListState != CommandListState::CL_RESETED) ResetRenderCommandList();
+        if (renderCommandListState == CommandListState::CL_EXECUTED) ResetRenderCommandList();
 
         BarrierFromPresentToTarget();
 
@@ -523,7 +523,8 @@ void RenderEnvironment::Present(UINT SyncInterval, UINT Flags)
     {
         renderState = RenderState::RENDER_PRESENT;
 
-        if (renderCommandListState != CommandListState::CL_RESETED) ResetRenderCommandList();
+        if (renderCommandListState == CommandListState::CL_EXECUTED) ResetRenderCommandList();
+
         BarrierFromTargetToPresent();
         ExecuteRenderCommandList();
 
