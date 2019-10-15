@@ -36,14 +36,11 @@ public:
 
     Microsoft::WRL::ComPtr<ID3D12Device> GetDevice() { return device; }
     Microsoft::WRL::ComPtr<ID3D12CommandQueue> GetQueue() { return commandQueue; }
-    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> GetRenderCommandList();
-    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> GetUpdateCommandList();
 
+    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> GetRenderCommandList();
+    void SetupRenderingCommandList();
     void ResetRenderCommandList();
     void ExecuteRenderCommandList();
-
-    void ResetUpdateCommandList();
-    void ExecuteUpdateCommandList();
 
     UINT GetVideoModesNumber();
     DXGI_MODE_DESC GetVideoMode(UINT index);
@@ -52,11 +49,8 @@ public:
 
     void SetViewport(const D3D12_VIEWPORT& viewPort);
 
-    void SetupRenderingCommandList();
-
 private:
     enum class CommandListState { CL_EXECUTED, CL_RESETED};
-    CommandListState updateCommandListState = CommandListState::CL_EXECUTED;
     CommandListState renderCommandListState = CommandListState::CL_EXECUTED;
 
     RenderEnvironment(const RenderEnvironment&) = delete;
@@ -96,9 +90,6 @@ private:
     Microsoft::WRL::ComPtr<ID3D12Resource> renderTargets[bufferCount];
     Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocators[bufferCount];
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> renderCommandList;
-
-    Microsoft::WRL::ComPtr<ID3D12CommandAllocator> updateCommandAllocator;
-    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> updateCommandList;
 
     D3D12_VIEWPORT screenViewport = {};
     D3D12_RECT scissorRect = {};

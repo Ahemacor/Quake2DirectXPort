@@ -59,10 +59,8 @@ void RenderEnvironment::Release()
         depthStencil.Reset();
         for (auto rt : renderTargets) rt.Reset();
         for (auto ca : commandAllocators) ca.Reset();
-        updateCommandAllocator.Reset();
         renderCommandList.Reset();
         renderCommandListState = CommandListState::CL_RESETED;
-        updateCommandListState = CommandListState::CL_RESETED;
         CloseHandle(fenceEvent);
 
         isInitialized = false;
@@ -386,13 +384,10 @@ void RenderEnvironment::InitializeAllocatorsAndCommandList()
     {
         ENSURE_RESULT(device->CreateCommandAllocator(type, IID_PPV_ARGS(&commandAllocators[i])));
     }
-    ENSURE_RESULT(device->CreateCommandAllocator(type, IID_PPV_ARGS(&updateCommandAllocator)));
 
     auto currentBufferIndex = GetCurrentBufferIndex();
     ENSURE_RESULT(device->CreateCommandList(0, type, commandAllocators[currentBufferIndex].Get(), nullptr, IID_PPV_ARGS(&renderCommandList)));
     ENSURE_RESULT(renderCommandList->Close());
-    ENSURE_RESULT(device->CreateCommandList(0, type, updateCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&updateCommandList)));
-    ENSURE_RESULT(updateCommandList->Close());
 }
 
 
@@ -558,15 +553,6 @@ Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> RenderEnvironment::GetRenderCo
     return grphCmdLst;
 }
 
-Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> RenderEnvironment::GetUpdateCommandList()
-{
-    ASSERT(updateCommandListState == CommandListState::CL_RESETED);
-
-    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> grphCmdLst;
-    ENSURE_RESULT(updateCommandList.As(&grphCmdLst));
-    return grphCmdLst;
-}
-
 void RenderEnvironment::ResetRenderCommandList()
 {
     ASSERT(renderCommandListState == CommandListState::CL_EXECUTED);
@@ -591,28 +577,7 @@ void RenderEnvironment::ExecuteRenderCommandList()
     renderCommandListState = CommandListState::CL_EXECUTED;
 }
 
-void RenderEnvironment::ResetUpdateCommandList()
-{
-    ASSERT(updateCommandListState == CommandListState::CL_EXECUTED);
 
-    Synchronize();
-    ENSURE_RESULT(updateCommandAllocator->Reset());
-    ENSURE_RESULT(updateCommandList->Reset(updateCommandAllocator.Get(), nullptr));
-
-    updateCommandListState = CommandListState::CL_RESETED;
-}
-
-void RenderEnvironment::ExecuteUpdateCommandList()
-{
-    ASSERT(updateCommandListState == CommandListState::CL_RESETED);
-
-    ENSURE_RESULT(updateCommandList->Close());
-    ID3D12CommandList* ppCommandLists[] = { updateCommandList.Get() };
-    commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
-    Synchronize();
-
-    updateCommandListState = CommandListState::CL_EXECUTED;
-}
 
 UINT RenderEnvironment::GetVideoModesNumber()
 {
