@@ -113,5 +113,5 @@ float4 MeshLightmapPS(PS_MESH ps_in) : SV_TARGET0
     float shadedot = dot(normalize(ps_in.Normal), ShadeVector);
     float3 lmap = ShadeLight * max(shadedot + 1.0f, (shadedot * 0.2954545f) + 1.0f);
 
-    return float4 (diff.rgb * Desaturate(lmap), diff.a * AlphaVal);
+    return float4 (diff.rgb * Desaturate(lmap) * 0.5f, diff.a * AlphaVal);
 }

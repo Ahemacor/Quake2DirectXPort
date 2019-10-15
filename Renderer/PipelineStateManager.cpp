@@ -590,7 +590,8 @@ D3D12_SAMPLER_DESC PipelineStateManager::CreateSamplerStateDescr(D3D12_FILTER Fi
     desc.BorderColor[0] = desc.BorderColor[1] = desc.BorderColor[2] = desc.BorderColor[3] = 0;
 
     // nope, not doing this
-    desc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+    //desc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+    desc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
 
     if (MaxAnisotropy > 1)
     {
@@ -606,6 +607,8 @@ D3D12_SAMPLER_DESC PipelineStateManager::CreateSamplerStateDescr(D3D12_FILTER Fi
     desc.MaxLOD = MaxLOD;
     desc.MinLOD = 0;
     desc.MipLODBias = 0;
+
+    //desc.Filter = D3D12_ENCODE_BASIC_FILTER(0, 0, 0, D3D12_FILTER_REDUCTION_TYPE_STANDARD); // min, mag, mip, reduction  
 
     return desc;
 }

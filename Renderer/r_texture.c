@@ -37,7 +37,25 @@ void R_DescribeTexture(D3D12_RESOURCE_DESC* Desc, int width, int height, int arr
     Desc->Width = width;
     Desc->Height = height;
 
-    Desc->MipLevels = 1;
+    if (flags & TEX_MIPMAP)
+    {
+        Desc->MipLevels = arraysize;
+        Desc->DepthOrArraySize = 1;
+    }
+    else 
+    {
+        Desc->MipLevels = 1;
+        if (flags & TEX_CUBEMAP)
+        {
+            Desc->DepthOrArraySize = 6 * arraysize;
+        }
+        else
+        {
+            Desc->DepthOrArraySize = arraysize;
+        }
+    }
+
+
     Desc->Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 
     // no multisampling
@@ -47,16 +65,6 @@ void R_DescribeTexture(D3D12_RESOURCE_DESC* Desc, int width, int height, int arr
     Desc->Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 
     Desc->Flags = D3D12_RESOURCE_FLAG_NONE;
-
-    // select if creating a cubemap (allow creation of cubemap arrays)
-    if (flags & TEX_CUBEMAP)
-    {
-        Desc->DepthOrArraySize = 6 * arraysize;
-    }
-    else
-    {
-        Desc->DepthOrArraySize = arraysize;
-    }
 }
 
 void R_CreateTexture32 (image_t *image, unsigned *data)
@@ -93,10 +101,9 @@ void R_CreateTexture32 (image_t *image, unsigned *data)
         srd[0].SlicePitch = 0;
 
         // create further miplevels for the texture type
+        int mipnum = 1;
         if (image->flags & TEX_MIPMAP)
         {
-            int mipnum;
-
             for (mipnum = 1; width > 1 || height > 1; mipnum++)
             {
                 // choose the appropriate filter
@@ -113,7 +120,7 @@ void R_CreateTexture32 (image_t *image, unsigned *data)
             }
         }
 
-        R_DescribeTexture(&Desc, image->width, image->height, 1, image->flags);
+        R_DescribeTexture(&Desc, image->width, image->height, mipnum, image->flags);
         image->textureId = DX12_CreateTexture(&Desc, &srd);
     }
 }

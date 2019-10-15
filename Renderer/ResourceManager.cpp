@@ -145,7 +145,8 @@ void ResourceManager::UpdateSRVBuffer(Resource::Id resourceId, D3D12_SUBRESOURCE
         commandList->ResourceBarrier(1, &barrier);
     }
 
-    const UINT numOfsubresources = resource.variant.texDescr.ArraySize();
+    UINT mips = resource.variant.texDescr.MipLevels;
+    const UINT numOfsubresources = (mips > 1) ? mips : resource.variant.texDescr.ArraySize();
     const auto uploadBufferSize = GetRequiredIntermediateSize(imageResource, 0, numOfsubresources);
     ID3D12Resource* uploadBuffer = CreateUploadBuffer(uploadBufferSize);
     UpdateSubresources(commandList.Get(), imageResource, uploadBuffer, 0, 0, numOfsubresources, pSrcData);

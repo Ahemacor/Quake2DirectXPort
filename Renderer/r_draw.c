@@ -502,9 +502,6 @@ void Draw_ShutdownRawImage (void)
 	R_ReleaseTexture (&r_CinematicPic);
 }
 
-int R_TexSubImage32(int level, int x, int y, int w, int h, unsigned* data);
-int R_TexSubImage8(int level, int x, int y, int w, int h, byte* data, unsigned* palette);
-
 void Draw_StretchRaw (int cols, int rows, byte *data, int frame, const unsigned char *palette)
 {
     // we only need to refresh the texture if the frame changes
