@@ -47,6 +47,7 @@ public:
 
     // RELEASE:
     void ClearUploadBuffers();
+    void DropAllBindings();
     void UnbindResource(ResourceManager::Resource::Id resourceId);
     void ReleaseResource(ResourceManager::Resource::Id resourceId);
 

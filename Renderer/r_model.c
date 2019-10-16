@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // models.c -- model loading and caching
 
 #include "r_local.h"
+#include "TestDirectX12.h"
 
 model_t	*loadmodel;
 int		modfilelen;
@@ -317,6 +318,8 @@ Specifies the model that will be used as the world
 */
 void R_BeginRegistration (char *model)
 {
+    DX12_DropSlotBindings();
+
 	char	fullname[MAX_QPATH];
 	cvar_t	*flushmap;
 

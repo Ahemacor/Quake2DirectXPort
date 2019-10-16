@@ -210,9 +210,6 @@ D3D12_GPU_DESCRIPTOR_HANDLE ResourceManager::GetSrvHandle()
     return descriptorHeap.Get()->GetGPUDescriptorHandleForHeapStart();
 }
 
-//static std::map<std::size_t, std::size_t> testSizeMap;
-//static std::size_t maxSize = 0;
-
 ID3D12Resource* ResourceManager::CreateUploadBuffer(const std::size_t bufferSize)
 {
     Microsoft::WRL::ComPtr<ID3D12Resource> uploadResource;
@@ -233,15 +230,11 @@ ID3D12Resource* ResourceManager::CreateUploadBuffer(const std::size_t bufferSize
 
     if (!availableBufferFound)
     {
-        std::size_t pow2Size = 1;
-        while (pow2Size < bufferSize) pow2Size *= 2;
-
         UploadBuffer newBuffer;
 
         HRESULT hr = pRenderEnv->GetDevice()->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
                                                                       D3D12_HEAP_FLAG_NONE,
-                                                                      //&CD3DX12_RESOURCE_DESC::Buffer(bufferSize),
-                                                                      &CD3DX12_RESOURCE_DESC::Buffer(pow2Size),
+                                                                      &CD3DX12_RESOURCE_DESC::Buffer(bufferSize),
                                                                       D3D12_RESOURCE_STATE_GENERIC_READ,
                                                                       nullptr,
                                                                       IID_PPV_ARGS(&newBuffer.Buffer));
@@ -251,7 +244,7 @@ ID3D12Resource* ResourceManager::CreateUploadBuffer(const std::size_t bufferSize
         }
 
         newBuffer.state = UploadBuffer::State::BUSY;
-        uploadBuffers.insert(std::make_pair(pow2Size, newBuffer));
+        uploadBuffers.insert(std::make_pair(bufferSize, newBuffer));
 
         uploadResource = newBuffer.Buffer;
     }
@@ -261,7 +254,6 @@ ID3D12Resource* ResourceManager::CreateUploadBuffer(const std::size_t bufferSize
 
 void ResourceManager::ClearUploadBuffers()
 {
-    //uploadBuffers.clear();
     for (auto& pair : uploadBuffers)
     {
         pair.second.state = UploadBuffer::State::AVAILABE;

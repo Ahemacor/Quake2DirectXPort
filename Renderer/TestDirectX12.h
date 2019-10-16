@@ -43,6 +43,7 @@ extern "C" {
     void DX12_BindTexture(UINT slot, int resourceId);
 
     void DX12_ReleaseResource(int resourceId);
+    void DX12_DropSlotBindings();
 
     void DX12_SetViewport(const D3D12_VIEWPORT* pViewport);
     void DX12_SetRenderState(UINT stateId);

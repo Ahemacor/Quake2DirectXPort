@@ -290,6 +290,15 @@ void Renderer::ClearUploadBuffers()
     resourceManager.ClearUploadBuffers();
 }
 
+void Renderer::DropAllBindings()
+{
+    vertexBuffers.clear();
+    srvArguments.clear();
+    cbArguments.clear();
+    mappedSrv.clear();
+    indexBufferView = {};
+}
+
 void Renderer::UnbindResource(ResourceManager::Resource::Id resourceId)
 {
     ResourceManager::Resource resource = resourceManager.GetResource(resourceId);

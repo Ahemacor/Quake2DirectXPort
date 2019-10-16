@@ -201,6 +201,11 @@ void DX12_ReleaseResource(int resourceId)
     }
 }
 
+void DX12_DropSlotBindings()
+{
+    g_renderer->DropAllBindings();
+}
+
 void DX12_SetViewport(const D3D12_VIEWPORT* pViewport)
 {
     g_renderEnv->SetViewport(*pViewport);
