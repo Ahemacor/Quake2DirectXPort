@@ -340,6 +340,9 @@ void R_ShutdownLight (void)
     lightNormalsBuffer = 0;
 
 	R_ShutdownLightmaps ();
+
+    DX12_ReleaseResource(d3d_DLightConstants);
+    d3d_DLightConstants = 0;
 }
 
 

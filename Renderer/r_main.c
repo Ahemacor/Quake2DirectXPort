@@ -82,6 +82,13 @@ void R_InitMain (void)
     d3d_PolyblendShader = DX12_CreateRenderState(&polyblendState);
 }
 
+void R_ShutdownMain(void)
+{
+    DX12_ReleaseResource(d3d_MainConstants);
+    d3d_MainConstants = 0;
+    DX12_ReleaseResource(d3d_EntityConstants);
+    d3d_EntityConstants = 0;
+}
 
 viddef_t	vid;
 

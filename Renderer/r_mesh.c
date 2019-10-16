@@ -112,6 +112,9 @@ void R_ShutdownMesh (void)
         DX12_ReleaseResource(set->Indexes);
 		memset (set, 0, sizeof (aliasbuffers_t));
 	}
+
+    DX12_ReleaseResource(d3d_MeshConstants);
+    d3d_MeshConstants = 0;
 }
 
 
@@ -125,6 +128,9 @@ void R_FreeUnusedAliasBuffers (void)
 
 		if (set->registration_sequence != r_registration_sequence)
 		{
+            DX12_ReleaseResource(set->PolyVerts);
+            DX12_ReleaseResource(set->TexCoords);
+            DX12_ReleaseResource(set->Indexes);
 			memset (set, 0, sizeof (aliasbuffers_t));
 		}
 	}

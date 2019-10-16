@@ -97,12 +97,15 @@ void DX12_CloseWindow()
 {
     // handle special objects
     //SLShutdownShaders();
+    R_ShutdownMain();
     R_ShutdownSurfaces();
+    R_ShutdownParticles();
+    R_ShutdownSprites();
     R_ShutdownLight();
     R_ShutdownSky();
     R_ShutdownMesh();
     R_ShutdownBeam();
-    R_ShutdownSprites();
+    R_ShutdownNull();
 
     g_renderer->Release();
     g_renderEnv->Release();
@@ -216,6 +219,7 @@ void DX12_DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLocation)
 void DX12_Execute()
 {
     g_renderEnv->ExecuteRenderCommandList();
+    g_renderer->ClearUploadBuffers();
 }
 
 void DX12_SetRenderState(UINT stateId)

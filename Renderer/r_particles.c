@@ -53,6 +53,11 @@ void R_InitParticles (void)
     d3d_ParticleShader = d3d_ParticleCircleShader;
 }
 
+void R_ShutdownParticles(void)
+{
+    DX12_ReleaseResource(d3d_ParticleVertexes);
+    d3d_ParticleVertexes = 0;
+}
 
 void R_DrawParticles (void)
 {

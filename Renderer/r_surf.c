@@ -102,7 +102,9 @@ void R_InitSurfaces (void)
 void R_ShutdownSurfaces (void)
 {
     DX12_ReleaseResource(d3d_SurfVertexes);
+    d3d_SurfVertexes = 0;
     DX12_ReleaseResource(d3d_SurfIndexes);
+    d3d_SurfIndexes = 0;
 }
 
 

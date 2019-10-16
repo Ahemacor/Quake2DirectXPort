@@ -46,6 +46,8 @@ public:
     void BindIndexBuffer(ResourceManager::Resource::Id resourceId);
 
     // RELEASE:
+    void ClearUploadBuffers();
+    void UnbindResource(ResourceManager::Resource::Id resourceId);
     void ReleaseResource(ResourceManager::Resource::Id resourceId);
 
     PipelineStateManager* GetStateManager(bool isScoped = false) { return &stateManager; }

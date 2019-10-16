@@ -210,32 +210,60 @@ D3D12_GPU_DESCRIPTOR_HANDLE ResourceManager::GetSrvHandle()
     return descriptorHeap.Get()->GetGPUDescriptorHandleForHeapStart();
 }
 
+//static std::map<std::size_t, std::size_t> testSizeMap;
+//static std::size_t maxSize = 0;
+
 ID3D12Resource* ResourceManager::CreateUploadBuffer(const std::size_t bufferSize)
 {
     Microsoft::WRL::ComPtr<ID3D12Resource> uploadResource;
-    const auto find = uploadBuffers.find(bufferSize);
-    if (find == uploadBuffers.cend())
+    bool availableBufferFound = false;
+
+    for (auto& pair : uploadBuffers)
     {
+        const std::size_t& size = pair.first;
+        UploadBuffer& buffer = pair.second;
+        if (size >= bufferSize && buffer.state == UploadBuffer::State::AVAILABE)
+        {
+            availableBufferFound = true;
+            uploadResource = buffer.Buffer;
+            buffer.state = UploadBuffer::State::BUSY;
+            break;
+        }
+    }
+
+    if (!availableBufferFound)
+    {
+        std::size_t pow2Size = 1;
+        while (pow2Size < bufferSize) pow2Size *= 2;
+
+        UploadBuffer newBuffer;
+
         HRESULT hr = pRenderEnv->GetDevice()->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
                                                                       D3D12_HEAP_FLAG_NONE,
-                                                                      &CD3DX12_RESOURCE_DESC::Buffer(bufferSize),
+                                                                      //&CD3DX12_RESOURCE_DESC::Buffer(bufferSize),
+                                                                      &CD3DX12_RESOURCE_DESC::Buffer(pow2Size),
                                                                       D3D12_RESOURCE_STATE_GENERIC_READ,
                                                                       nullptr,
-                                                                      IID_PPV_ARGS(&uploadResource));
+                                                                      IID_PPV_ARGS(&newBuffer.Buffer));
         if (FAILED(hr))
         {
             ENSURE_RESULT(pRenderEnv->GetDevice()->GetDeviceRemovedReason());
         }
-        uploadBuffers[bufferSize] = uploadResource;
+
+        newBuffer.state = UploadBuffer::State::BUSY;
+        uploadBuffers.insert(std::make_pair(pow2Size, newBuffer));
+
+        uploadResource = newBuffer.Buffer;
     }
-    else
-    {
-        uploadResource = find->second;
-    }
+
     return uploadResource.Get();
 }
 
 void ResourceManager::ClearUploadBuffers()
 {
-    uploadBuffers.clear();
+    //uploadBuffers.clear();
+    for (auto& pair : uploadBuffers)
+    {
+        pair.second.state = UploadBuffer::State::AVAILABE;
+    }
 }

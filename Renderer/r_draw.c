@@ -166,6 +166,15 @@ void Draw_InitLocal (void)
 	sb_nums[1] = R_LoadTexArray ("anum");
 }
 
+void Draw_ReleaseLocal(void)
+{
+    DX12_ReleaseResource(d3d_DrawConstants);
+    d3d_DrawConstants = 0;
+    DX12_ReleaseResource(d3d_DrawVertexes);
+    d3d_DrawVertexes = 0;
+    DX12_ReleaseResource(d3d_DrawIndexes);
+    d3d_DrawIndexes = 0;
+}
 
 void Draw_UpdateConstants (int scrflags)
 {

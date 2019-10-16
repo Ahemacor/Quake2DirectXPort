@@ -40,9 +40,8 @@ void Renderer::Release()
     if (isInitialized)
     {
         pRenderEnv = nullptr;
-
-        stateManager.Release();
         resourceManager.Release();
+        stateManager.Release();
         cbArguments.clear();
         srvArguments.clear();
         mappedSrv.clear();
@@ -126,8 +125,11 @@ void Renderer::DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLoca
     auto commandList = pRenderEnv->GetRenderCommandList();
 
     CommonDraw(commandList.Get());
-
-    commandList->IASetIndexBuffer(&indexBufferView);
+    
+    if (indexBufferView.BufferLocation != D3D12_INDEX_BUFFER_VIEW().BufferLocation)
+    {
+        commandList->IASetIndexBuffer(&indexBufferView);
+    }
 
     commandList->DrawIndexedInstanced(indexCount, 1, firstIndex, baseVertexLocation, 0);
 
@@ -283,8 +285,77 @@ void Renderer::BindIndexBuffer(ResourceManager::Resource::Id resourceId)
 }
 
 // RELEASE:
+void Renderer::ClearUploadBuffers()
+{
+    resourceManager.ClearUploadBuffers();
+}
+
+void Renderer::UnbindResource(ResourceManager::Resource::Id resourceId)
+{
+    ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
+
+    ASSERT(resource.type != ResourceManager::Resource::Type::UNDEFINED);
+    
+    bool found = false;
+    Slot slot = 0;
+    switch (resource.type)
+    {
+    // Unbind index buffer.
+    case ResourceManager::Resource::Type::IB:
+        if (indexBufferView.BufferLocation == resource.variant.ibView.BufferLocation)
+        {
+            indexBufferView = {};
+        }
+        break;
+
+    // Unbind vertex buffer.
+    case ResourceManager::Resource::Type::VB:
+        for (const auto& pair : vertexBuffers)
+        {
+            if (pair.second.BufferLocation == resource.variant.vbView.BufferLocation)
+            {
+                found = true;
+                slot = pair.first;
+                break;
+            }
+        }
+        if (found) vertexBuffers.erase(slot);
+        break;
+
+    // Unbind constant buffer.
+    case ResourceManager::Resource::Type::CB:
+        for (const auto& pair : cbArguments)
+        {
+            if (pair.second == resource.variant.cbHandle)
+            {
+                found = true;
+                slot = pair.first;
+                break;
+            }
+        }
+        if (found) cbArguments.erase(slot);
+        break;
+
+    // Unbind texture buffer.
+    case ResourceManager::Resource::Type::SRV:
+        for (const auto& pair : srvArguments)
+        {
+            if (pair.second == resourceId)
+            {
+                found = true;
+                slot = pair.first;
+                break;
+            }
+        }
+        if (found) srvArguments.erase(slot);
+        if (found) mappedSrv.erase(slot);
+        break;
+    }
+}
+
 void Renderer::ReleaseResource(ResourceManager::Resource::Id resourceId)
 {
+    UnbindResource(resourceId);
     resourceManager.ReleaseResource(resourceId);
 }
 

@@ -32,6 +32,11 @@ void R_InitNull(void)
     d3d_NullShader = DX12_CreateRenderState(&state);
 }
 
+void R_ShutdownNull(void)
+{
+
+}
+
 void R_DrawNullModel(entity_t* e, QMATRIX* localmatrix)
 {
     float shadelight[3];

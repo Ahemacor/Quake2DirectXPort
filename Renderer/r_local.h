@@ -61,11 +61,13 @@ void R_PrepareBeam (entity_t *e, QMATRIX *localmatrix);
 extern "C" {
 #endif
 void R_InitMain (void);
+void R_ShutdownMain(void);
 //void R_InitShaders (void);
 //void R_ShutdownShaders (void);
 void R_InitSurfaces (void);
 void R_ShutdownSurfaces (void);
 void R_InitParticles (void);
+void R_ShutdownParticles(void);
 void R_InitSprites (void);
 void R_ShutdownSprites (void);
 void R_InitLight (void);
@@ -78,6 +80,7 @@ void R_ShutdownMesh (void);
 void R_InitBeam (void);
 void R_ShutdownBeam (void);
 void R_InitNull (void);
+void R_ShutdownNull(void);
 #ifdef __cplusplus
 }
 #endif
@@ -240,6 +243,7 @@ void R_DrawWorld (void);
 void R_DrawAlphaSurfaces (void);
 void R_CreateSpecialTextures (void);
 void Draw_InitLocal (void);
+void Draw_ReleaseLocal(void);
 
 qboolean R_CullBox (vec3_t mins, vec3_t maxs);
 qboolean R_CullBoxClipflags (vec3_t mins, vec3_t maxs, int clipflags);

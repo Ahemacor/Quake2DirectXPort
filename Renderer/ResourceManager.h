@@ -11,6 +11,8 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <map>
+#include <set>
 
 class ResourceManager
 {
@@ -37,6 +39,14 @@ public:
         } variant;
 
         Microsoft::WRL::ComPtr<ID3D12Resource>  d12resource;
+    };
+
+    struct UploadBuffer
+    {
+        enum class State {UNDEFINED, AVAILABE, BUSY};
+
+        State state = State::UNDEFINED;
+        Microsoft::WRL::ComPtr<ID3D12Resource>  Buffer;
     };
 
     static const std::size_t DESCR_HEAP_MAX = 256;
@@ -85,7 +95,9 @@ private:
 
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap;
 
-    std::unordered_map<std::size_t, Microsoft::WRL::ComPtr<ID3D12Resource>> uploadBuffers;
+    //std::unordered_map<std::size_t, Microsoft::WRL::ComPtr<ID3D12Resource>> uploadBuffers;
+    //std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> uploadBuffers;
 
+    std::multimap<std::size_t, UploadBuffer> uploadBuffers;
 };
 

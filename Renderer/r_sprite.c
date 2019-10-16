@@ -44,6 +44,7 @@ void R_FreeUnusedSpriteBuffers (void)
 
 		if (set->registration_sequence != r_registration_sequence)
 		{
+            DX12_ReleaseResource(set->PolyVertsId);
 			memset (set, 0, sizeof (spritebuffers_t));
 		}
 	}

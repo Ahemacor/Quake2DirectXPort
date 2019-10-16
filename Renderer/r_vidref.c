@@ -165,7 +165,7 @@ R_Shutdown
 void R_Shutdown (void)
 {
 	Mod_FreeAll ();
-
+    Draw_ReleaseLocal();
 	R_ShutdownImages ();
     DX12_CloseWindow();
 }
