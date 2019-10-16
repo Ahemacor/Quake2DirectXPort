@@ -152,7 +152,6 @@ void R_DrawBeam (entity_t *e, QMATRIX *localmatrix)
         DX12_BindVertexBuffer(7, d3d_BeamVertexes, 0);
         DX12_BindIndexBuffer(d3d_BeamIndexes);
         DX12_DrawIndexed(r_numbeamindexes, 0, 0);
-        DX12_Execute();
 	}
 }
 
