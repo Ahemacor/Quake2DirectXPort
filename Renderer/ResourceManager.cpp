@@ -215,11 +215,9 @@ ID3D12Resource* ResourceManager::CreateUploadBuffer(const std::size_t bufferSize
     Microsoft::WRL::ComPtr<ID3D12Resource> uploadResource;
     bool availableBufferFound = false;
 
-    for (auto& pair : uploadBuffers)
+    for (UploadBuffer& buffer : uploadBuffers)
     {
-        const std::size_t& size = pair.first;
-        UploadBuffer& buffer = pair.second;
-        if (size >= bufferSize && buffer.state == UploadBuffer::State::AVAILABE)
+        if (buffer.size >= bufferSize && buffer.state == UploadBuffer::State::AVAILABE)
         {
             availableBufferFound = true;
             uploadResource = buffer.Buffer;
@@ -231,21 +229,35 @@ ID3D12Resource* ResourceManager::CreateUploadBuffer(const std::size_t bufferSize
     if (!availableBufferFound)
     {
         UploadBuffer newBuffer;
+        newBuffer.size = bufferSize;
 
         HRESULT hr = pRenderEnv->GetDevice()->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-                                                                      D3D12_HEAP_FLAG_NONE,
-                                                                      &CD3DX12_RESOURCE_DESC::Buffer(bufferSize),
-                                                                      D3D12_RESOURCE_STATE_GENERIC_READ,
-                                                                      nullptr,
-                                                                      IID_PPV_ARGS(&newBuffer.Buffer));
+            D3D12_HEAP_FLAG_NONE,
+            &CD3DX12_RESOURCE_DESC::Buffer(bufferSize),
+            D3D12_RESOURCE_STATE_GENERIC_READ,
+            nullptr,
+            IID_PPV_ARGS(&newBuffer.Buffer));
         if (FAILED(hr))
         {
             ENSURE_RESULT(pRenderEnv->GetDevice()->GetDeviceRemovedReason());
         }
 
-        newBuffer.state = UploadBuffer::State::BUSY;
-        uploadBuffers.insert(std::make_pair(bufferSize, newBuffer));
+        auto pos = uploadBuffers.begin();
+        auto endPos = uploadBuffers.end();
+        while (pos != endPos)
+        {
+            if (pos->size >= bufferSize)
+            {
+                break;
+            }
+            else
+            {
+                pos++;
+            }
+        }
 
+        newBuffer.state = UploadBuffer::State::BUSY;
+        uploadBuffers.emplace(pos, newBuffer);
         uploadResource = newBuffer.Buffer;
     }
 
@@ -254,8 +266,8 @@ ID3D12Resource* ResourceManager::CreateUploadBuffer(const std::size_t bufferSize
 
 void ResourceManager::ClearUploadBuffers()
 {
-    for (auto& pair : uploadBuffers)
+    for (UploadBuffer& buffer : uploadBuffers)
     {
-        pair.second.state = UploadBuffer::State::AVAILABE;
+        buffer.state = UploadBuffer::State::AVAILABE;
     }
 }

@@ -44,7 +44,8 @@ public:
     struct UploadBuffer
     {
         enum class State {UNDEFINED, AVAILABE, BUSY};
-
+        
+        std::size_t size = 0;
         State state = State::UNDEFINED;
         Microsoft::WRL::ComPtr<ID3D12Resource>  Buffer;
     };
@@ -95,9 +96,6 @@ private:
 
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap;
 
-    //std::unordered_map<std::size_t, Microsoft::WRL::ComPtr<ID3D12Resource>> uploadBuffers;
-    //std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> uploadBuffers;
-
-    std::multimap<std::size_t, UploadBuffer> uploadBuffers;
+    std::vector<UploadBuffer> uploadBuffers;
 };
 
