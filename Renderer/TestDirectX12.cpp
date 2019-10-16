@@ -25,11 +25,11 @@ void DX12_Init()
 
 void DX12_Release()
 {
-    if (g_window != nullptr)
+    if (g_renderer != nullptr)
     {
-        g_window->Hide();
-        delete g_window;
-        g_window = nullptr;
+        g_renderer->Release();
+        delete g_renderer;
+        g_renderer = nullptr;
     }
 
     if (g_renderEnv != nullptr)
@@ -39,11 +39,11 @@ void DX12_Release()
         g_renderEnv = nullptr;
     }
 
-    if (g_renderer != nullptr)
+    if (g_window != nullptr)
     {
-        g_renderer->Release();
-        delete g_renderer;
-        g_renderer = nullptr;
+        g_window->Hide();
+        delete g_window;
+        g_window = nullptr;
     }
 }
 
@@ -192,7 +192,10 @@ void DX12_BindTexture(UINT slot, int resourceId)
 
 void DX12_ReleaseResource(int resourceId)
 {
-    g_renderer->ReleaseResource(resourceId);
+    if (resourceId > 0)
+    {
+        g_renderer->ReleaseResource(resourceId);
+    }
 }
 
 void DX12_SetViewport(const D3D12_VIEWPORT* pViewport)

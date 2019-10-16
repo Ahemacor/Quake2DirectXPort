@@ -114,7 +114,8 @@ void R_InitBeam (void)
 
 void R_ShutdownBeam (void)
 {
-
+    DX12_ReleaseResource(d3d_BeamVertexes);
+    DX12_ReleaseResource(d3d_BeamIndexes);
 }
 
 

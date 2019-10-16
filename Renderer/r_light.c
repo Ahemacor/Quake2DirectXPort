@@ -332,9 +332,13 @@ void R_ShutdownLightmaps (void)
 
 void R_ShutdownLight (void)
 {
+    DX12_ReleaseResource(quakePaletteBuffer);
     quakePaletteBuffer = 0;
+    DX12_ReleaseResource(lightStylesBuffer);
     lightStylesBuffer = 0;
+    DX12_ReleaseResource(lightNormalsBuffer);
     lightNormalsBuffer = 0;
+
 	R_ShutdownLightmaps ();
 }
 

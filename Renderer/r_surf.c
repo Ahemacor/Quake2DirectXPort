@@ -101,7 +101,8 @@ void R_InitSurfaces (void)
 
 void R_ShutdownSurfaces (void)
 {
-
+    DX12_ReleaseResource(d3d_SurfVertexes);
+    DX12_ReleaseResource(d3d_SurfIndexes);
 }
 
 
@@ -720,7 +721,8 @@ void R_RegisterSurface (msurface_t *surf)
 
 void R_EndBuildingSurfaces (model_t *mod, dbsp_t *bsp)
 {
-    brushpolyvert_t* verts = (brushpolyvert_t*)malloc(sizeof(brushpolyvert_t) * r_NumSurfVertexes);
+    //brushpolyvert_t* verts = (brushpolyvert_t*)malloc(sizeof(brushpolyvert_t) * r_NumSurfVertexes);
+    brushpolyvert_t* verts = (brushpolyvert_t*)ri.Load_AllocMemory(sizeof(brushpolyvert_t) * r_NumSurfVertexes);
 
     // fill in the verts
     for (int i = 0; i < mod->numsurfaces; i++)
@@ -731,7 +733,7 @@ void R_EndBuildingSurfaces (model_t *mod, dbsp_t *bsp)
 
     d3d_SurfVertexes = DX12_CreateVertexBuffer(r_NumSurfVertexes, sizeof(brushpolyvert_t), verts);
 
-    free(verts);
+    //free(verts);
 
     r_NumSurfVertexes = 0;
     r_FirstSurfIndex = 0; // force a buffer discard on the first draw call to flush all indexes from the previous map

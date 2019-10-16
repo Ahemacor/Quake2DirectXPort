@@ -107,6 +107,9 @@ void R_ShutdownMesh (void)
 	for (i = 0; i < MAX_MOD_KNOWN; i++)
 	{
 		aliasbuffers_t *set = &d3d_AliasBuffers[i];
+        DX12_ReleaseResource(set->PolyVerts);
+        DX12_ReleaseResource(set->TexCoords);
+        DX12_ReleaseResource(set->Indexes);
 		memset (set, 0, sizeof (aliasbuffers_t));
 	}
 }
@@ -130,7 +133,8 @@ void R_FreeUnusedAliasBuffers (void)
 
 void D_CreateAliasPolyVerts (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, aliasmesh_t *dedupe)
 {
-    dtrivertx_t* polyverts = malloc((hdr->num_verts * hdr->num_frames * sizeof(dtrivertx_t)));
+    //dtrivertx_t* polyverts = malloc((hdr->num_verts * hdr->num_frames * sizeof(dtrivertx_t)));
+    dtrivertx_t* polyverts = ri.Load_AllocMemory(hdr->num_verts * hdr->num_frames * sizeof(dtrivertx_t));
 
     // alloc a buffer to write the verts to and create the VB from
     void* pData = polyverts;
@@ -151,13 +155,14 @@ void D_CreateAliasPolyVerts (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, alia
     }
 
     set->PolyVerts = DX12_CreateVertexBuffer(hdr->num_verts * hdr->num_frames, sizeof(dtrivertx_t), pData);
-    free(pData);
+    //free(pData);
 }
 
 
 void D_CreateAliasTexCoords (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, aliasmesh_t *dedupe)
 {
-    float* texcoords = malloc(hdr->num_verts * sizeof(float) * 2);
+    //float* texcoords = malloc(hdr->num_verts * sizeof(float) * 2);
+    float* texcoords = ri.Load_AllocMemory(hdr->num_verts * sizeof(float) * 2);
     int i;
 
     // alloc a buffer to write the verts to and create the VB from
@@ -176,7 +181,7 @@ void D_CreateAliasTexCoords (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, alia
 
     set->TexCoords = DX12_CreateVertexBuffer(hdr->num_verts, sizeof(float) * 2, pData);
 
-    free(pData);
+    //free(pData);
 }
 
 

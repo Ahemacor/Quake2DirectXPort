@@ -1,6 +1,7 @@
 #include "RenderEnvironment.h"
 #include "Utils.h"
 #include <dxgi1_6.h>
+#include <dxgidebug.h>
 #include <cassert>
 
 #pragma comment (lib, "d3dcompiler.lib")
@@ -24,6 +25,19 @@ RenderEnvironment::RenderEnvironment()
 RenderEnvironment::~RenderEnvironment()
 {
     Release();
+    factory.Reset();
+    adapters.clear();
+/*
+#if defined(_DEBUG)
+    {
+        Microsoft::WRL::ComPtr<IDXGIDebug1> dxgiDebug;
+        if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&dxgiDebug))))
+        {
+            dxgiDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_SUMMARY | DXGI_DEBUG_RLO_IGNORE_INTERNAL));
+        }
+    }
+#endif
+*/
 }
 
 bool RenderEnvironment::Initialize(HWND handle, std::size_t width, std::size_t height)

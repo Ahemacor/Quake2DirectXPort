@@ -459,6 +459,7 @@ void R_FreeUnusedImages (void)
 		// disposable type
 		if (image->flags & TEX_DISPOSABLE)
 		{
+            DX12_ReleaseResource(image->textureId);
 			memset (image, 0, sizeof (*image));
 		}
 	}
@@ -489,6 +490,7 @@ void R_ShutdownImages (void)
 
 	for (i = 0, image = gltextures; i < MAX_GLTEXTURES; i++, image++)
 	{
+        DX12_ReleaseResource(image->textureId);
 		memset (image, 0, sizeof (*image));
 	}
 
@@ -540,6 +542,7 @@ void R_CreateTexture(texture_t* t, D3D12_SUBRESOURCE_DATA* srd, int width, int h
 
 void R_ReleaseTexture (texture_t *t)
 {
+    DX12_ReleaseResource(t->Id);
     memset(t, 0, sizeof(texture_t));
 }
 

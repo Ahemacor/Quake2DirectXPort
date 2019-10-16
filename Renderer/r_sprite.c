@@ -54,7 +54,8 @@ static void D_CreateSpriteBufferSet (model_t *mod, dsprite_t *psprite)
 {
     const int numVerts = 4;
     spritebuffers_t* set = &d3d_SpriteBuffers[mod->bufferset];
-    spritepolyvert_t* verts = (spritepolyvert_t*)malloc(sizeof(spritepolyvert_t) * numVerts * psprite->numframes);
+    //spritepolyvert_t* verts = (spritepolyvert_t*)malloc(sizeof(spritepolyvert_t) * numVerts * psprite->numframes);
+    spritepolyvert_t* verts = (spritepolyvert_t*)ri.Load_AllocMemory(sizeof(spritepolyvert_t) * numVerts * psprite->numframes);
 
     // alloc a buffer to write the verts to and create the VB from
     void* pData = verts;
@@ -79,7 +80,7 @@ static void D_CreateSpriteBufferSet (model_t *mod, dsprite_t *psprite)
 
     //RWCreateBuffer(&vbDesc, pData, &set->PolyVerts);
     set->PolyVertsId = DX12_CreateVertexBuffer(numVerts * psprite->numframes, sizeof(spritepolyvert_t), pData);
-    free(pData);
+    //free(pData);
 }
 
 
@@ -168,6 +169,7 @@ void R_ShutdownSprites (void)
 	for (i = 0; i < MAX_MOD_KNOWN; i++)
 	{
 		spritebuffers_t *set = &d3d_SpriteBuffers[i];
+        DX12_ReleaseResource(set->PolyVertsId);
 		memset (set, 0, sizeof (spritebuffers_t));
 	}
 }
