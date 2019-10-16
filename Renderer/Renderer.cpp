@@ -294,7 +294,7 @@ void Renderer::DropAllBindings()
 {
     vertexBuffers.clear();
     srvArguments.clear();
-    cbArguments.clear();
+    //cbArguments.clear();
     mappedSrv.clear();
     indexBufferView = {};
 }
