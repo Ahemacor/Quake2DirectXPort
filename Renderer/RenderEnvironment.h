@@ -11,6 +11,7 @@
 #include <vector>
 #include <Windows.h>
 #include <cstdint>
+#include <functional>
 
 class RenderEnvironment
 {
@@ -48,6 +49,8 @@ public:
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t numDescriptors, bool isShaderVisible = false);
 
     void SetViewport(const D3D12_VIEWPORT& viewPort);
+
+    std::function<void(void)> drawInitCallback = nullptr;
 
 private:
     enum class CommandListState { CL_EXECUTED, CL_RESETED};

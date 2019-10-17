@@ -9,12 +9,14 @@ struct VS_DRAWCOMMON {
     float4 Position : POSITION;
     float2 TexCoord : TEXCOORD;
     float4 Color : COLOUR;
+    uint TextureId : TEXTURE;
 };
 
 struct PS_DRAWTEXTURED {
     float4 Position : SV_POSITION;
     float4 Color : COLOUR;
     float2 TexCoord : TEXCOORD;
+    uint TextureId : TEXTURE;
 };
 
 PS_DRAWTEXTURED DrawTexturedVS(VS_DRAWCOMMON vs_in, uint vertexId : SV_VertexID)
@@ -24,6 +26,7 @@ PS_DRAWTEXTURED DrawTexturedVS(VS_DRAWCOMMON vs_in, uint vertexId : SV_VertexID)
     vs_out.Position = mul(orthoMatrix, vs_in.Position);
     vs_out.Color = vs_in.Color;
     vs_out.TexCoord = vs_in.TexCoord;
+    vs_out.TextureId = vs_in.TextureId;
 
     /*
     if (vertexId == 0) vs_out.Position = float4(-0.5f, 0.5f, 0, 1); // upper left

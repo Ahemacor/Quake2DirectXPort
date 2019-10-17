@@ -5,7 +5,7 @@ cbuffer cbDrawPerFrame : register(b0) {
     float2 ConScale : packoffset(c4.z);
 };
 
-Texture2D<float4> mainTexture : register(t0);	// main diffuse texture on most objects
+Texture2D<float4> mainTexture[1024] : register(t0);	// main diffuse texture on most objects
 
 sampler drawSampler : register(s3);		// used for the 2d render; linear sampled, clamp mode, no mips, no anisotropy
 
@@ -13,6 +13,7 @@ struct PS_DRAWTEXTURED {
     float4 Position : SV_POSITION;
     float4 Color : COLOUR;
     float2 TexCoord : TEXCOORD;
+    uint TextureId : TEXTURE;
 };
 
 float4 GetGamma(float4 colorin)
@@ -22,6 +23,6 @@ float4 GetGamma(float4 colorin)
 
 float4 DrawTexturedPS(PS_DRAWTEXTURED ps_in) : SV_TARGET
 {
-    float4 diff = GetGamma(mainTexture.Sample(drawSampler, ps_in.TexCoord)) * ps_in.Color;
+    float4 diff = GetGamma(mainTexture[ps_in.TextureId].Sample(drawSampler, ps_in.TexCoord)) * ps_in.Color;
     return float4 (diff.rgb * diff.a, diff.a);
 }

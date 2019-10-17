@@ -6,12 +6,14 @@ cbuffer cbDrawPerFrame : register(b0) {
 };
 
 Texture2DArray<float4> charTexture : register(t6);	// characters and numbers
+Texture2DArray<float4> mainTexture[1024] : register(t0);
 
 sampler drawSampler : register(s3);
 
 struct PS_DRAWCHARACTER {
     float4 Position : SV_POSITION;
     float3 TexCoord : TEXCOORD;
+    uint TextureId : TEXTURE;
 };
 
 float4 GetGamma(float4 colorin)
@@ -21,6 +23,6 @@ float4 GetGamma(float4 colorin)
 
 float4 DrawTexArrayPS(PS_DRAWCHARACTER ps_in) : SV_TARGET0
 {
-    float4 diff = GetGamma(charTexture.Sample(drawSampler, ps_in.TexCoord));
+    float4 diff = GetGamma(mainTexture[ps_in.TextureId].Sample(drawSampler, ps_in.TexCoord));
     return float4 (diff.rgb * diff.a, diff.a);
 }

@@ -24,6 +24,7 @@ struct VS_MESH {
     uint4 PrevTriVertx: PREVTRIVERTX;
     uint4 CurrTriVertx: CURRTRIVERTX;
     float2 TexCoord: TEXCOORD;
+    uint TextureId : TEXTURE;
 };
 
 float4 MeshLerpPosition(VS_MESH vs_in)

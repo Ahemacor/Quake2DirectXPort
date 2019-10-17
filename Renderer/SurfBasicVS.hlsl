@@ -38,11 +38,13 @@ struct VS_SURFCOMMON {
     uint4 Styles: STYLES;
     uint MapNum : MAPNUM;
     float Scroll : SCROLL;
+    uint TextureId : TEXTURE;
 };
 
 struct PS_BASIC {
     float4 Position : SV_POSITION;
     float2 TexCoord : TEXCOORD;
+    uint TextureId : TEXTURE;
 };
 
 float2 GetTextureScroll(VS_SURFCOMMON vs_in)
@@ -57,6 +59,7 @@ PS_BASIC SurfBasicVS(VS_SURFCOMMON vs_in)
 
     vs_out.Position = mul(LocalMatrix, vs_in.Position);
     vs_out.TexCoord = GetTextureScroll(vs_in);
+    vs_out.TextureId = vs_in.TextureId;
 
     return vs_out;
 }

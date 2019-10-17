@@ -38,7 +38,7 @@ cbuffer cbPerLight : register(b4) {
     float3 LightColour : packoffset(c1.x);
 };
 
-Texture2D<float4> mainTexture : register(t0);
+Texture2D<float4> mainTexture[1024] : register(t0);
 
 sampler mainSampler : register(s0);
 
@@ -48,6 +48,7 @@ struct PS_DYNAMICLIGHT {
     float2 TexCoord : TEXCOORD;
     float3 LightVector : LIGHTVECTOR;
     float3 Normal : NORMAL;
+    uint TextureId : TEXTURE;
 };
 
 float4 GetGamma(float4 colorin)
@@ -111,7 +112,7 @@ float4 GenericDynamicPS(PS_DYNAMICLIGHT ps_in) : SV_TARGET0
     clip((LightRadius * LightRadius) - dot(ps_in.LightVector, ps_in.LightVector));
 
     // reading the diffuse texture early so that it should interleave with some ALU ops
-    float4 diff = GetGamma(mainTexture.Sample(mainSampler, ps_in.TexCoord));
+    float4 diff = GetGamma(mainTexture[ps_in.TextureId].Sample(mainSampler, ps_in.TexCoord));
 
     // this calc isn't correct per-theory but it matches with the calc used by light.exe and qrad.exe
     // at this stage we don't adjust for the overbright range; that will be done via the "intensity" cvar in the C code

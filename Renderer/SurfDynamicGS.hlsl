@@ -44,6 +44,7 @@ struct VS_SURFCOMMON {
     uint4 Styles: STYLES;
     uint MapNum : MAPNUM;
     float Scroll : SCROLL;
+    uint TextureId : TEXTURE;
 };
 
 struct PS_DYNAMICLIGHT {
@@ -51,11 +52,12 @@ struct PS_DYNAMICLIGHT {
     float2 TexCoord : TEXCOORD;
     float3 LightVector : LIGHTVECTOR;
     float3 Normal : NORMAL;
+    uint TextureId : TEXTURE;
 };
 
 // this ensures that we use the same dynamic calcs on surfs and meshs
 // outside of the #ifdef guard because it's used by the VS for meshs and the GS for surfs
-PS_DYNAMICLIGHT GenericDynamicVS(float4 Position, float3 Normal, float2 TexCoord)
+PS_DYNAMICLIGHT GenericDynamicVS(float4 Position, float3 Normal, float2 TexCoord, uint textureId)
 {
     PS_DYNAMICLIGHT vs_out;
 
@@ -63,6 +65,7 @@ PS_DYNAMICLIGHT GenericDynamicVS(float4 Position, float3 Normal, float2 TexCoord
     vs_out.TexCoord = TexCoord;
     vs_out.LightVector = LightOrigin - Position.xyz;
     vs_out.Normal = Normal;
+    vs_out.TextureId = textureId;
 
     return vs_out;
 }
@@ -83,7 +86,7 @@ void SurfDynamicGS(triangle VS_SURFCOMMON gs_in[3], inout TriangleStream<PS_DYNA
 
     // output position needs to use the same transform as the prior pass to satisfy invariance rules
     // we inverse-transformed the light position by the entity local matrix so we don't need to transform the normal or the light vector stuff
-    gs_out.Append(GenericDynamicVS(gs_in[0].Position, Normal, GetTextureScroll(gs_in[0])));
-    gs_out.Append(GenericDynamicVS(gs_in[1].Position, Normal, GetTextureScroll(gs_in[1])));
-    gs_out.Append(GenericDynamicVS(gs_in[2].Position, Normal, GetTextureScroll(gs_in[2])));
+    gs_out.Append(GenericDynamicVS(gs_in[0].Position, Normal, GetTextureScroll(gs_in[0]), gs_in[0].TextureId));
+    gs_out.Append(GenericDynamicVS(gs_in[1].Position, Normal, GetTextureScroll(gs_in[1]), gs_in[1].TextureId));
+    gs_out.Append(GenericDynamicVS(gs_in[2].Position, Normal, GetTextureScroll(gs_in[2]), gs_in[2].TextureId));
 }

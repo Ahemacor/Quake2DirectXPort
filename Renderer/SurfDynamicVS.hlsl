@@ -5,6 +5,7 @@ struct VS_SURFCOMMON {
     uint4 Styles: STYLES;
     uint MapNum : MAPNUM;
     float Scroll : SCROLL;
+    uint TextureId : TEXTURE;
 };
 
 VS_SURFCOMMON SurfDynamicVS(VS_SURFCOMMON vs_in)

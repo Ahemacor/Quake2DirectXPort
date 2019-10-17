@@ -48,7 +48,7 @@ cbuffer cbPerMesh : register(b3) {
     float BackLerp : packoffset(c5.y);
 };
 
-Texture2D<float4> mainTexture : register(t0);
+Texture2D<float4> mainTexture[1024] : register(t0);
 
 sampler mainSampler : register(s0);
 
@@ -56,6 +56,7 @@ struct PS_MESH {
     float4 Position: SV_POSITION;
     float2 TexCoord: TEXCOORD;
     float3 Normal : NORMAL;
+    uint TextureId : TEXTURE;
 };
 
 float4 GetGamma(float4 colorin)
@@ -109,7 +110,7 @@ float3 Desaturate(float3 RGB)
 
 float4 MeshLightmapPS(PS_MESH ps_in) : SV_TARGET0
 {
-    float4 diff = GetGamma(mainTexture.Sample(mainSampler, ps_in.TexCoord));
+    float4 diff = GetGamma(mainTexture[ps_in.TextureId].Sample(mainSampler, ps_in.TexCoord));
     float shadedot = dot(normalize(ps_in.Normal), ShadeVector);
     float3 lmap = ShadeLight * max(shadedot + 1.0f, (shadedot * 0.2954545f) + 1.0f);
 

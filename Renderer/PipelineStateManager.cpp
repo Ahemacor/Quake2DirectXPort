@@ -70,24 +70,17 @@ void PipelineStateManager::InitInputLayouts()
     {
         DECL_VERTEX("POSITION", DXGI_FORMAT_R32G32_FLOAT, 0),
         DECL_VERTEX("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT, 0),
-        DECL_VERTEX("COLOUR", DXGI_FORMAT_R8G8B8A8_UNORM, 0)
+        DECL_VERTEX("COLOUR", DXGI_FORMAT_R8G8B8A8_UNORM, 0),
+        DECL_VERTEX("TEXTURE", DXGI_FORMAT_R32_UINT, 0)
     };
     inputLayouts[INPUT_LAYOUT_STANDART].NumElements = std::size(ilStandart);
     inputLayouts[INPUT_LAYOUT_STANDART].pInputElementDescs = ilStandart;
 
-    static const D3D12_INPUT_ELEMENT_DESC ilStandartCopy[] =
-    {
-        DECL_VERTEX("POSITION", DXGI_FORMAT_R32G32_FLOAT, 0),
-        DECL_VERTEX("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT, 0),
-        DECL_VERTEX("COLOUR", DXGI_FORMAT_R8G8B8A8_UNORM, 0)
-    };
-    inputLayouts[INPUT_LAYOUT_STANDART_COPY].NumElements = std::size(ilStandartCopy);
-    inputLayouts[INPUT_LAYOUT_STANDART_COPY].pInputElementDescs = ilStandartCopy;
-
     static const D3D12_INPUT_ELEMENT_DESC ilTexarray[] =
     {
         DECL_VERTEX("POSITION", DXGI_FORMAT_R32G32_FLOAT, 0),
-        DECL_VERTEX("TEXCOORD", DXGI_FORMAT_R32G32B32_FLOAT, 0)
+        DECL_VERTEX("TEXCOORD", DXGI_FORMAT_R32G32B32_FLOAT, 0),
+        DECL_VERTEX("TEXTURE", DXGI_FORMAT_R32_UINT, 0)
     };
     inputLayouts[INPUT_LAYOUT_TEXARRAY].NumElements = std::size(ilTexarray);
     inputLayouts[INPUT_LAYOUT_TEXARRAY].pInputElementDescs = ilTexarray;
@@ -96,7 +89,8 @@ void PipelineStateManager::InitInputLayouts()
     {
         DECL_VERTEX("PREVTRIVERTX", DXGI_FORMAT_R8G8B8A8_UINT, 1),
         DECL_VERTEX("CURRTRIVERTX", DXGI_FORMAT_R8G8B8A8_UINT, 2),
-        DECL_VERTEX("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT, 3)
+        DECL_VERTEX("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT, 3),
+        DECL_VERTEX("TEXTURE", DXGI_FORMAT_R32_UINT, 4)
     };
     inputLayouts[INPUT_LAYOUT_MESH].NumElements = std::size(ilMesh);
     inputLayouts[INPUT_LAYOUT_MESH].pInputElementDescs = ilMesh;
@@ -134,7 +128,8 @@ void PipelineStateManager::InitInputLayouts()
         DECL_VERTEX("LIGHTMAP", DXGI_FORMAT_R16G16_UNORM, 4),
         DECL_VERTEX("STYLES", DXGI_FORMAT_R8G8B8A8_UINT, 4),
         DECL_VERTEX("MAPNUM", DXGI_FORMAT_R8G8B8A8_UINT, 4),
-        DECL_VERTEX("SCROLL", DXGI_FORMAT_R32G32B32_FLOAT, 4)
+        DECL_VERTEX("SCROLL", DXGI_FORMAT_R32_FLOAT, 4),
+        DECL_VERTEX("TEXTURE", DXGI_FORMAT_R32_UINT, 4)
     };
     inputLayouts[INPUT_LAYOUT_SURFACES].NumElements = std::size(ilSurface);
     inputLayouts[INPUT_LAYOUT_SURFACES].pInputElementDescs = ilSurface;

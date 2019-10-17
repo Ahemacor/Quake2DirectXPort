@@ -50,7 +50,7 @@ public:
         Microsoft::WRL::ComPtr<ID3D12Resource>  Buffer;
     };
 
-    static const std::size_t DESCR_HEAP_MAX = 256;
+    static const std::size_t DESCR_HEAP_MAX = 1024;
 
     void Initialize(RenderEnvironment* pEnv);
     void Release();

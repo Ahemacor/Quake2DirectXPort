@@ -40,6 +40,7 @@ ConstantBuffer<Light> lStyles : register(b6);
 struct PS_BASIC {
     float4 Position : SV_POSITION;
     float2 TexCoord : TEXCOORD;
+    uint TextureId : TEXTURE;
 };
 
 struct VS_SURFCOMMON {
@@ -49,6 +50,7 @@ struct VS_SURFCOMMON {
     uint4 Styles: STYLES;
     uint MapNum : MAPNUM;
     float Scroll : SCROLL;
+    uint TextureId : TEXTURE;
 };
 
 struct PS_LIGHTMAPPED {
@@ -56,6 +58,7 @@ struct PS_LIGHTMAPPED {
     float2 TexCoord : TEXCOORD;
     float3 Lightmap : LIGHTMAP;
     nointerpolation float4 Styles: STYLES;
+    uint TextureId : TEXTURE;
 };
 
 float2 GetTextureScroll(VS_SURFCOMMON vs_in)
@@ -71,6 +74,7 @@ PS_LIGHTMAPPED SurfLightmapVS(VS_SURFCOMMON vs_in)
     vs_out.Position = mul(LocalMatrix, vs_in.Position);
     vs_out.TexCoord = GetTextureScroll(vs_in);
     vs_out.Lightmap = float3 (vs_in.Lightmap, vs_in.MapNum);
+    vs_out.TextureId = vs_in.TextureId;
 
     vs_out.Styles = float4 (
         lStyles.style[vs_in.Styles.x],

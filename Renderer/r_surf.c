@@ -41,17 +41,17 @@ static int d3d_SurfLightmapShader;
 static int d3d_SurfDynamicShader;
 static int d3d_SurfDrawTurbShader;
 
-#pragma pack(push, 1)
-// compressing the vertex struct down to 32 bytes
-typedef struct brushpolyvert_s {
+//#pragma pack(push, 1)
+__declspec(align(16)) typedef struct brushpolyvert_s {
 	float xyz[3];
 	float st[2];
 	unsigned short lm[2];
 	byte styles[4];
 	unsigned int mapnum;
 	float scroll;
+    unsigned int textureId;
 } brushpolyvert_t;
-#pragma pack(pop)
+//#pragma pack(pop)
 
 void R_InitSurfaces (void)
 {
@@ -193,7 +193,7 @@ void R_EndSurfaceBatch (void)
     {
         DX12_UpdateIndexBuffer(d3d_SurfIndexes, surf_index_buffer, r_NumSurfIndexes, r_FirstSurfIndex, sizeof(unsigned int));
         DX12_DrawIndexed(r_NumSurfIndexes, r_FirstSurfIndex, 0);
-        DX12_Execute();
+        //DX12_Execute();
 
         r_FirstSurfIndex += r_NumSurfIndexes;
         r_NumSurfIndexes = 0;
@@ -668,6 +668,8 @@ void R_BuildPolygonFromSurface (msurface_t *surf, model_t *mod, brushpolyvert_t 
 	for (maps = 0; maps < MAXLIGHTMAPS && surf->styles[maps] != 255; maps++)
 		styles[maps] = surf->styles[maps];
 
+    //__declspec(align(16)) brushpolyvert_t vert;
+
 	// reconstruct the polygon
 	for (i = 0; i < surf->numedges; i++, verts++)
 	{
@@ -679,29 +681,31 @@ void R_BuildPolygonFromSurface (msurface_t *surf, model_t *mod, brushpolyvert_t 
 
 		if (surf->texinfo->flags & SURF_WARP)
 		{
-			verts->st[0] = Vector3Dot (verts->xyz, surf->texinfo->vecs[0]) * 0.015625f;
-			verts->st[1] = Vector3Dot (verts->xyz, surf->texinfo->vecs[1]) * 0.015625f;
+            verts->st[0] = Vector3Dot (verts->xyz, surf->texinfo->vecs[0]) * 0.015625f;
+            verts->st[1] = Vector3Dot (verts->xyz, surf->texinfo->vecs[1]) * 0.015625f;
 		}
 		else if (!(surf->texinfo->flags & SURF_SKY))
 		{
-			verts->st[0] = (Vector3Dot (verts->xyz, surf->texinfo->vecs[0]) + surf->texinfo->vecs[0][3]) / surf->texinfo->image->width;
-			verts->st[1] = (Vector3Dot (verts->xyz, surf->texinfo->vecs[1]) + surf->texinfo->vecs[1][3]) / surf->texinfo->image->height;
+            verts->st[0] = (Vector3Dot (verts->xyz, surf->texinfo->vecs[0]) + surf->texinfo->vecs[0][3]) / surf->texinfo->image->width;
+            verts->st[1] = (Vector3Dot (verts->xyz, surf->texinfo->vecs[1]) + surf->texinfo->vecs[1][3]) / surf->texinfo->image->height;
 
 			// lightmap texture coordinates
 			R_SetupLightmapTexCoords (surf, verts->xyz, verts->lm);
 
 			// copy over styles
-			*((unsigned *) verts->styles) = *((unsigned *) styles);
+			*((unsigned *)verts->styles) = *((unsigned *) styles);
 
 			// lightmap texture num is texture array slice to use
-			verts->mapnum = surf->lightmaptexturenum;
+            verts->mapnum = surf->lightmaptexturenum;
 		}
 
 		// copy over scroll factor
 		// this is DXGI_FORMAT_R16_UNORM so 65535 is equivalent to a scroll factor of 1.0f
 		if (surf->texinfo->flags & SURF_FLOWING)
-			verts->scroll = 65535;
+            verts->scroll = 65535;
 		else verts->scroll = 0;
+
+        verts->textureId = surf->texinfo->image->textureId;
 	}
 }
 

@@ -8,11 +8,13 @@ cbuffer cbDrawPerFrame : register(b0) {
 struct VS_DRAWCHARACTER {
     float4 Position : POSITION;
     float3 TexCoord : TEXCOORD;
+    uint TextureId : TEXTURE;
 };
 
 struct PS_DRAWCHARACTER {
     float4 Position : SV_POSITION;
     float3 TexCoord : TEXCOORD;
+    uint TextureId : TEXTURE;
 };
 
 PS_DRAWCHARACTER DrawTexArrayVS(VS_DRAWCHARACTER vs_in)
@@ -21,6 +23,7 @@ PS_DRAWCHARACTER DrawTexArrayVS(VS_DRAWCHARACTER vs_in)
 
     vs_out.Position = mul(orthoMatrix, vs_in.Position);
     vs_out.TexCoord = vs_in.TexCoord;
+    vs_out.TextureId = vs_in.TextureId;
 
     return vs_out;
 }

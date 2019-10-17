@@ -25,6 +25,7 @@ bool Renderer::Init(RenderEnvironment* environment)
 {
     assert(environment != nullptr);
     pRenderEnv = environment;
+    pRenderEnv->drawInitCallback = [this]{DrawInit();};
 
     stateManager.Initialize(pRenderEnv->GetDevice());
     resourceManager.Initialize(pRenderEnv);
@@ -32,6 +33,12 @@ bool Renderer::Init(RenderEnvironment* environment)
     indexBufferView = {};
 
     isInitialized = true;
+    updatePSO = true;
+    updateRootSignature = true;
+    updateConstantBuffers = true;
+    updateVertexBuffers = true;
+    updateIndexBuffer = true;
+
     return isInitialized;
 }
 
@@ -39,6 +46,7 @@ void Renderer::Release()
 {
     if (isInitialized)
     {
+        pRenderEnv->drawInitCallback = nullptr;
         pRenderEnv = nullptr;
         resourceManager.Release();
         stateManager.Release();
@@ -48,59 +56,77 @@ void Renderer::Release()
         vertexBuffers.clear();
         indexBufferView = {};
         isInitialized = false;
+        updatePSO = false;
+        updateRootSignature = false;
+        updateConstantBuffers = false;
+        updateVertexBuffers = false;
+        updateIndexBuffer = false;
     }
 }
 
 void Renderer::CommonDraw(ID3D12GraphicsCommandList* commandList)
 {
-    // Init SRVs
-    for (const auto& srvPair : srvArguments)
+    // PSO
+    if (updatePSO)
     {
-        const auto& slot = srvPair.first;
-        const auto& srvResId = srvPair.second;
-        ASSERT(slot < ResourceManager::DESCR_HEAP_MAX);
-
-        auto findIt = mappedSrv.find(slot);
-        if (findIt == mappedSrv.cend() || findIt->second != srvResId)
+        commandList->SetPipelineState(stateManager.GetPSO(psoId));
+        if (stateManager.GetStateDescr(psoId).topology == D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE)
         {
-            mappedSrv[slot] = srvResId;
-            resourceManager.CreateShaderResourceView(srvResId, slot);
+            commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         }
+        else if (stateManager.GetStateDescr(psoId).topology == D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT)
+        {
+            commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+        }
+
+        updatePSO = false;
     }
 
-    commandList->SetPipelineState(stateManager.GetPSO(psoId));
-
-    commandList->SetGraphicsRootSignature(stateManager.GetRootSignature());
-
-    ID3D12DescriptorHeap* heaps[] = { resourceManager.GetDescriptorHeap(),
-                                      stateManager.GetSamplerDescriptorHeap() };
-
-    commandList->SetDescriptorHeaps(_countof(heaps), heaps);
-
-    commandList->SetGraphicsRootDescriptorTable(ParameterIdx::SRV_TABLE_IDX, resourceManager.GetSrvHandle());
-
-    commandList->SetGraphicsRootDescriptorTable(ParameterIdx::SAMPLERS_TABLE_IDX, stateManager.GetSamplerHandle());
-
-    for (const auto& pair : cbArguments)
+    // Root Signature, Heaps, SRV Table, Samplers Table
+    if (updateRootSignature)
     {
-        commandList->SetGraphicsRootConstantBufferView(ParameterIdx::CB0_IDX + pair.first, pair.second);
+        commandList->SetGraphicsRootSignature(stateManager.GetRootSignature());
+        ID3D12DescriptorHeap* heaps[] = { resourceManager.GetDescriptorHeap(),
+                                  stateManager.GetSamplerDescriptorHeap() };
+        commandList->SetDescriptorHeaps(_countof(heaps), heaps);
+
+        commandList->SetGraphicsRootDescriptorTable(ParameterIdx::SRV_TABLE_IDX, resourceManager.GetSrvHandle());
+        commandList->SetGraphicsRootDescriptorTable(ParameterIdx::SAMPLERS_TABLE_IDX, stateManager.GetSamplerHandle());
+
+        updateRootSignature = false;
     }
 
-    if (stateManager.GetStateDescr(psoId).topology == D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE)
+    // Constant Buffers
+    if (updateConstantBuffers)
     {
-        commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    }
-    else if (stateManager.GetStateDescr(psoId).topology == D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT)
-    {
-        commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+        for (const auto& pair : cbArguments)
+        {
+            commandList->SetGraphicsRootConstantBufferView(ParameterIdx::CB0_IDX + pair.first, pair.second);
+        }
+
+        updateConstantBuffers = false;
     }
 
-    for (const auto vbPair : vertexBuffers)
+    // Vertex Buffers
+    if (updateVertexBuffers)
     {
-        const auto& vbSlot = vbPair.first;
-        const auto& vbView = vbPair.second;
-        commandList->IASetVertexBuffers(vbSlot, 1, &vbView);
+        for (const auto vbPair : vertexBuffers)
+        {
+            const auto& vbSlot = vbPair.first;
+            const auto& vbView = vbPair.second;
+            commandList->IASetVertexBuffers(vbSlot, 1, &vbView);
+        }
+        updateVertexBuffers = false;
     }
+}
+
+void Renderer::DrawInit()
+{
+    updatePSO = true;
+    updateRootSignature = true;
+    updateConstantBuffers = true;
+    updateVertexBuffers = true;
+    updateIndexBuffer = true;
 }
 
 void Renderer::Draw(UINT numOfVertices, UINT firstVertexToDraw)
@@ -126,9 +152,10 @@ void Renderer::DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLoca
 
     CommonDraw(commandList.Get());
     
-    if (indexBufferView.BufferLocation != D3D12_INDEX_BUFFER_VIEW().BufferLocation)
+    if (updateIndexBuffer)
     {
         commandList->IASetIndexBuffer(&indexBufferView);
+        updateIndexBuffer = false;
     }
 
     commandList->DrawIndexedInstanced(indexCount, 1, firstIndex, baseVertexLocation, 0);
@@ -165,7 +192,7 @@ ResourceManager::Resource::Id Renderer::CreateTextureResource(const CD3DX12_RESO
         resourceManager.UpdateSRVBuffer(resId, pSrcData);
     }
     resourceManager.UpdateResourceState(resource.d12resource.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-
+    resourceManager.CreateShaderResourceView(resId, resId);
     pRenderEnv->ExecuteRenderCommandList();
 
     return resId;
@@ -253,15 +280,22 @@ void Renderer::BindConstantBuffer(ResourceManager::Resource::Id resourceId, std:
     ASSERT(slot <= CB_SLOT_MAX);
     ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
     ASSERT(resource.type == ResourceManager::Resource::Type::CB);
-    cbArguments[slot] = resource.variant.cbHandle;
+    if (cbArguments[slot] != resource.variant.cbHandle)
+    {
+        cbArguments[slot] = resource.variant.cbHandle;
+        updateConstantBuffers = true;
+    }
 }
 
 void Renderer::BindTextureResource(ResourceManager::Resource::Id resourceId, std::size_t slot)
 {
+    /*
     ASSERT(slot <= ResourceManager::DESCR_HEAP_MAX);
     ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
     ASSERT(resource.type == ResourceManager::Resource::Type::SRV);
     srvArguments[slot] = resourceId;
+    */
+    resourceManager.CreateShaderResourceView(resourceId, slot);
 }
 
 void Renderer::BindVertexBuffer(UINT Slot, ResourceManager::Resource::Id resourceId, UINT Offset)
@@ -274,14 +308,22 @@ void Renderer::BindVertexBuffer(UINT Slot, ResourceManager::Resource::Id resourc
         vbView.SizeInBytes -= Offset;
         vbView.BufferLocation += Offset;
     }
-    vertexBuffers[Slot] = vbView;
+    if (vertexBuffers[Slot].BufferLocation != vbView.BufferLocation)
+    {
+        vertexBuffers[Slot] = vbView;
+        updateVertexBuffers = true;
+    }
 }
 
 void Renderer::BindIndexBuffer(ResourceManager::Resource::Id resourceId)
 {
     ResourceManager::Resource resource = resourceManager.GetResource(resourceId);
     ASSERT(resource.type == ResourceManager::Resource::Type::IB);
-    indexBufferView = resource.variant.ibView;
+    if (indexBufferView.BufferLocation != resource.variant.ibView.BufferLocation)
+    {
+        indexBufferView = resource.variant.ibView;
+        updateIndexBuffer = true;
+    }
 }
 
 // RELEASE:
@@ -380,7 +422,11 @@ void Renderer::CreatePSO(const State* psoState, int stateId)
 
 void Renderer::SetPSO(UINT PSOid)
 {
-    psoId = PSOid;
+    if (PSOid != psoId)
+    {
+        psoId = PSOid;
+        updatePSO = true;
+    }
 }
 
 UINT Renderer::GetPSOiD()

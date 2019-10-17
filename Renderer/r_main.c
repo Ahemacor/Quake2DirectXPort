@@ -531,7 +531,6 @@ void R_PolyBlend (void)
 	{
         DX12_SetRenderState(d3d_PolyblendShader);
         DX12_Draw(3, 0);
-        //DX12_Execute();
 	}
 }
 
@@ -590,6 +589,8 @@ void R_PrepareEntities (void)
 
 void R_RenderScene (void)
 {
+    DX12_DrawInit();
+
 	R_DrawWorld ();
 
 	R_DrawEntitiesOnList (false);
@@ -636,6 +637,8 @@ void R_RenderFrame (refdef_t *fd)
 	R_PrepareDlights ();
 
 	R_PrepareEntities ();
+
+    DX12_Execute();
 
     R_RenderScene ();
 

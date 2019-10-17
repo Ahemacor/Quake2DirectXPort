@@ -30,11 +30,13 @@ typedef struct aliasmesh_s {
     int index_st;
 } aliasmesh_t;
 
-
 typedef struct aliasbuffers_s {
     int PolyVerts;
     int TexCoords;
     int Indexes;
+    int VertexTextureIdBuffer;
+
+    int SelectedTextureId;
 
     char Name[256];
     int registration_sequence;
@@ -110,6 +112,7 @@ void R_ShutdownMesh (void)
         DX12_ReleaseResource(set->PolyVerts);
         DX12_ReleaseResource(set->TexCoords);
         DX12_ReleaseResource(set->Indexes);
+        DX12_ReleaseResource(set->VertexTextureIdBuffer);
 		memset (set, 0, sizeof (aliasbuffers_t));
 	}
 
@@ -131,6 +134,7 @@ void R_FreeUnusedAliasBuffers (void)
             DX12_ReleaseResource(set->PolyVerts);
             DX12_ReleaseResource(set->TexCoords);
             DX12_ReleaseResource(set->Indexes);
+            DX12_ReleaseResource(set->VertexTextureIdBuffer);
 			memset (set, 0, sizeof (aliasbuffers_t));
 		}
 	}
@@ -165,7 +169,7 @@ void D_CreateAliasPolyVerts (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, alia
 }
 
 
-void D_CreateAliasTexCoords (mmdl_t *hdr, dmdl_t *src, aliasbuffers_t *set, aliasmesh_t *dedupe)
+void D_CreateAliasTexCoords(mmdl_t* hdr, dmdl_t* src, aliasbuffers_t* set, aliasmesh_t* dedupe)
 {
     //float* texcoords = malloc(hdr->num_verts * sizeof(float) * 2);
     float* texcoords = ri.Load_AllocMemory(hdr->num_verts * sizeof(float) * 2);
@@ -352,6 +356,8 @@ void D_MakeAliasBuffers (model_t *mod, dmdl_t *src)
 		if (set->PolyVerts) continue;
 		if (set->TexCoords) continue;
 		if (set->Indexes) continue;
+        if (set->VertexTextureIdBuffer) continue;
+
 
 		// cache the name so that we'll find it next time too
 		strcpy (set->Name, mod->name);
@@ -420,7 +426,7 @@ void R_DrawAliasPolySet (model_t *mod)
 	mmdl_t *hdr = mod->md2header;
 
     DX12_DrawIndexed(hdr->num_indexes, 0, 0);
-    DX12_Execute();
+    //DX12_Execute();
 }
 
 
@@ -428,11 +434,28 @@ void R_SetupAliasFrameLerp (entity_t *e, model_t *mod, aliasbuffers_t *set)
 {
     // sets up stuff that's going to be valid for both the main pass and the dynamic lighting pass(es)
     mmdl_t* hdr = mod->md2header;
-    R_BindTexture(R_SelectAliasTexture(e, mod)->textureId);
+    unsigned int selectedTexture = R_SelectAliasTexture(e, mod)->textureId;
+    if (set->SelectedTextureId != selectedTexture)
+    {
+        set->SelectedTextureId = selectedTexture;
+
+        unsigned int* textureIdBuffer = ri.Load_AllocMemory(hdr->num_verts * sizeof(unsigned int));
+        for (int i = 0; i < hdr->num_verts; ++i)textureIdBuffer[i] = selectedTexture;
+        R_BindTexture(selectedTexture);
+        if (set->VertexTextureIdBuffer == 0)
+        {
+            set->VertexTextureIdBuffer = DX12_CreateVertexBuffer(hdr->num_verts, sizeof(unsigned int), textureIdBuffer);
+        }
+        else
+        {
+            DX12_UpdateVertexBuffer(set->VertexTextureIdBuffer, textureIdBuffer, hdr->num_verts, 0, sizeof(unsigned int));
+        }
+    }
 
     DX12_BindVertexBuffer(1, set->PolyVerts, e->prevframe * sizeof(dtrivertx_t) * hdr->num_verts);
     DX12_BindVertexBuffer(2, set->PolyVerts, e->currframe * sizeof(dtrivertx_t) * hdr->num_verts);
     DX12_BindVertexBuffer(3, set->TexCoords, 0);
+    DX12_BindVertexBuffer(4, set->VertexTextureIdBuffer, 0);
 
     DX12_BindIndexBuffer(set->Indexes);
 }

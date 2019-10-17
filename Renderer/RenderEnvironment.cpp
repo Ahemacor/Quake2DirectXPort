@@ -527,7 +527,7 @@ void RenderEnvironment::ClearScreen()
         renderCommandList->ClearRenderTargetView(renderTargetHandle, clearColor, 0, nullptr);
         renderCommandList->ClearDepthStencilView(dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
-        ExecuteRenderCommandList();
+        //ExecuteRenderCommandList();
     }
 }
 
@@ -583,6 +583,8 @@ void RenderEnvironment::ResetRenderCommandList()
     ENSURE_RESULT(renderCommandList->Reset(commandAllocators[currentBufferIndex].Get(), nullptr));
 
     renderCommandListState = CommandListState::CL_RESETED;
+
+    if (drawInitCallback) drawInitCallback();
 }
 
 void RenderEnvironment::ExecuteRenderCommandList()

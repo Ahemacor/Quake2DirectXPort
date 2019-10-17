@@ -35,6 +35,7 @@ struct PS_DRAWTURB {
     float4 Position : SV_POSITION;
     float2 TexCoord0 : TEXCOORD0;
     float2 TexCoord1 : TEXCOORD1;
+    uint TextureId : TEXTURE;
 };
 
 struct VS_SURFCOMMON {
@@ -44,6 +45,7 @@ struct VS_SURFCOMMON {
     uint4 Styles: STYLES;
     uint MapNum : MAPNUM;
     float Scroll : SCROLL;
+    uint TextureId : TEXTURE;
 };
 
 float2 GetTextureScroll(VS_SURFCOMMON vs_in)
@@ -61,6 +63,7 @@ PS_DRAWTURB SurfDrawTurbVS(VS_SURFCOMMON vs_in)
     vs_out.Position = mul(LocalMatrix, vs_in.Position);
     vs_out.TexCoord0 = GetTextureScroll(vs_in);
     vs_out.TexCoord1 = vs_in.TexCoord.yx * M_PI + turbTime;
+    vs_out.TextureId = vs_in.TextureId;
 
     return vs_out;
 }

@@ -209,7 +209,6 @@ void R_DrawSpriteModel (entity_t *e, QMATRIX *localmatrix)
     DX12_BindVertexBuffer(5, d3d_SpriteBuffers[mod->bufferset].PolyVertsId, 0);
     DX12_BindIndexBuffer(d3d_SpriteIndexes);
     DX12_DrawIndexed(6, 0, framenum * 4);
-    DX12_Execute();
 }
 
 

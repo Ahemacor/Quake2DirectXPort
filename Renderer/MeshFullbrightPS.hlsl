@@ -19,6 +19,7 @@ struct PS_MESH {
     float4 Position: SV_POSITION;
     float2 TexCoord: TEXCOORD;
     float3 Normal : NORMAL;
+    uint TextureId : TEXTURE;
 };
 
 float4 GetGamma(float4 colorin)

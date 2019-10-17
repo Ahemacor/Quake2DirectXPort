@@ -24,6 +24,7 @@ public:
     bool Init(RenderEnvironment* environment);
     void Release();
 
+    void DrawInit();
     void Draw(UINT numOfVertices, UINT firstVertexToDraw = 0);
     void DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLocation);
 
@@ -76,5 +77,11 @@ private:
     D3D12_INDEX_BUFFER_VIEW indexBufferView;
 
     bool isInitialized = false;
+
+    bool updatePSO = true;
+    bool updateRootSignature = true;
+    bool updateConstantBuffers = true;
+    bool updateVertexBuffers = true;
+    bool updateIndexBuffer = true;
 
 };

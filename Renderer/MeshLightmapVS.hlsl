@@ -24,12 +24,14 @@ struct VS_MESH {
     uint4 PrevTriVertx: PREVTRIVERTX;
     uint4 CurrTriVertx: CURRTRIVERTX;
     float2 TexCoord: TEXCOORD;
+    uint TextureId : TEXTURE;
 };
 
 struct PS_MESH {
     float4 Position: SV_POSITION;
     float2 TexCoord: TEXCOORD;
     float3 Normal : NORMAL;
+    uint TextureId : TEXTURE;
 };
 
 float4 MeshLerpPosition(VS_MESH vs_in)
@@ -53,6 +55,7 @@ PS_MESH MeshLightmapVS(VS_MESH vs_in)
     vs_out.Position = mul(LocalMatrix, MeshLerpPosition(vs_in));
     vs_out.TexCoord = vs_in.TexCoord;
     vs_out.Normal = MeshLerpNormal(vs_in);
+    vs_out.TextureId = vs_in.TextureId;
 
     return vs_out;
 }

@@ -30,6 +30,7 @@ struct VS_MESH {
     uint4 PrevTriVertx: PREVTRIVERTX;
     uint4 CurrTriVertx: CURRTRIVERTX;
     float2 TexCoord: TEXCOORD;
+    uint TextureId : TEXTURE;
 };
 
 struct PS_DYNAMICLIGHT {
@@ -37,6 +38,7 @@ struct PS_DYNAMICLIGHT {
     float2 TexCoord : TEXCOORD;
     float3 LightVector : LIGHTVECTOR;
     float3 Normal : NORMAL;
+    uint TextureId : TEXTURE;
 };
 
 float4 MeshLerpPosition(VS_MESH vs_in)
@@ -53,7 +55,7 @@ float3 MeshLerpNormal(VS_MESH vs_in)
     return normalize(lerp(n1, n2, BackLerp));
 }
 
-PS_DYNAMICLIGHT GenericDynamicVS(float4 Position, float3 Normal, float2 TexCoord)
+PS_DYNAMICLIGHT GenericDynamicVS(float4 Position, float3 Normal, float2 TexCoord, uint textureId)
 {
     PS_DYNAMICLIGHT vs_out;
 
@@ -61,11 +63,12 @@ PS_DYNAMICLIGHT GenericDynamicVS(float4 Position, float3 Normal, float2 TexCoord
     vs_out.TexCoord = TexCoord;
     vs_out.LightVector = LightOrigin - Position.xyz;
     vs_out.Normal = Normal;
+    vs_out.TextureId = textureId;
 
     return vs_out;
 }
 
 PS_DYNAMICLIGHT MeshDynamicVS(VS_MESH vs_in)
 {
-    return GenericDynamicVS(MeshLerpPosition(vs_in), MeshLerpNormal(vs_in), vs_in.TexCoord);
+    return GenericDynamicVS(MeshLerpPosition(vs_in), MeshLerpNormal(vs_in), vs_in.TexCoord, vs_in.TextureId);
 }

@@ -137,7 +137,7 @@ void R_BindTexArray(int resId)
     static int* OldResId;
     if (OldResId != resId)
     {
-        DX12_BindTexture(6, resId);
+        //DX12_BindTexture(resId, resId);
         OldResId = resId;
     }
 }
@@ -147,7 +147,7 @@ void R_BindTexture(int resId)
     static int OldRes;
     if (OldRes != resId)
     {
-        DX12_BindTexture(0, resId);
+        //DX12_BindTexture(resId, resId);
         OldRes = resId;
     }
 }

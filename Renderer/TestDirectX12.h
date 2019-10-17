@@ -53,6 +53,7 @@ extern "C" {
     State DX12_GetCurrentRenderState();
     UINT DX12_GetCurrentRenderStateId();
 
+    void DX12_DrawInit();
     void DX12_Draw(UINT numOfVertices, UINT firstVertexToDraw);
     void DX12_DrawIndexed(UINT indexCount, UINT firstIndex, UINT baseVertexLocation);
 

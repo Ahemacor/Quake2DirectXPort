@@ -59,7 +59,6 @@ void R_DrawNullModel(entity_t* e, QMATRIX* localmatrix)
     DX12_SetRenderState(d3d_NullShader);
 
     DX12_Draw(24, 0);
-    DX12_Execute();
 }
 
 void R_PrepareNullModel(entity_t* e, QMATRIX* localmatrix)

@@ -32,6 +32,7 @@ typedef struct drawpolyvert_s {
 		byte rgba[4];
 		float slice;
 	};
+    UINT textureId;
 } drawpolyvert_t;
 
 
@@ -220,7 +221,7 @@ void Draw_Flush (void)
 
     if (d_numdrawverts > 0)
     {
-        DX12_Execute();
+        //DX12_Execute();
         d_firstdrawvert += d_numdrawverts;
         d_numdrawverts = 0;
     }
@@ -246,7 +247,7 @@ qboolean Draw_EnsureBufferSpace (void)
 }
 
 
-void Draw_TexturedVertex (drawpolyvert_t *vert, float x, float y, DWORD color, float s, float t)
+void Draw_TexturedVertex (drawpolyvert_t *vert, float x, float y, DWORD color, float s, float t, UINT textureId)
 {
 	vert->position[0] = x;
 	vert->position[1] = y;
@@ -255,6 +256,8 @@ void Draw_TexturedVertex (drawpolyvert_t *vert, float x, float y, DWORD color, f
 	vert->texcoord[1] = t;
 
 	vert->color = color;
+
+    vert->textureId = textureId;
 }
 
 
@@ -267,7 +270,7 @@ void Draw_ColouredVertex (drawpolyvert_t *vert, float x, float y, DWORD color)
 }
 
 
-void Draw_CharacterVertex (drawpolyvert_t *vert, float x, float y, float s, float t, float slice)
+void Draw_CharacterVertex (drawpolyvert_t *vert, float x, float y, float s, float t, float slice, UINT textureId)
 {
 	vert->position[0] = x;
 	vert->position[1] = y;
@@ -276,36 +279,38 @@ void Draw_CharacterVertex (drawpolyvert_t *vert, float x, float y, float s, floa
 	vert->texcoord[1] = t;
 
 	vert->slice = slice;
+    vert->textureId = textureId;
 }
 
 
 void Draw_TexturedQuad (image_t *image, int x, int y, int w, int h, unsigned color)
 {
-    DX12_BindTexture(0, image->textureId);
+    UINT texId = image->textureId;
+    //DX12_BindTexture(texId, image->textureId);
     DX12_SetRenderState(d3d_DrawTexturedShader);
 
 	if (Draw_EnsureBufferSpace ())
 	{
-		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], x, y, color, 0, 0);
-		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], x + w, y, color, 1, 0);
-		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], x + w, y + h, color, 1, 1);
-		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], x, y + h, color, 0, 1);
+		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], x, y, color, 0, 0, texId);
+		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], x + w, y, color, 1, 0, texId);
+		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], x + w, y + h, color, 1, 1, texId);
+		Draw_TexturedVertex (&d_drawverts[d_numdrawverts++], x, y + h, color, 0, 1, texId);
 
 		Draw_Flush ();
 	}
 }
 
 
-void Draw_CharacterQuad (int x, int y, int w, int h, int slice)
+void Draw_CharacterQuad (int x, int y, int w, int h, int slice, UINT textureId)
 {
 	// check for overflow
 	if (Draw_EnsureBufferSpace ())
 	{
 		// and draw it
-		Draw_CharacterVertex (&d_drawverts[d_numdrawverts++], x, y, 0, 0, slice);
-		Draw_CharacterVertex (&d_drawverts[d_numdrawverts++], x + w, y, 1, 0, slice);
-		Draw_CharacterVertex (&d_drawverts[d_numdrawverts++], x + w, y + h, 1, 1, slice);
-		Draw_CharacterVertex (&d_drawverts[d_numdrawverts++], x, y + h, 0, 1, slice);
+		Draw_CharacterVertex (&d_drawverts[d_numdrawverts++], x, y, 0, 0, slice, textureId);
+		Draw_CharacterVertex (&d_drawverts[d_numdrawverts++], x + w, y, 1, 0, slice, textureId);
+		Draw_CharacterVertex (&d_drawverts[d_numdrawverts++], x + w, y + h, 1, 1, slice, textureId);
+		Draw_CharacterVertex (&d_drawverts[d_numdrawverts++], x, y + h, 0, 1, slice, textureId);
 	}
 }
 
@@ -341,7 +346,7 @@ void Draw_Field (int x, int y, int color, int width, int value)
             frame = STAT_MINUS;
         else frame = *ptr - '0';
 
-        Draw_CharacterQuad(x, y, sb_nums[color]->width, sb_nums[color]->height, frame);
+        Draw_CharacterQuad(x, y, sb_nums[color]->width, sb_nums[color]->height, frame, sb_nums[color]->textureId);
 
         x += sb_nums[color]->width;
         ptr++;
@@ -372,7 +377,7 @@ void Draw_Char (int x, int y, int num)
     R_BindTexArray(draw_chars->textureId);
     DX12_SetRenderState(d3d_DrawTexArrayShader);
 
-	Draw_CharacterQuad (x, y, 8, 8, num & 255);
+	Draw_CharacterQuad (x, y, 8, 8, num & 255, draw_chars->textureId);
 }
 
 
@@ -578,9 +583,9 @@ void Draw_StretchRaw (int cols, int rows, byte *data, int frame, const unsigned 
             ttrans *= ((float)cols / (float)rows) * ((float)vid.conheight / (float)vid.conwidth);
 
         // drawn without projection, full-screen triangle coords
-        Draw_TexturedVertex(&d_drawverts[d_numdrawverts++], -1, -1, 0xffffffff, strans, ttrans);
-        Draw_TexturedVertex(&d_drawverts[d_numdrawverts++], 3, -1, 0xffffffff, strans, ttrans);
-        Draw_TexturedVertex(&d_drawverts[d_numdrawverts++], -1, 3, 0xffffffff, strans, ttrans);
+        Draw_TexturedVertex(&d_drawverts[d_numdrawverts++], -1, -1, 0xffffffff, strans, ttrans, r_CinematicPic.Id);
+        Draw_TexturedVertex(&d_drawverts[d_numdrawverts++], 3, -1, 0xffffffff, strans, ttrans, r_CinematicPic.Id);
+        Draw_TexturedVertex(&d_drawverts[d_numdrawverts++], -1, 3, 0xffffffff, strans, ttrans, r_CinematicPic.Id);
 
         // always flush
         Draw_Flush();

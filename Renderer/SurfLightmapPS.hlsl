@@ -38,10 +38,10 @@ cbuffer cbPerObject : register(b2) {
     float AlphaVal : packoffset(c4.w);
 };
 
-Texture2D<float4> mainTexture : register(t0);
-Texture2DArray<float4> lmap0Texture : register(t1);        // lightmap styles 0/1/2/3
-Texture2DArray<float4> lmap1Texture : register(t2);        // lightmap styles 0/1/2/3
-Texture2DArray<float4> lmap2Texture : register(t3);        // lightmap styles 0/1/2/3
+Texture2DArray<float4> mainTexture[1024] : register(t0);
+//Texture2DArray<float4> lmap0Texture : register(t1);        // lightmap styles 0/1/2/3
+//Texture2DArray<float4> lmap1Texture : register(t2);        // lightmap styles 0/1/2/3
+//Texture2DArray<float4> lmap2Texture : register(t3);        // lightmap styles 0/1/2/3
 
 sampler mainSampler : register(s0);
 sampler lmapSampler : register(s1);
@@ -49,6 +49,7 @@ sampler lmapSampler : register(s1);
 struct PS_BASIC {
     float4 Position : SV_POSITION;
     float2 TexCoord : TEXCOORD;
+    uint TextureId : TEXTURE;
 };
 
 float4 GetGamma(float4 colorin)
@@ -61,6 +62,7 @@ struct PS_LIGHTMAPPED {
     float2 TexCoord : TEXCOORD;
     float3 Lightmap : LIGHTMAP;
     nointerpolation float4 Styles: STYLES;
+    uint TextureId : TEXTURE;
 };
 
 float3 HUEtoRGB(in float H)
@@ -107,12 +109,12 @@ float3 Desaturate(float3 RGB)
 
 float4 SurfLightmapPS(PS_LIGHTMAPPED ps_in) : SV_TARGET0
 {
-    float4 diff = GetGamma(mainTexture.Sample(mainSampler, ps_in.TexCoord));
+    float4 diff = GetGamma(mainTexture[ps_in.TextureId].Sample(mainSampler, float3(ps_in.TexCoord, 0.0f)));
 
     float3 lmap = float3 (
-        dot(lmap0Texture.Sample(lmapSampler, ps_in.Lightmap), ps_in.Styles),
-        dot(lmap1Texture.Sample(lmapSampler, ps_in.Lightmap), ps_in.Styles),
-        dot(lmap2Texture.Sample(lmapSampler, ps_in.Lightmap), ps_in.Styles)
+        dot(mainTexture[1].Sample(lmapSampler, ps_in.Lightmap), ps_in.Styles),
+        dot(mainTexture[2].Sample(lmapSampler, ps_in.Lightmap), ps_in.Styles),
+        dot(mainTexture[3].Sample(lmapSampler, ps_in.Lightmap), ps_in.Styles)
     );
 
     //return float4 (diff.rgb * Desaturate(lmap), 1.0f);
