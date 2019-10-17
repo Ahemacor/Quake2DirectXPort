@@ -589,8 +589,6 @@ void R_PrepareEntities (void)
 
 void R_RenderScene (void)
 {
-    DX12_DrawInit();
-
 	R_DrawWorld ();
 
 	R_DrawEntitiesOnList (false);

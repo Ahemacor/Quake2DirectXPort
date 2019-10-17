@@ -211,11 +211,6 @@ void DX12_SetViewport(const D3D12_VIEWPORT* pViewport)
     g_renderEnv->SetViewport(*pViewport);
 }
 
-void DX12_DrawInit()
-{
-    g_renderer->DrawInit();
-}
-
 void DX12_Draw(UINT numOfVertices, UINT firstVertexToDraw)
 {
     g_renderer->Draw(numOfVertices, firstVertexToDraw);
