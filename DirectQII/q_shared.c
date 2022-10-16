@@ -22,11 +22,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define DEG2RAD(a) (a * M_PI) / 180.0F
 
-vec3_t vec3_origin = {0, 0, 0};
+//vec3_t vec3_origin = {0, 0, 0};
 
 //============================================================================
 
-void AngleVectors (vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
+void AngleVectors_delte (vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
 {
 	float angle;
 	static float sr, sp, sy, cr, cp, cy; // static to help MS compiler fp bugs
@@ -67,7 +67,7 @@ void AngleVectors (vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
 //============================================================================
 
 
-float Q_fabs (float f)
+float Q_fabs_delte(float f)
 {
 #if 0
 	if (f >= 0)
@@ -99,7 +99,7 @@ LerpAngle
 
 ===============
 */
-float LerpAngle (float a2, float a1, float frac)
+float LerpAngle_delte(float a2, float a1, float frac)
 {
 	if (a1 - a2 > 180)
 		a1 -= 360;
@@ -109,7 +109,7 @@ float LerpAngle (float a2, float a1, float frac)
 }
 
 
-float anglemod (float a)
+float anglemod_delte(float a)
 {
 	return (360.0 / 65536) * ((int) (a * (65536 / 360.0)) & 65535);
 }
@@ -124,239 +124,40 @@ Returns 1, 2, or 1 + 2
 */
 #pragma warning( disable: 4035 )
 
-__declspec(naked) int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, struct cplane_s *p)
+int BoxOnPlaneSide_delte(vec3_t emins, vec3_t emaxs, struct cplane_s *p)
 {
-	static int bops_initialized;
-	static int Ljmptab[8];
+	int		i;
+	float	dist1, dist2;
+	int		sides;
+	vec3_t	corners[2];
 
-	__asm {
-
-		push ebx
-
-			cmp bops_initialized, 1
-			je  initialized
-			mov bops_initialized, 1
-
-			mov Ljmptab[0 * 4], offset Lcase0
-			mov Ljmptab[1 * 4], offset Lcase1
-			mov Ljmptab[2 * 4], offset Lcase2
-			mov Ljmptab[3 * 4], offset Lcase3
-			mov Ljmptab[4 * 4], offset Lcase4
-			mov Ljmptab[5 * 4], offset Lcase5
-			mov Ljmptab[6 * 4], offset Lcase6
-			mov Ljmptab[7 * 4], offset Lcase7
-
-initialized :
-
-		mov edx, ds : dword ptr[4 + 12 + esp]
-			mov ecx, ds : dword ptr[4 + 4 + esp]
-			xor eax, eax
-			mov ebx, ds : dword ptr[4 + 8 + esp]
-			mov al, ds : byte ptr[17 + edx]
-			cmp al, 8
-			jge Lerror
-			fld ds : dword ptr[0 + edx]
-			fld st (0)
-			jmp dword ptr[Ljmptab + eax * 4]
-Lcase0 :
-	   fmul ds : dword ptr[ebx]
-	   fld ds : dword ptr[0 + 4 + edx]
-	   fxch st (2)
-	   fmul ds : dword ptr[ecx]
-	   fxch st (2)
-	   fld st (0)
-	   fmul ds : dword ptr[4 + ebx]
-	   fld ds : dword ptr[0 + 8 + edx]
-	   fxch st (2)
-	   fmul ds : dword ptr[4 + ecx]
-	   fxch st (2)
-	   fld st (0)
-	   fmul ds : dword ptr[8 + ebx]
-	   fxch st (5)
-	   faddp st (3), st (0)
-	   fmul ds : dword ptr[8 + ecx]
-	   fxch st (1)
-	   faddp st (3), st (0)
-	   fxch st (3)
-	   faddp st (2), st (0)
-	   jmp LSetSides
-Lcase1 :
-		fmul ds : dword ptr[ecx]
-			fld ds : dword ptr[0 + 4 + edx]
-			fxch st (2)
-			fmul ds : dword ptr[ebx]
-			fxch st (2)
-			fld st (0)
-			fmul ds : dword ptr[4 + ebx]
-			fld ds : dword ptr[0 + 8 + edx]
-			fxch st (2)
-			fmul ds : dword ptr[4 + ecx]
-			fxch st (2)
-			fld st (0)
-			fmul ds : dword ptr[8 + ebx]
-			fxch st (5)
-			faddp st (3), st (0)
-			fmul ds : dword ptr[8 + ecx]
-			fxch st (1)
-			faddp st (3), st (0)
-			fxch st (3)
-			faddp st (2), st (0)
-			jmp LSetSides
-Lcase2 :
-		fmul ds : dword ptr[ebx]
-			fld ds : dword ptr[0 + 4 + edx]
-			fxch st (2)
-			fmul ds : dword ptr[ecx]
-			fxch st (2)
-			fld st (0)
-			fmul ds : dword ptr[4 + ecx]
-			fld ds : dword ptr[0 + 8 + edx]
-			fxch st (2)
-			fmul ds : dword ptr[4 + ebx]
-			fxch st (2)
-			fld st (0)
-			fmul ds : dword ptr[8 + ebx]
-			fxch st (5)
-			faddp st (3), st (0)
-			fmul ds : dword ptr[8 + ecx]
-			fxch st (1)
-			faddp st (3), st (0)
-			fxch st (3)
-			faddp st (2), st (0)
-			jmp LSetSides
-Lcase3 :
-		fmul ds : dword ptr[ecx]
-			fld ds : dword ptr[0 + 4 + edx]
-			fxch st (2)
-			fmul ds : dword ptr[ebx]
-			fxch st (2)
-			fld st (0)
-			fmul ds : dword ptr[4 + ecx]
-			fld ds : dword ptr[0 + 8 + edx]
-			fxch st (2)
-			fmul ds : dword ptr[4 + ebx]
-			fxch st (2)
-			fld st (0)
-			fmul ds : dword ptr[8 + ebx]
-			fxch st (5)
-			faddp st (3), st (0)
-			fmul ds : dword ptr[8 + ecx]
-			fxch st (1)
-			faddp st (3), st (0)
-			fxch st (3)
-			faddp st (2), st (0)
-			jmp LSetSides
-Lcase4 :
-		fmul ds : dword ptr[ebx]
-			fld ds : dword ptr[0 + 4 + edx]
-			fxch st (2)
-			fmul ds : dword ptr[ecx]
-			fxch st (2)
-			fld st (0)
-			fmul ds : dword ptr[4 + ebx]
-			fld ds : dword ptr[0 + 8 + edx]
-			fxch st (2)
-			fmul ds : dword ptr[4 + ecx]
-			fxch st (2)
-			fld st (0)
-			fmul ds : dword ptr[8 + ecx]
-			fxch st (5)
-			faddp st (3), st (0)
-			fmul ds : dword ptr[8 + ebx]
-			fxch st (1)
-			faddp st (3), st (0)
-			fxch st (3)
-			faddp st (2), st (0)
-			jmp LSetSides
-Lcase5 :
-		fmul ds : dword ptr[ecx]
-			fld ds : dword ptr[0 + 4 + edx]
-			fxch st (2)
-			fmul ds : dword ptr[ebx]
-			fxch st (2)
-			fld st (0)
-			fmul ds : dword ptr[4 + ebx]
-			fld ds : dword ptr[0 + 8 + edx]
-			fxch st (2)
-			fmul ds : dword ptr[4 + ecx]
-			fxch st (2)
-			fld st (0)
-			fmul ds : dword ptr[8 + ecx]
-			fxch st (5)
-			faddp st (3), st (0)
-			fmul ds : dword ptr[8 + ebx]
-			fxch st (1)
-			faddp st (3), st (0)
-			fxch st (3)
-			faddp st (2), st (0)
-			jmp LSetSides
-Lcase6 :
-		fmul ds : dword ptr[ebx]
-			fld ds : dword ptr[0 + 4 + edx]
-			fxch st (2)
-			fmul ds : dword ptr[ecx]
-			fxch st (2)
-			fld st (0)
-			fmul ds : dword ptr[4 + ecx]
-			fld ds : dword ptr[0 + 8 + edx]
-			fxch st (2)
-			fmul ds : dword ptr[4 + ebx]
-			fxch st (2)
-			fld st (0)
-			fmul ds : dword ptr[8 + ecx]
-			fxch st (5)
-			faddp st (3), st (0)
-			fmul ds : dword ptr[8 + ebx]
-			fxch st (1)
-			faddp st (3), st (0)
-			fxch st (3)
-			faddp st (2), st (0)
-			jmp LSetSides
-Lcase7 :
-		fmul ds : dword ptr[ecx]
-			fld ds : dword ptr[0 + 4 + edx]
-			fxch st (2)
-			fmul ds : dword ptr[ebx]
-			fxch st (2)
-			fld st (0)
-			fmul ds : dword ptr[4 + ecx]
-			fld ds : dword ptr[0 + 8 + edx]
-			fxch st (2)
-			fmul ds : dword ptr[4 + ebx]
-			fxch st (2)
-			fld st (0)
-			fmul ds : dword ptr[8 + ecx]
-			fxch st (5)
-			faddp st (3), st (0)
-			fmul ds : dword ptr[8 + ebx]
-			fxch st (1)
-			faddp st (3), st (0)
-			fxch st (3)
-			faddp st (2), st (0)
-LSetSides :
-		  faddp st (2), st (0)
-		  fcomp ds : dword ptr[12 + edx]
-		  xor ecx, ecx
-		  fnstsw ax
-		  fcomp ds : dword ptr[12 + edx]
-		  and ah, 1
-		  xor ah, 1
-		  add cl, ah
-		  fnstsw ax
-		  and ah, 1
-		  add ah, ah
-		  add cl, ah
-		  pop ebx
-		  mov eax, ecx
-		  ret
-Lerror :
-		int 3
+	for (i = 0; i < 3; i++)
+	{
+		if (p->normal[i] < 0)
+		{
+			corners[0][i] = emins[i];
+			corners[1][i] = emaxs[i];
+		}
+		else
+		{
+			corners[1][i] = emins[i];
+			corners[0][i] = emaxs[i];
+		}
 	}
+	dist1 = DotProduct(p->normal, corners[0]) - p->dist;
+	dist2 = DotProduct(p->normal, corners[1]) - p->dist;
+	sides = 0;
+	if (dist1 >= 0)
+		sides = 1;
+	if (dist2 < 0)
+		sides |= 2;
+
+	return sides;
 }
 #pragma warning( default: 4035 )
 
 
-int VectorCompare (vec3_t v1, vec3_t v2)
+int VectorCompare_delte(vec3_t v1, vec3_t v2)
 {
 	if (v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2])
 		return 0;
@@ -365,7 +166,7 @@ int VectorCompare (vec3_t v1, vec3_t v2)
 }
 
 
-vec_t VectorNormalize (vec3_t v)
+vec_t VectorNormalize_delte(vec3_t v)
 {
 	float	length, ilength;
 
@@ -384,7 +185,7 @@ vec_t VectorNormalize (vec3_t v)
 
 }
 
-vec_t VectorNormalize2 (vec3_t v, vec3_t out)
+vec_t VectorNormalize2_delte(vec3_t v, vec3_t out)
 {
 	float	length, ilength;
 
@@ -403,7 +204,7 @@ vec_t VectorNormalize2 (vec3_t v, vec3_t out)
 
 }
 
-void VectorMA (vec3_t add, float scale, vec3_t mult, vec3_t out)
+void VectorMA_delete (vec3_t add, float scale, vec3_t mult, vec3_t out)
 {
 	out[0] = add[0] + scale * mult[0];
 	out[1] = add[1] + scale * mult[1];
@@ -411,52 +212,52 @@ void VectorMA (vec3_t add, float scale, vec3_t mult, vec3_t out)
 }
 
 
-vec_t DotProduct (vec3_t v1, vec3_t v2)
+vec_t DotProduct(vec3_t v1, vec3_t v2)
 {
 	return (float) ((double) v1[0] * (double) v2[0] + (double) v1[1] * (double) v2[1] + (double) v1[2] * (double) v2[2]);
 }
 
-void VectorNegate (vec3_t in, vec3_t out)
+void VectorNegate(vec3_t in, vec3_t out)
 {
 	out[0] = -in[0];
 	out[1] = -in[1];
 	out[2] = -in[2];
 }
 
-void VectorSet (vec3_t v, float x, float y, float z)
+void VectorSet(vec3_t v, float x, float y, float z)
 {
 	v[0] = x;
 	v[1] = y;
 	v[2] = z;
 }
 
-void VectorClear (vec3_t v)
+void VectorClear(vec3_t v)
 {
 	v[0] = v[1] = v[2] = 0;
 }
 
-void VectorSubtract (vec3_t veca, vec3_t vecb, vec3_t out)
+void VectorSubtract(vec3_t veca, vec3_t vecb, vec3_t out)
 {
 	out[0] = veca[0] - vecb[0];
 	out[1] = veca[1] - vecb[1];
 	out[2] = veca[2] - vecb[2];
 }
 
-void VectorAdd (vec3_t veca, vec3_t vecb, vec3_t out)
+void VectorAdd(vec3_t veca, vec3_t vecb, vec3_t out)
 {
 	out[0] = veca[0] + vecb[0];
 	out[1] = veca[1] + vecb[1];
 	out[2] = veca[2] + vecb[2];
 }
 
-void VectorCopy (vec3_t in, vec3_t out)
+void VectorCopy(vec3_t in, vec3_t out)
 {
 	out[0] = in[0];
 	out[1] = in[1];
 	out[2] = in[2];
 }
 
-void CrossProduct (vec3_t v1, vec3_t v2, vec3_t cross)
+void CrossProduct_delte(vec3_t v1, vec3_t v2, vec3_t cross)
 {
 	cross[0] = v1[1] * v2[2] - v1[2] * v2[1];
 	cross[1] = v1[2] * v2[0] - v1[0] * v2[2];
@@ -465,7 +266,7 @@ void CrossProduct (vec3_t v1, vec3_t v2, vec3_t cross)
 
 double sqrt (double x);
 
-vec_t VectorLength (vec3_t v)
+vec_t VectorLength_delte(vec3_t v)
 {
 	int		i;
 	float	length;
@@ -478,14 +279,14 @@ vec_t VectorLength (vec3_t v)
 	return length;
 }
 
-void VectorInverse (vec3_t v)
+void VectorInverse_delte(vec3_t v)
 {
 	v[0] = -v[0];
 	v[1] = -v[1];
 	v[2] = -v[2];
 }
 
-void VectorScale (vec3_t in, vec_t scale, vec3_t out)
+void VectorScale_delte(vec3_t in, vec_t scale, vec3_t out)
 {
 	out[0] = in[0] * scale;
 	out[1] = in[1] * scale;
@@ -493,7 +294,7 @@ void VectorScale (vec3_t in, vec_t scale, vec3_t out)
 }
 
 
-int Q_log2 (int val)
+int Q_log2_delte(int val)
 {
 	int answer = 0;
 	while (val >>= 1)
@@ -510,7 +311,7 @@ int Q_log2 (int val)
 COM_SkipPath
 ============
 */
-char *COM_SkipPath (char *pathname)
+char *COM_SkipPath_delte(char *pathname)
 {
 	char	*last;
 
@@ -529,7 +330,7 @@ char *COM_SkipPath (char *pathname)
 COM_StripExtension
 ============
 */
-void COM_StripExtension (char *in, char *out)
+void COM_StripExtension_delte(char *in, char *out)
 {
 	while (*in && *in != '.')
 		*out++ = *in++;
@@ -541,7 +342,7 @@ void COM_StripExtension (char *in, char *out)
 COM_FileExtension
 ============
 */
-char *COM_FileExtension (char *in)
+char *COM_FileExtension_delte(char *in)
 {
 	static char exten[8];
 	int		i;
@@ -562,7 +363,7 @@ char *COM_FileExtension (char *in)
 COM_FileBase
 ============
 */
-void COM_FileBase (char *in, char *out)
+void COM_FileBase_delte(char *in, char *out)
 {
 	char *s, *s2;
 
@@ -591,7 +392,7 @@ COM_FilePath
 Returns the path up to, but not including the last /
 ============
 */
-void COM_FilePath (char *in, char *out)
+void COM_FilePath_delte(char *in, char *out)
 {
 	char *s;
 
@@ -610,7 +411,7 @@ void COM_FilePath (char *in, char *out)
 COM_DefaultExtension
 ==================
 */
-void COM_DefaultExtension (char *path, char *extension)
+void COM_DefaultExtension_delte(char *path, char *extension)
 {
 	char    *src;
 
@@ -647,14 +448,14 @@ int (*_LittleLong) (int l);
 float (*_BigFloat) (float l);
 float (*_LittleFloat) (float l);
 
-short	BigShort (short l) { return _BigShort (l); }
-short	LittleShort (short l) { return _LittleShort (l); }
-int		BigLong (int l) { return _BigLong (l); }
-int		LittleLong (int l) { return _LittleLong (l); }
-float	BigFloat (float l) { return _BigFloat (l); }
-float	LittleFloat (float l) { return _LittleFloat (l); }
+short	BigShort_delte(short l) { return _BigShort (l); }
+short	LittleShort_delte(short l) { return _LittleShort (l); }
+int		BigLong_delte(int l) { return _BigLong (l); }
+int		LittleLong_delte(int l) { return _LittleLong (l); }
+float	BigFloat_delte(float l) { return _BigFloat (l); }
+float	LittleFloat_delte(float l) { return _LittleFloat (l); }
 
-short   ShortSwap (short l)
+short   ShortSwap_delte(short l)
 {
 	byte    b1, b2;
 
@@ -664,12 +465,12 @@ short   ShortSwap (short l)
 	return (b1 << 8) + b2;
 }
 
-short	ShortNoSwap (short l)
+short	ShortNoSwap_delte(short l)
 {
 	return l;
 }
 
-int    LongSwap (int l)
+int    LongSwap_delte(int l)
 {
 	byte    b1, b2, b3, b4;
 
@@ -681,12 +482,12 @@ int    LongSwap (int l)
 	return ((int) b1 << 24) + ((int) b2 << 16) + ((int) b3 << 8) + b4;
 }
 
-int	LongNoSwap (int l)
+int	LongNoSwap_delte(int l)
 {
 	return l;
 }
 
-float FloatSwap (float f)
+float FloatSwap_delte(float f)
 {
 	union
 	{
@@ -703,7 +504,7 @@ float FloatSwap (float f)
 	return dat2.f;
 }
 
-float FloatNoSwap (float f)
+float FloatNoSwap_delte(float f)
 {
 	return f;
 }
@@ -713,12 +514,12 @@ float FloatNoSwap (float f)
 Swap_Init
 ================
 */
-void Swap_Init (void)
+void Swap_Init_delte(void)
 {
 	byte	swaptest[2] = {1, 0};
 
 	// set the byte swapping variables in a portable manner	
-	if (*(short *) swaptest == 1)
+	/*if (*(short*)swaptest == 1)
 	{
 		bigendien = false;
 		_BigShort = ShortSwap;
@@ -737,7 +538,7 @@ void Swap_Init (void)
 		_LittleLong = LongSwap;
 		_BigFloat = FloatNoSwap;
 		_LittleFloat = FloatSwap;
-	}
+	}*/
 }
 
 
@@ -751,7 +552,7 @@ varargs versions of all text functions.
 FIXME: make this buffer size safe someday
 ============
 */
-char *va (char *format, ...)
+char *va_delte(char *format, ...)
 {
 #define VA_NUM_BUFFS 64 // this is 64k of memory but we want to replace all varargs funcs with routing through va so that's OK
 	static char va_buffers[VA_NUM_BUFFS][4096]; // because Con_Printf is now routed through here this needs to be increased to the size of MAXPRINTMSG
@@ -781,7 +582,7 @@ COM_Parse
 Parse a token out of a string
 ==============
 */
-char *COM_Parse (char **data_p)
+char *COM_Parse_delte(char **data_p)
 {
 	int		c;
 	int		len;
@@ -871,7 +672,7 @@ LIBRARY REPLACEMENT FUNCTIONS
 */
 
 // FIXME: replace all Q_stricmp with Q_strcasecmp
-int Q_stricmp (char *s1, char *s2)
+int Q_stricmp_delte(char *s1, char *s2)
 {
 #if defined(WIN32)
 	return _stricmp (s1, s2);
@@ -881,7 +682,7 @@ int Q_stricmp (char *s1, char *s2)
 }
 
 
-int Q_strncasecmp (char *s1, char *s2, int n)
+int Q_strncasecmp_delte(char *s1, char *s2, int n)
 {
 	int		c1, c2;
 
@@ -907,14 +708,14 @@ int Q_strncasecmp (char *s1, char *s2, int n)
 	return 0;		// strings are equal
 }
 
-int Q_strcasecmp (char *s1, char *s2)
+int Q_strcasecmp_delte(char *s1, char *s2)
 {
 	return Q_strncasecmp (s1, s2, 99999);
 }
 
 
 
-void Com_sprintf (char *dest, int size, char *fmt, ...)
+void Com_sprintf_delte(char *dest, int size, char *fmt, ...)
 {
 	int		len;
 	va_list		argptr;
@@ -944,7 +745,7 @@ Searches the string for the given
 key and returns the associated value, or an empty string.
 ===============
 */
-char *Info_ValueForKey (char *s, char *key)
+char *Info_ValueForKey_delte(char *s, char *key)
 {
 	char	pkey[512];
 	static	char value[2][512];	// use two buffers so compares
@@ -986,7 +787,7 @@ char *Info_ValueForKey (char *s, char *key)
 	}
 }
 
-void Info_RemoveKey (char *s, char *key)
+void Info_RemoveKey_delte(char *s, char *key)
 {
 	char	*start;
 	char	pkey[512];
@@ -1044,7 +845,7 @@ Some characters are illegal in info strings because they
 can mess up the server's parsing
 ==================
 */
-qboolean Info_Validate (char *s)
+qboolean Info_Validate_delte(char *s)
 {
 	if (strstr (s, "\""))
 		return false;
@@ -1053,7 +854,7 @@ qboolean Info_Validate (char *s)
 	return true;
 }
 
-void Info_SetValueForKey (char *s, char *key, char *value)
+void Info_SetValueForKey_delte(char *s, char *key, char *value)
 {
 	char	newi[MAX_INFO_STRING], *v;
 	int		c;

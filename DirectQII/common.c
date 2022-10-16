@@ -86,7 +86,7 @@ Both client and server can use this, and it will output
 to the apropriate place.
 =============
 */
-void Com_Printf (char *fmt, ...)
+void Com_Printf_delete (char *fmt, ...)
 {
 	va_list		argptr;
 	char		msg[MAXPRINTMSG];

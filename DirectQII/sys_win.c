@@ -29,6 +29,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <io.h>
 #include <conio.h>
 #include "conproc.h"
+#include "../game_prj/game.h"
 
 //#define DEMO
 
@@ -65,7 +66,7 @@ SYSTEM IO
 */
 
 
-void Sys_Error (char *error, ...)
+void Sys_Error_delete (char *error, ...)
 {
 	va_list		argptr;
 	char		text[1024];
@@ -84,7 +85,7 @@ void Sys_Error (char *error, ...)
 
 	// shut down QHOST hooks if necessary
 	DeinitConProc ();
-
+	assert(false);
 	exit (1);
 }
 
@@ -357,7 +358,7 @@ GAME DLL
 ========================================================================
 */
 
-static HINSTANCE	game_library;
+//static HINSTANCE	game_library;
 
 /*
 =================
@@ -366,9 +367,9 @@ Sys_UnloadGame
 */
 void Sys_UnloadGame (void)
 {
-	if (!FreeLibrary (game_library))
-		Com_Error (ERR_FATAL, "FreeLibrary failed for game library");
-	game_library = NULL;
+	/*if (!FreeLibrary(game_library))
+		Com_Error (ERR_FATAL, "FreeLibrary failed for game library");*/
+	//game_library = NULL;
 }
 
 /*
@@ -380,7 +381,7 @@ Loads the game dll
 */
 void *Sys_GetGameAPI (void *parms)
 {
-	void *(*GetGameAPI) (void *);
+	/*/void* (*GetGameAPI) (void*);
 	char	name[MAX_OSPATH];
 	char	*path;
 	char	cwd[MAX_OSPATH];
@@ -400,6 +401,15 @@ void *Sys_GetGameAPI (void *parms)
 	const char *debugdir = "releaseaxp";
 #else
 	const char *debugdir = "debugaxp";
+#endif
+
+#elif defined _WIN64
+	const char* gamename = "gamex64.dll";
+
+#ifdef NDEBUG
+	const char* debugdir = "release";
+#else
+	const char* debugdir = "debug";
 #endif
 
 #endif
@@ -451,7 +461,8 @@ void *Sys_GetGameAPI (void *parms)
 		return NULL;
 	}
 
-	return GetGameAPI (parms);
+	return GetGameAPI (parms);*/
+	return GetGameAPI_(parms);
 }
 
 //=======================================================================
@@ -565,7 +576,11 @@ void Sys_SetWorkingDirectory (void)
 
 	const char *qFiles[] = {
 		"pak0.pak",
+#if defined _M_IX86
 		"gamex86.dll",
+#else
+		"gamex64.dll",
+#endif
 		"config.cfg",
 		"directq.cfg",
 		NULL
