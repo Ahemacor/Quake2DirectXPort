@@ -45,6 +45,8 @@ typedef int (*sortfunc_t) (const void *, const void *);
 #define CPUSTRING "x86"
 #elif defined _M_ALPHA
 #define CPUSTRING "AXP"
+#elif defined _WIN64
+#define CPUSTRING "x64"
 #endif
 
 #elif defined __linux__

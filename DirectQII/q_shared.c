@@ -552,7 +552,7 @@ varargs versions of all text functions.
 FIXME: make this buffer size safe someday
 ============
 */
-char *va_delte(char *format, ...)
+char *va(char *format, ...)
 {
 #define VA_NUM_BUFFS 64 // this is 64k of memory but we want to replace all varargs funcs with routing through va so that's OK
 	static char va_buffers[VA_NUM_BUFFS][4096]; // because Con_Printf is now routed through here this needs to be increased to the size of MAXPRINTMSG
