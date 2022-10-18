@@ -22,6 +22,7 @@
     <ProjectGuid>{F2EB7945-2837-4393-9134-9B6C9DEFBE19}</ProjectGuid>
     <RootNamespace>Renderer</RootNamespace>
     <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -66,13 +67,20 @@
     <_ProjectFileVersion>16.0.29124.152</_ProjectFileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
-    <IntDir>$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)Build\$(Configuration)\$(Platform)</OutDir>
+    <IntDir>Intermediate\$(Configuration)\$(Platform)\</IntDir>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)Build\$(Configuration)\$(Platform)</OutDir>
+    <IntDir>Intermediate\$(Configuration)\$(Platform)\</IntDir>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
-    <IntDir>$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)Build\$(Configuration)\$(Platform)</OutDir>
+    <IntDir>Intermediate\$(Configuration)\$(Platform)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)Build\$(Configuration)\$(Platform)</OutDir>
+    <IntDir>Intermediate\$(Configuration)\$(Platform)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -87,9 +95,12 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <FxCompile>
-      <ObjectFileOutput>$(OutDir)..\Game\%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput>$(SolutionDir)Data\Shaders\%(Filename).cso</ObjectFileOutput>
       <ShaderModel>5.1</ShaderModel>
     </FxCompile>
+    <Lib>
+      <AdditionalLibraryDirectories>$(SolutionDir)Build\Intermediate\$(Configuration)\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -104,9 +115,12 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <FxCompile>
-      <ObjectFileOutput>$(OutDir)..\Game\%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput>$(SolutionDir)Data\Shaders\%(Filename).cso</ObjectFileOutput>
       <ShaderModel>5.1</ShaderModel>
     </FxCompile>
+    <Lib>
+      <AdditionalLibraryDirectories>$(SolutionDir)Build\Intermediate\$(Configuration)\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -120,9 +134,12 @@
       <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <FxCompile>
-      <ObjectFileOutput>$(OutDir)..\Game\%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput>$(SolutionDir)Data\Shaders\%(Filename).cso</ObjectFileOutput>
       <ShaderModel>5.1</ShaderModel>
     </FxCompile>
+    <Lib>
+      <AdditionalLibraryDirectories>$(SolutionDir)Build\Intermediate\$(Configuration)\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -137,12 +154,15 @@
       <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <FxCompile>
-      <ObjectFileOutput>$(OutDir)..\Game\%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput>$(SolutionDir)Data\Shaders\%(Filename).cso</ObjectFileOutput>
       <ShaderModel>5.1</ShaderModel>
     </FxCompile>
+    <Lib>
+      <AdditionalLibraryDirectories>$(SolutionDir)Build\Intermediate\$(Configuration)\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\DirectQII\q_shared.c" />
+    <ClCompile Include="..\Quake\q_shared.c" />
     <ClCompile Include="glw_imp.c" />
     <ClCompile Include="matrix.c" />
     <ClCompile Include="mod_alias.c" />
@@ -172,10 +192,10 @@
     <ClCompile Include="WindowsWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\DirectQII\anorms.h" />
-    <ClInclude Include="..\DirectQII\qfiles.h" />
-    <ClInclude Include="..\DirectQII\q_shared.h" />
-    <ClInclude Include="..\DirectQII\ref.h" />
+    <ClInclude Include="..\Quake\anorms.h" />
+    <ClInclude Include="..\Quake\qfiles.h" />
+    <ClInclude Include="..\Quake\q_shared.h" />
+    <ClInclude Include="..\Quake\ref.h" />
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="matrix.h" />
     <ClInclude Include="PipelineStateManager.h" />

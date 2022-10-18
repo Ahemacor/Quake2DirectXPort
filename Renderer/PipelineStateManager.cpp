@@ -162,7 +162,8 @@ void PipelineStateManager::InitRasterizerStates()
 
 std::wstring PipelineStateManager::GetShaderFilepath(ShaderType shaderType)
 {
-    const std::wstring shaderDir = L"";
+    const std::wstring shaderDir = L"Shaders";
+    const wchar_t pathDelimiter = L'\\';
 
     std::wstring shaderFilename;
     switch (shaderType)
@@ -349,7 +350,7 @@ std::wstring PipelineStateManager::GetShaderFilepath(ShaderType shaderType)
     }
     ASSERT(!shaderFilename.empty());
 
-    return shaderDir + shaderFilename;
+    return shaderDir + pathDelimiter + shaderFilename;
 }
 
 void PipelineStateManager::InitSamplers()

@@ -71,9 +71,6 @@
     <ClCompile Include="mod_sprite.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\DirectQII\q_shared.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="r_beam.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -140,27 +137,18 @@
     <ClCompile Include="ResourceManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\Quake\q_shared.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\DirectQII\anorms.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="matrix.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\DirectQII\q_shared.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\DirectQII\qfiles.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="r_local.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="r_model.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\DirectQII\ref.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TestDirectX12.h">
@@ -185,6 +173,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ResourceManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\anorms.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\qfiles.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\q_shared.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\ref.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

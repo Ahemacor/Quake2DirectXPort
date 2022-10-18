@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <d3d12.h>
 
 #define RENDERER
-#include "../DirectQII/ref.h"
+#include "../Quake/ref.h"
 
 // we load shaders from embedded resources in the executable, but we can't embed resources in a static lib so we must embed them in the engine project instead
 // this is OK because the only reason we're using a static lib is to ensure we enforce code separation

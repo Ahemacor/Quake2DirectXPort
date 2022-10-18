@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <io.h>
 #include <conio.h>
 #include "conproc.h"
-#include "../game_prj/game.h"
+#include "../Game/game.h"
 
 //#define DEMO
 

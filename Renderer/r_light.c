@@ -277,7 +277,7 @@ static int lightStylesBuffer;
 // padded for HLSL usage
 // to do - reconstruct this mathematically
 static float r_avertexnormals[NUMVERTEXNORMALS][4] = {
-#include "../DirectQII/anorms.h"
+#include "../Quake/anorms.h"
 };
 
 __declspec(align(16)) typedef struct palette_s{
